@@ -1,188 +1,321 @@
 # Lume
 
-Aplicação full-stack moderna composta por **Frontend React**, **Backend Java 21 (Spring Boot 3)** e banco de dados **PostgreSQL**.
+Aplicação full-stack moderna construída com **React 18**, **Java 21 (Spring Boot 3)** e **PostgreSQL 16**, seguindo rigorosamente os princípios de **Clean Architecture**, **Clean Code**, **SOLID**, **Design Patterns** e **Microservices Patterns**.
+
+---
+
+## Sumário
+
+1. [Arquitetura](#arquitetura)
+2. [Padrões e Princípios Aplicados](#padrões-e-princípios-aplicados)
+3. [Tecnologias](#tecnologias)
+4. [Estrutura do Projeto](#estrutura-do-projeto)
+5. [Pré-requisitos](#pré-requisitos)
+6. [Como Executar](#como-executar)
+7. [Endpoints da API](#endpoints-da-api)
+8. [Testes e Cobertura](#testes-e-cobertura)
+9. [Análise Assintótica (Big O)](#análise-assintótica-big-o)
 
 ---
 
 ## Arquitetura
 
+O backend segue a **Clean Architecture** (Robert C. Martin), organizando o código em quatro camadas com regra de dependência unidirecional de fora para dentro:
+
 ```
-Lume/
-├── backend/          # API REST - Java 21, Spring Boot 3, JPA, Flyway
-├── frontend/         # SPA - React 18, TypeScript, Tailwind CSS, Vite
-├── docker-compose.yml
-└── README.md
+┌─────────────────────────────────────────────────────────┐
+│                    PRESENTATION                         │
+│  Controllers REST (CQRS: Command + Query Controllers)   │
+│  GlobalExceptionHandler, ApiResponse                    │
+├─────────────────────────────────────────────────────────┤
+│                    APPLICATION                          │
+│  Use Cases (Ports), Command/Query Handlers (CQRS)       │
+│  DTOs (ACL), Mappers, Commands, Queries                 │
+├─────────────────────────────────────────────────────────┤
+│                      DOMAIN                             │
+│  Entidades, Exceções, Interfaces de Repositório         │
+│  Factory, Strategy (Validação), PasswordEncoder         │
+├─────────────────────────────────────────────────────────┤
+│                   INFRASTRUCTURE                        │
+│  JPA Entities, Repository Adapters, BCrypt Adapter      │
+│  Bean Configuration (Singleton), CORS, OpenAPI          │
+└─────────────────────────────────────────────────────────┘
 ```
+
+A **regra de dependência** garante que camadas internas nunca conhecem camadas externas. O domínio é puro e livre de frameworks.
+
+O frontend segue uma arquitetura baseada em **separação de concerns**: componentes de apresentação, custom hooks para lógica de estado, serviços para comunicação HTTP, e tipos centralizados.
+
+---
+
+## Padrões e Princípios Aplicados
+
+### Clean Architecture
+
+A solução implementa as quatro camadas da Clean Architecture com separação rigorosa de responsabilidades. A camada de **Domain** contém entidades puras sem dependências de frameworks. A camada de **Application** define os use cases através de ports (interfaces) e handlers. A camada de **Infrastructure** fornece implementações concretas (JPA, BCrypt). A camada de **Presentation** expõe os endpoints REST.
+
+### SOLID
+
+| Princípio | Aplicação na Solução |
+|---|---|
+| **SRP** (Single Responsibility) | Cada classe tem uma única responsabilidade: `CreateUserCommandHandler` apenas cria, `UserMapper` apenas mapeia, `EmailValidationStrategy` apenas valida e-mail |
+| **OCP** (Open/Closed) | Novas validações são adicionadas criando novas implementações de `ValidationStrategy<T>` sem modificar código existente |
+| **LSP** (Liskov Substitution) | Todas as implementações de `ValidationStrategy<T>` e `UserRepositoryPort` são substituíveis sem alterar o comportamento |
+| **ISP** (Interface Segregation) | `UserCommandUseCase` e `UserQueryUseCase` são interfaces segregadas; controllers dependem apenas da interface que utilizam |
+| **DIP** (Dependency Inversion) | O domínio define `PasswordEncoder` e `UserRepositoryPort` como abstrações; a infraestrutura implementa com `BCryptPasswordEncoderAdapter` e `UserRepositoryAdapter` |
+
+### Design Patterns
+
+| Pattern | Implementação |
+|---|---|
+| **Factory** | `UserFactory` centraliza a criação de entidades `User` com validação e codificação de senha. `User.Builder` implementa o padrão Builder para construção fluente |
+| **Strategy** | `ValidationStrategy<T>` define a interface; `EmailValidationStrategy`, `NameValidationStrategy` e `PasswordValidationStrategy` são implementações intercambiáveis |
+| **Singleton** | Todos os beans Spring são Singletons por padrão, configurados em `BeanConfig`. Uma única instância de cada handler, factory e adapter é compartilhada |
+| **Adapter** | `UserRepositoryAdapter` adapta Spring Data JPA para `UserRepositoryPort`. `BCryptPasswordEncoderAdapter` adapta BCrypt para `PasswordEncoder` do domínio |
+| **Facade** | `UserCommandService` e `UserQueryService` simplificam a interface para os controllers, delegando para handlers especializados |
+
+### Microservices Patterns
+
+| Pattern | Implementação |
+|---|---|
+| **CQRS** (Command Query Responsibility Segregation) | Operações de escrita (`CreateUserCommand`, `UpdateUserCommand`) e leitura (`GetUserByIdQuery`, `ListUsersQuery`) são completamente separadas em handlers, services e controllers distintos |
+| **ACL** (Anti-Corruption Layer) | DTOs (`UserRequestDTO`, `UserResponseDTO`) isolam o modelo de domínio da representação externa. `UserMapper` e `UserPersistenceMapper` traduzem entre camadas, evitando contaminação |
+
+### Clean Code
+
+O código segue as práticas de Clean Code: nomes significativos e descritivos em todas as classes e métodos; funções pequenas com responsabilidade única; ausência de comentários desnecessários (o código é autoexplicativo); uso de Java Records (Java 21) para imutabilidade de DTOs e Commands; tratamento adequado de exceções com hierarquia clara (`DomainException` → `BusinessRuleException`, `ResourceNotFoundException`).
+
+### Abstração, Acoplamento, Extensibilidade e Coesão
+
+A solução maximiza **coesão** agrupando responsabilidades relacionadas (cada pacote tem um propósito claro) e minimiza **acoplamento** através de interfaces e inversão de dependência. A **extensibilidade** é garantida pelo padrão Strategy (novas validações) e pela Clean Architecture (novas funcionalidades não afetam o domínio). A **abstração** é aplicada em todos os contratos entre camadas via interfaces.
+
+---
 
 ## Tecnologias
 
 ### Backend
 
-| Tecnologia | Versão | Descrição |
+| Tecnologia | Versão | Finalidade |
 |---|---|---|
-| Java | 21 | Linguagem principal |
-| Spring Boot | 3.3.5 | Framework web |
+| Java | 21 | Linguagem principal (Records, Pattern Matching) |
+| Spring Boot | 3.3.5 | Framework web e IoC Container |
 | Spring Data JPA | 3.3.x | Persistência de dados |
 | PostgreSQL | 16 | Banco de dados relacional |
-| Flyway | 10.x | Migrações de banco |
-| SpringDoc OpenAPI | 2.6.0 | Documentação Swagger |
-| Lombok | 1.18.x | Redução de boilerplate |
-| Maven | 3.9.x | Gerenciamento de dependências |
+| Flyway | 10.x | Migrações de banco de dados |
+| SpringDoc OpenAPI | 2.6.0 | Documentação Swagger/OpenAPI |
+| Spring Security Crypto | 6.x | BCrypt para hash de senhas |
+| JaCoCo | 0.8.12 | Cobertura de testes (Code Coverage) |
+| JUnit 5 | 5.10.x | Framework de testes |
+| Mockito | 5.x | Mocking para testes unitários |
+| Maven | 3.9.x | Build e gerenciamento de dependências |
 
 ### Frontend
 
-| Tecnologia | Versão | Descrição |
+| Tecnologia | Versão | Finalidade |
 |---|---|---|
 | React | 18.3 | Biblioteca de UI |
 | TypeScript | 5.6 | Tipagem estática |
 | Vite | 5.4 | Build tool |
-| Tailwind CSS | 3.4 | Framework de estilos |
+| Tailwind CSS | 3.4 | Framework de estilos utilitários |
 | React Router | 6.28 | Roteamento SPA |
 | Axios | 1.7 | Cliente HTTP |
 | React Hot Toast | 2.4 | Notificações |
-| React Icons | 5.3 | Ícones |
+| React Icons | 5.3 | Biblioteca de ícones |
+
+---
+
+## Estrutura do Projeto
+
+```
+Lume/
+├── backend/
+│   ├── src/main/java/com/lume/
+│   │   ├── domain/                    # Camada de Domínio (núcleo puro)
+│   │   │   ├── model/                 #   Entidades de domínio
+│   │   │   ├── exception/             #   Exceções de domínio
+│   │   │   ├── service/               #   Interfaces de serviço (DIP)
+│   │   │   ├── validation/            #   Strategy Pattern (validações)
+│   │   │   └── factory/               #   Factory Pattern (criação)
+│   │   ├── application/               # Camada de Aplicação (use cases)
+│   │   │   ├── command/               #   CQRS Commands
+│   │   │   ├── query/                 #   CQRS Queries
+│   │   │   ├── handler/command/       #   Command Handlers
+│   │   │   ├── handler/query/         #   Query Handlers
+│   │   │   ├── dto/request/           #   ACL - DTOs de entrada
+│   │   │   ├── dto/response/          #   ACL - DTOs de saída
+│   │   │   ├── mapper/                #   ACL - Mappers
+│   │   │   └── port/input|output/     #   Ports (interfaces)
+│   │   ├── infrastructure/            # Camada de Infraestrutura
+│   │   │   ├── persistence/           #   JPA Entities, Adapters, Mappers
+│   │   │   ├── config/                #   Bean Config (Singleton), CORS
+│   │   │   └── security/              #   BCrypt Adapter
+│   │   └── presentation/              # Camada de Apresentação
+│   │       ├── controller/            #   REST Controllers (CQRS)
+│   │       ├── advice/                #   Exception Handlers
+│   │       └── response/              #   Respostas padronizadas
+│   ├── src/main/resources/
+│   │   ├── db/migration/              # Scripts Flyway
+│   │   ├── application.yml            # Configuração principal
+│   │   ├── application-dev.yml        # Perfil de desenvolvimento
+│   │   └── application-test.yml       # Perfil de testes (H2)
+│   ├── src/test/java/com/lume/
+│   │   ├── domain/                    # Testes unitários do domínio
+│   │   ├── application/               # Testes unitários dos handlers
+│   │   ├── infrastructure/            # Testes dos mappers de persistência
+│   │   └── presentation/              # Testes de integração (controllers)
+│   ├── Dockerfile
+│   └── pom.xml
+├── frontend/
+│   ├── src/
+│   │   ├── components/                # Componentes React reutilizáveis
+│   │   │   ├── common/                #   Loading, EmptyState
+│   │   │   ├── layout/                #   Header, Footer, Layout
+│   │   │   └── users/                 #   UserForm, UserTable
+│   │   ├── hooks/                     # Custom Hooks (lógica de estado)
+│   │   ├── pages/                     # Páginas da aplicação
+│   │   ├── routes/                    # Configuração de rotas
+│   │   ├── services/                  # Serviços HTTP (API)
+│   │   ├── styles/                    # Estilos globais (Tailwind)
+│   │   ├── types/                     # Tipos TypeScript
+│   │   └── utils/                     # Utilitários (formatação)
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml
+└── README.md
+```
 
 ---
 
 ## Pré-requisitos
 
-- **Docker** e **Docker Compose** (recomendado)
-- Ou, para desenvolvimento local:
-  - **Java 21** (JDK)
-  - **Maven 3.9+**
-  - **Node.js 22+** e **pnpm**
-  - **PostgreSQL 16+**
+Para execução com **Docker** (recomendado): Docker e Docker Compose instalados.
+
+Para desenvolvimento local: Java 21 (JDK), Maven 3.9+, Node.js 22+ com pnpm, e PostgreSQL 16+.
 
 ---
 
-## Início Rápido com Docker
+## Como Executar
+
+### Com Docker Compose (recomendado)
 
 ```bash
-# Clonar o repositório
 git clone https://github.com/FELIPEACASTRO/Lume.git
 cd Lume
-
-# Subir toda a stack
 docker compose up -d
-
-# Acessar a aplicação
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8080/api
-# Swagger UI: http://localhost:8080/api/swagger-ui.html
 ```
 
----
+Após a inicialização, os serviços estarão disponíveis nos seguintes endereços:
 
-## Desenvolvimento Local
+| Serviço | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:8080/api |
+| Swagger UI | http://localhost:8080/api/swagger-ui.html |
+| PostgreSQL | localhost:5432 |
 
-### Banco de Dados
+### Desenvolvimento Local
 
 ```bash
-# Subir apenas o PostgreSQL via Docker
+# 1. Subir apenas o PostgreSQL
 docker compose up -d postgres
-```
 
-### Backend
-
-```bash
+# 2. Backend
 cd backend
-
-# Executar a aplicação
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
-# A API estará disponível em http://localhost:8080/api
-```
-
-### Frontend
-
-```bash
+# 3. Frontend (em outro terminal)
 cd frontend
-
-# Instalar dependências
 pnpm install
-
-# Executar em modo de desenvolvimento
 pnpm dev
-
-# O frontend estará disponível em http://localhost:5173
 ```
 
 ---
 
 ## Endpoints da API
 
+### Comandos (Escrita) - CQRS
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `POST` | `/api/users` | Criar novo usuário |
+| `PUT` | `/api/users/{id}` | Atualizar usuário existente |
+| `DELETE` | `/api/users/{id}` | Desativar usuário (soft delete) |
+
+### Queries (Leitura) - CQRS
+
 | Método | Endpoint | Descrição |
 |---|---|---|
 | `GET` | `/api/users` | Listar usuários (paginado) |
 | `GET` | `/api/users/{id}` | Buscar usuário por ID |
-| `POST` | `/api/users` | Criar novo usuário |
-| `PUT` | `/api/users/{id}` | Atualizar usuário |
-| `DELETE` | `/api/users/{id}` | Desativar usuário (soft delete) |
+
+### Utilitários
+
+| Método | Endpoint | Descrição |
+|---|---|---|
 | `GET` | `/api/health` | Health check da API |
 
-A documentação completa da API está disponível via **Swagger UI** em:
-`http://localhost:8080/api/swagger-ui.html`
+A documentação interativa completa está disponível via **Swagger UI** em `http://localhost:8080/api/swagger-ui.html`.
 
 ---
 
-## Estrutura do Projeto
+## Testes e Cobertura
 
-### Backend
+### Executar Testes
 
-```
-backend/
-├── src/main/java/com/lume/
-│   ├── config/           # Configurações (CORS, OpenAPI)
-│   ├── controller/       # Controllers REST
-│   ├── dto/              # Data Transfer Objects
-│   ├── exception/        # Exceções e handlers globais
-│   ├── model/            # Entidades JPA
-│   ├── repository/       # Repositórios Spring Data
-│   ├── service/          # Camada de serviço (regras de negócio)
-│   └── LumeApplication.java
-├── src/main/resources/
-│   ├── db/migration/     # Scripts Flyway
-│   ├── application.yml
-│   ├── application-dev.yml
-│   └── application-test.yml
-├── Dockerfile
-└── pom.xml
+```bash
+cd backend
+
+# Testes unitários
+./mvnw test
+
+# Testes de integração
+./mvnw verify
+
+# Gerar relatório de cobertura (JaCoCo)
+./mvnw test jacoco:report
+# Relatório em: target/site/jacoco/index.html
 ```
 
-### Frontend
+### Estrutura de Testes
 
-```
-frontend/
-├── public/               # Arquivos estáticos
-├── src/
-│   ├── assets/           # Imagens e recursos
-│   ├── components/       # Componentes reutilizáveis
-│   │   ├── common/       # Componentes genéricos
-│   │   ├── layout/       # Header, Footer, Layout
-│   │   └── users/        # Componentes de usuários
-│   ├── hooks/            # Custom hooks
-│   ├── pages/            # Páginas da aplicação
-│   ├── routes/           # Configuração de rotas
-│   ├── services/         # Serviços HTTP (API)
-│   ├── styles/           # Estilos globais
-│   ├── types/            # Tipos TypeScript
-│   ├── utils/            # Utilitários
-│   ├── App.tsx
-│   └── main.tsx
-├── Dockerfile
-├── nginx.conf
-└── package.json
-```
+| Tipo | Localização | Descrição |
+|---|---|---|
+| **Unitário** | `domain/UserTest` | Entidade User, Builder, validações de domínio |
+| **Unitário** | `domain/ValidationStrategyTest` | Strategy Pattern (Email, Name, Password) |
+| **Unitário** | `domain/UserFactoryTest` | Factory Pattern com mock de PasswordEncoder |
+| **Unitário** | `application/CreateUserCommandHandlerTest` | Handler de criação com mocks |
+| **Unitário** | `application/UpdateUserCommandHandlerTest` | Handler de atualização com mocks |
+| **Unitário** | `application/DeleteUserCommandHandlerTest` | Handler de exclusão com mocks |
+| **Unitário** | `application/QueryHandlersTest` | Handlers de consulta com mocks |
+| **Unitário** | `application/UserMapperTest` | Mapper ACL entre camadas |
+| **Unitário** | `infrastructure/UserPersistenceMapperTest` | Mapper entre domínio e JPA |
+| **Integração** | `presentation/UserControllerIT` | Fluxo completo Controller → Service → Repository → H2 |
+
+### Cobertura de Código (JaCoCo)
+
+O plugin JaCoCo está configurado para gerar relatórios de cobertura automaticamente na fase de testes. O threshold mínimo configurado é de **70% de cobertura de linhas**. Classes de configuração e a classe principal são excluídas da análise.
+
+---
+
+## Análise Assintótica (Big O)
+
+A tabela abaixo documenta a complexidade computacional das operações principais, considerando n como o número total de registros no banco de dados e p como o tamanho da página.
+
+| Operação | Complexidade | Justificativa |
+|---|---|---|
+| Criar usuário | O(log n) | Verificação de unicidade de e-mail via índice B-tree + inserção |
+| Buscar por ID | O(log n) | Busca por chave primária (índice B-tree) |
+| Buscar por e-mail | O(log n) | Busca por índice no campo email |
+| Listar paginado | O(p + log n) | OFFSET/LIMIT com índice; p itens retornados por página |
+| Atualizar usuário | O(log n) | Busca por ID + verificação de e-mail + atualização |
+| Desativar usuário | O(log n) | Busca por ID + atualização de flag |
+| Validação (Strategy) | O(k) | k = número de caracteres do campo validado (regex matching) |
+| Mapeamento (ACL) | O(1) | Conversão direta campo a campo |
+| Hash de senha (BCrypt) | O(1) | Custo fixo do algoritmo (fator 12) |
 
 ---
 
 ## Variáveis de Ambiente
-
-Copie o arquivo `.env.example` para `.env` e ajuste conforme necessário:
-
-```bash
-cp .env.example .env
-```
 
 | Variável | Padrão | Descrição |
 |---|---|---|

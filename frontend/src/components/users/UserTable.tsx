@@ -1,4 +1,5 @@
 import { User } from '../../types';
+import { formatDate } from '../../utils/formatters';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 interface UserTableProps {
@@ -7,15 +8,12 @@ interface UserTableProps {
   onDelete: (id: number) => void;
 }
 
+/**
+ * Componente de tabela de usuários.
+ * Princípio SRP: responsável apenas pela renderização da tabela.
+ * A lógica de estado e ações é gerenciada pelo hook useUsers.
+ */
 export default function UserTable({ users, onEdit, onDelete }: UserTableProps) {
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
