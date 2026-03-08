@@ -22,9 +22,11 @@ class ProviderCatalogServiceTest {
                 .filteredOn(credential -> "openai".equals(credential.providerCode()))
                 .singleElement()
                 .satisfies(credential -> {
-                    assertThat(credential.apiKeyEnvVar()).isEqualTo("OPENAI_API_KEY");
+                    assertThat(credential.credentialFields()).hasSize(1);
+                    assertThat(credential.credentialFields().getFirst().envVar()).isEqualTo("OPENAI_API_KEY");
                     assertThat(credential.executionSupported()).isTrue();
                     assertThat(credential.configured()).isFalse();
+                    assertThat(credential.apiStyle()).isEqualTo("responses");
                 });
     }
 
@@ -40,5 +42,7 @@ class ProviderCatalogServiceTest {
         assertThat(service.isConfigured("openai")).isTrue();
         assertThat(service.isConfigured("perplexity")).isTrue();
         assertThat(service.isConfigured("anthropic")).isFalse();
+        assertThat(service.missingCredentialEnvVars("cloudflare-workers-ai"))
+                .containsExactly("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID");
     }
 }

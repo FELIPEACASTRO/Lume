@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.dto.CreateMemberRequest;
+import com.lume.workspace.dto.UpdateAgentRuntimeRequest;
 import com.lume.workspace.dto.UpdateMemberRequest;
 import com.lume.workspace.dto.UpdateSettingsPreferencesRequest;
 import com.lume.workspace.entity.MembershipJpaEntity;
@@ -26,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasItems;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -56,7 +58,13 @@ class IdentityTenancyIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.workspace.slug").value("workspace-principal"))
                 .andExpect(jsonPath("$.role.code").value("workspace_admin"))
-                .andExpect(jsonPath("$.role.permissions[0]").value("workspace.read"));
+                .andExpect(jsonPath("$.role.permissions", hasItems(
+                        "workspace.read",
+                        "providers.read",
+                        "agents.runtime.manage",
+                        "research.run",
+                        "threat_intel.read"
+                )));
     }
 
     @Test
@@ -177,6 +185,39 @@ class IdentityTenancyIT {
         mockMvc.perform(get("/settings/overview"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.preferences.appearance").value("dark"))
-                .andExpect(jsonPath("$.preferences.languageCode").value("en-US"));
+                .andExpect(jsonPath("$.preferences.languageCode").value("en-US"))
+                .andExpect(jsonPath("$.sections[?(@.key=='providers-runtime')]").exists())
+                .andExpect(jsonPath("$.sections[?(@.key=='threat-intelligence')]").exists());
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/agents/profiles/{id}/runtime - Admin deve atualizar runtime do agente")
+    void shouldUpdateAgentRuntimeForAdmin() throws Exception {
+        UpdateAgentRuntimeRequest request = new UpdateAgentRuntimeRequest(
+                "anthropic",
+                "anthropic:claude-sonnet-4-5",
+                "agent-v2-claude",
+                "Responda com foco em compliance e evidencia."
+        );
+
+        mockMvc.perform(patch("/api/v1/agents/profiles/{id}/runtime", "ops")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("ops"))
+                .andExpect(jsonPath("$.providerCode").value("anthropic"))
+                .andExpect(jsonPath("$.modelCode").value("anthropic:claude-sonnet-4-5"))
+                .andExpect(jsonPath("$.versionLabel").value("agent-v2-claude"))
+                .andExpect(jsonPath("$.apiStyle").value("messages"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/threat-intel/providers - Membro comum nao deve enxergar threat-intel")
+    void shouldDenyThreatIntelListingForWorkspaceMember() throws Exception {
+        UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
+
+        mockMvc.perform(get("/api/v1/threat-intel/providers")
+                        .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
+                .andExpect(status().isForbidden());
     }
 }

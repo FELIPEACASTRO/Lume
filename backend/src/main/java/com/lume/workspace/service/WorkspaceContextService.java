@@ -33,6 +33,14 @@ public class WorkspaceContextService {
     public static final String PERMISSION_WORKSPACE_SWITCH = "workspace.switch";
     public static final String PERMISSION_MEMBERS_READ = "members.read";
     public static final String PERMISSION_MEMBERS_MANAGE = "members.manage";
+    public static final String PERMISSION_PROVIDERS_READ = "providers.read";
+    public static final String PERMISSION_PROVIDERS_MANAGE = "providers.manage";
+    public static final String PERMISSION_PROVIDERS_TEST = "providers.test";
+    public static final String PERMISSION_AGENTS_RUNTIME_MANAGE = "agents.runtime.manage";
+    public static final String PERMISSION_RESEARCH_RUN = "research.run";
+    public static final String PERMISSION_THREAT_INTEL_READ = "threat_intel.read";
+    public static final String PERMISSION_THREAT_INTEL_RUN = "threat_intel.run";
+    public static final String PERMISSION_THREAT_INTEL_MANAGE = "threat_intel.manage";
 
     private final OrganizationJpaRepository organizationRepository;
     private final WorkspaceJpaRepository workspaceRepository;
@@ -178,11 +186,20 @@ public class WorkspaceContextService {
                     PERMISSION_WORKSPACE_READ,
                     PERMISSION_WORKSPACE_SWITCH,
                     PERMISSION_MEMBERS_READ,
-                    PERMISSION_MEMBERS_MANAGE
+                    PERMISSION_MEMBERS_MANAGE,
+                    PERMISSION_PROVIDERS_READ,
+                    PERMISSION_PROVIDERS_MANAGE,
+                    PERMISSION_PROVIDERS_TEST,
+                    PERMISSION_AGENTS_RUNTIME_MANAGE,
+                    PERMISSION_RESEARCH_RUN,
+                    PERMISSION_THREAT_INTEL_READ,
+                    PERMISSION_THREAT_INTEL_RUN,
+                    PERMISSION_THREAT_INTEL_MANAGE
             );
             case "workspace_member" -> List.of(
                     PERMISSION_WORKSPACE_READ,
-                    PERMISSION_WORKSPACE_SWITCH
+                    PERMISSION_WORKSPACE_SWITCH,
+                    PERMISSION_RESEARCH_RUN
             );
             default -> List.of(PERMISSION_WORKSPACE_READ);
         };

@@ -11,6 +11,9 @@ public record AgentThreadResponse(
         String updatedAt,
         String providerCode,
         String modelCode,
-        String versionLabel
+        String versionLabel,
+        String apiStyle,
+        String credentialState,
+        String catalogState
 ) {
 }

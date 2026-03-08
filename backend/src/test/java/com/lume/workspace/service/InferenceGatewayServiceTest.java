@@ -21,18 +21,18 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class InferenceGatewayServiceTest {
 
     @Test
-    @DisplayName("should execute OpenAI-compatible providers")
+    @DisplayName("should execute OpenAI responses providers")
     void shouldExecuteOpenAiCompatibleProviders() {
         MockEnvironment environment = new MockEnvironment().withProperty("OPENAI_API_KEY", "test-openai");
         ProviderCatalogService catalogService = new ProviderCatalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
 
-        server.expect(requestTo("https://api.openai.com/v1/chat/completions"))
+        server.expect(requestTo("https://api.openai.com/v1/responses"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Authorization", "Bearer test-openai"))
                 .andRespond(withSuccess("""
-                        {"choices":[{"message":{"content":"Resposta OpenAI"}}]}
+                        {"output":[{"content":[{"type":"output_text","text":"Resposta OpenAI"}]}]}
                         """, MediaType.APPLICATION_JSON));
 
         InferenceGatewayService service = new InferenceGatewayService(builder, new ObjectMapper(), catalogService, environment);
@@ -48,6 +48,7 @@ class InferenceGatewayServiceTest {
 
         assertThat(response.status()).isEqualTo("completed");
         assertThat(response.content()).isEqualTo("Resposta OpenAI");
+        assertThat(response.apiStyle()).isEqualTo("responses");
         server.verify();
     }
 
@@ -90,8 +91,9 @@ class InferenceGatewayServiceTest {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
 
-        server.expect(requestTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=test-gemini"))
+        server.expect(requestTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", "test-gemini"))
                 .andRespond(withSuccess("""
                         {"candidates":[{"content":{"parts":[{"text":"Resposta Gemini"}]}}]}
                         """, MediaType.APPLICATION_JSON));
@@ -109,6 +111,7 @@ class InferenceGatewayServiceTest {
 
         assertThat(response.status()).isEqualTo("completed");
         assertThat(response.content()).isEqualTo("Resposta Gemini");
+        assertThat(response.apiStyle()).isEqualTo("generate-content");
         server.verify();
     }
 

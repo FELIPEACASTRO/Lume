@@ -77,6 +77,45 @@ public class AgentService {
     }
 
     @Transactional
+    public AgentProfileResponse updateRuntime(String profileId, UpdateAgentRuntimeRequest request) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_AGENTS_RUNTIME_MANAGE);
+
+        AgentProfileJpaEntity profile = findProfile(profileId);
+        ProviderDefinition provider = providerCatalogService.requireProvider(request.providerCode());
+        if (!"text-runtime".equalsIgnoreCase(provider.category())) {
+            throw new IllegalArgumentException("O runtime do agente aceita apenas providers da categoria text-runtime.");
+        }
+
+        var model = providerCatalogService.resolveModel(provider.code(), request.modelCode());
+        profile.setProviderCode(provider.code());
+        profile.setModelCode(model.code());
+        profile.setVersionLabel(
+                request.versionLabel() != null && !request.versionLabel().isBlank()
+                        ? request.versionLabel().trim()
+                        : model.versionLabel()
+        );
+        if (request.systemPrompt() != null && !request.systemPrompt().isBlank()) {
+            profile.setSystemPrompt(request.systemPrompt().trim());
+        }
+        profile.setStatusLabel(provider.executionSupported() ? "Runtime versionado" : "Catalogado/manual");
+        profile.setAvailability(resolveAvailability(provider));
+        agentProfileRepository.save(profile);
+
+        auditLogService.record(
+                "agent_profile",
+                profile.getId(),
+                "runtime_updated",
+                Map.of(
+                        "providerCode", profile.getProviderCode(),
+                        "modelCode", profile.getModelCode(),
+                        "versionLabel", profile.getVersionLabel()
+                )
+        );
+
+        return toProfileResponse(profile);
+    }
+
+    @Transactional
     public AgentConversationResponse createThread(CreateAgentThreadRequest request) {
         AgentProfileJpaEntity profile = findProfile(request.agentProfileId());
         String threadId = UUID.randomUUID().toString();
@@ -248,16 +287,15 @@ public class AgentService {
         ProviderDefinition provider = providerCatalogService.findProvider(profile.getProviderCode()).orElse(null);
         boolean configured = provider != null && providerCatalogService.isConfigured(provider);
         boolean executionSupported = provider != null && provider.executionSupported();
-
-        String status = executionSupported
-                ? configured ? "Inferencia ativa" : "Configure API key"
-                : "Catalogado";
-        String availability = executionSupported
-                ? configured ? "live" : "disabled-preview"
-                : "preview";
-        String note = configured
-                ? profile.getNote()
-                : profile.getNote() + " Use " + (provider != null ? provider.apiKeyEnvVar() : "API_KEY") + " para ativar este agente.";
+        String status = resolveStatusLabel(provider, configured, executionSupported);
+        String availability = provider != null ? resolveAvailability(provider) : "preview";
+        String note = buildRuntimeNote(profile, provider);
+        String credentialState = provider == null
+                ? "unknown"
+                : configured ? "configured" : "missing_credentials";
+        String apiStyle = provider != null ? provider.apiStyle() : "unknown";
+        String catalogState = provider != null ? provider.catalogState() : "catalog-only";
+        List<String> toolset = provider != null ? provider.capabilities() : List.of();
 
         return new AgentProfileResponse(
                 profile.getId(),
@@ -269,12 +307,22 @@ public class AgentService {
                 note,
                 profile.getProviderCode(),
                 profile.getModelCode(),
-                profile.getVersionLabel()
+                profile.getVersionLabel(),
+                apiStyle,
+                credentialState,
+                catalogState,
+                configured,
+                executionSupported,
+                toolset
         );
     }
 
     private AgentThreadResponse toThreadResponse(AgentThreadJpaEntity thread, AgentProfileJpaEntity profile) {
         String agentName = profile != null ? profile.getName() : "Agent";
+        ProviderDefinition provider = profile != null
+                ? providerCatalogService.findProvider(profile.getProviderCode()).orElse(null)
+                : null;
+        boolean configured = provider != null && providerCatalogService.isConfigured(provider);
         return new AgentThreadResponse(
                 thread.getId(),
                 thread.getAgentProfileId(),
@@ -286,7 +334,10 @@ public class AgentService {
                 formatTimestamp(thread.getUpdatedAt()),
                 profile != null ? profile.getProviderCode() : null,
                 profile != null ? profile.getModelCode() : null,
-                profile != null ? profile.getVersionLabel() : null
+                profile != null ? profile.getVersionLabel() : null,
+                provider != null ? provider.apiStyle() : null,
+                provider == null ? null : configured ? "configured" : "missing_credentials",
+                provider != null ? provider.catalogState() : null
         );
     }
 
@@ -301,5 +352,36 @@ public class AgentService {
 
     private String formatTimestamp(LocalDateTime temporal) {
         return TIMESTAMP_FORMAT.format(temporal != null ? temporal : LocalDateTime.now());
+    }
+
+    private String resolveStatusLabel(ProviderDefinition provider, boolean configured, boolean executionSupported) {
+        if (provider == null) {
+            return "Catalogado";
+        }
+        if (!executionSupported) {
+            return "Catalogado/manual";
+        }
+        return configured ? "Inferencia ativa" : "Configure credenciais";
+    }
+
+    private String resolveAvailability(ProviderDefinition provider) {
+        if (provider == null) {
+            return "preview";
+        }
+        if (!provider.executionSupported()) {
+            return "preview";
+        }
+        return providerCatalogService.isConfigured(provider) ? "live" : "disabled-preview";
+    }
+
+    private String buildRuntimeNote(AgentProfileJpaEntity profile, ProviderDefinition provider) {
+        if (provider == null) {
+            return profile.getNote();
+        }
+        List<String> missingCredentials = providerCatalogService.missingCredentialEnvVars(provider);
+        if (missingCredentials.isEmpty()) {
+            return profile.getNote();
+        }
+        return profile.getNote() + " Configure " + String.join(", ", missingCredentials) + " para ativar este runtime.";
     }
 }

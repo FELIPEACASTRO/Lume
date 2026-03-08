@@ -5,6 +5,8 @@ public record ModelResponse(
         String providerCode,
         String label,
         String versionLabel,
+        String apiStyle,
+        String catalogState,
         boolean defaultModel,
         boolean enabledForAgents
 ) {

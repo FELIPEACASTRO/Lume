@@ -1,16 +1,15 @@
 package com.lume.workspace.dto;
 
-public record UnifiedInferenceResponse(
+import java.util.List;
+
+public record ThreatIntelQueryResponse(
         String providerCode,
         String providerName,
-        String modelCode,
-        String versionLabel,
-        String apiStyle,
         boolean configured,
         boolean executionSupported,
-        boolean fallbackUsed,
         String status,
-        String content,
+        String query,
+        List<ThreatIntelExposureDto> items,
         String error
 ) {
 }

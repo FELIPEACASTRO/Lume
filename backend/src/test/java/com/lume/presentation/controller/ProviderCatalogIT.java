@@ -53,8 +53,26 @@ class ProviderCatalogIT {
     void shouldReturnCredentialHints() throws Exception {
         mockMvc.perform(get("/api/v1/provider-credentials"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.providerCode=='openai')].apiKeyEnvVar").value("OPENAI_API_KEY"))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].credentialFields[0].envVar").value("OPENAI_API_KEY"))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].configured").value(false));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/providers/status - should expose configuration state")
+    void shouldReturnProviderStatuses() throws Exception {
+        mockMvc.perform(get("/api/v1/providers/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.code=='openai')].category").value("text-runtime"))
+                .andExpect(jsonPath("$[?(@.code=='darkowl')].adminOnly").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/research/providers - should expose research providers only")
+    void shouldReturnResearchProviders() throws Exception {
+        mockMvc.perform(get("/api/v1/research/providers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.code=='exa')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='darkowl')]").doesNotExist());
     }
 
     @Test
@@ -76,6 +94,7 @@ class ProviderCatalogIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.providerCode").value("openai"))
                 .andExpect(jsonPath("$.status").value("missing_credentials"))
-                .andExpect(jsonPath("$.configured").value(false));
+                .andExpect(jsonPath("$.configured").value(false))
+                .andExpect(jsonPath("$.apiStyle").value("responses"));
     }
 }

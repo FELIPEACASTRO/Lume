@@ -9,7 +9,6 @@ import com.lume.workspace.dto.UnifiedInferenceResponse;
 import com.lume.workspace.dto.UnifiedMessageRequest;
 import com.lume.workspace.inference.ModelDefinition;
 import com.lume.workspace.inference.ProviderDefinition;
-import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -24,18 +23,16 @@ public class InferenceGatewayService {
     private final RestClient.Builder restClientBuilder;
     private final ObjectMapper objectMapper;
     private final ProviderCatalogService providerCatalogService;
-    private final Environment environment;
 
     public InferenceGatewayService(
             RestClient.Builder restClientBuilder,
             ObjectMapper objectMapper,
             ProviderCatalogService providerCatalogService,
-            Environment environment
+            org.springframework.core.env.Environment environment
     ) {
         this.restClientBuilder = restClientBuilder;
         this.objectMapper = objectMapper;
         this.providerCatalogService = providerCatalogService;
-        this.environment = environment;
     }
 
     public UnifiedInferenceResponse execute(UnifiedInferenceRequest request) {
@@ -46,28 +43,53 @@ public class InferenceGatewayService {
             return unavailable(provider, model, "unsupported", "Este provedor esta catalogado, mas nao foi habilitado para execucao real nesta rodada.");
         }
 
-        String credential = environment.getProperty(provider.apiKeyEnvVar());
-        if (credential == null || credential.isBlank()) {
-            return unavailable(provider, model, "missing_credentials", "API key ausente para " + provider.name() + ". Configure " + provider.apiKeyEnvVar() + " antes de executar.");
+        List<String> missingCredentials = providerCatalogService.missingCredentialEnvVars(provider);
+        if (!missingCredentials.isEmpty()) {
+            return unavailable(provider, model, "missing_credentials", "Credenciais ausentes para " + provider.name() + ": " + String.join(", ", missingCredentials));
         }
 
         try {
             return switch (provider.protocol()) {
-                case OPENAI_CHAT_COMPLETIONS -> callOpenAiCompatible(provider, model, request, credential);
-                case ANTHROPIC_MESSAGES -> callAnthropic(provider, model, request, credential);
-                case GEMINI_GENERATE_CONTENT -> callGemini(provider, model, request, credential);
-                case UNSUPPORTED -> unavailable(provider, model, "unsupported", "O protocolo deste provedor ainda nao foi implementado.");
+                case OPENAI_RESPONSES -> callOpenAiResponses(provider, model, request);
+                case OPENAI_CHAT_COMPLETIONS, CLOUDFLARE_OPENAI_COMPAT -> callOpenAiCompatible(provider, model, request);
+                case ANTHROPIC_MESSAGES -> callAnthropic(provider, model, request);
+                case GEMINI_GENERATE_CONTENT -> callGemini(provider, model, request);
+                case COHERE_CHAT_V2 -> callCohere(provider, model, request);
+                case BEDROCK_CONVERSE, CUSTOM_RESEARCH, CUSTOM_THREAT_INTEL, UNSUPPORTED ->
+                        unavailable(provider, model, "unsupported", "O protocolo deste provedor ainda nao foi implementado para inferencia textual.");
             };
         } catch (RestClientException providerError) {
             return unavailable(provider, model, "provider_error", providerError.getMessage());
         }
     }
 
+    private UnifiedInferenceResponse callOpenAiResponses(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            UnifiedInferenceRequest request
+    ) {
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("model", externalModelCode(model.code()));
+        payload.put("temperature", request.temperature() != null ? request.temperature() : 0.3);
+        payload.put("max_output_tokens", request.maxTokens() != null ? request.maxTokens() : 700);
+        payload.put("input", stringifyMessages(request));
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/responses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        return success(provider, model, extractResponsesContent(response));
+    }
+
     private UnifiedInferenceResponse callOpenAiCompatible(
             ProviderDefinition provider,
             ModelDefinition model,
-            UnifiedInferenceRequest request,
-            String apiKey
+            UnifiedInferenceRequest request
     ) {
         ObjectNode payload = objectMapper.createObjectNode();
         payload.put("model", externalModelCode(model.code()));
@@ -75,12 +97,18 @@ public class InferenceGatewayService {
         payload.put("max_tokens", request.maxTokens() != null ? request.maxTokens() : 700);
         payload.set("messages", buildOpenAiMessages(request));
 
-        JsonNode response = restClientBuilder.build()
+        RestClient.RequestBodySpec spec = restClientBuilder.build()
                 .post()
-                .uri(provider.baseUrl() + "/chat/completions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + apiKey)
-                .body(payload)
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/chat/completions")
+                .contentType(MediaType.APPLICATION_JSON);
+
+        if ("cloudflare-workers-ai".equals(provider.code())) {
+            spec.header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiToken"));
+        } else {
+            spec.header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"));
+        }
+
+        JsonNode response = spec.body(payload)
                 .retrieve()
                 .body(JsonNode.class);
 
@@ -90,8 +118,7 @@ public class InferenceGatewayService {
     private UnifiedInferenceResponse callAnthropic(
             ProviderDefinition provider,
             ModelDefinition model,
-            UnifiedInferenceRequest request,
-            String apiKey
+            UnifiedInferenceRequest request
     ) {
         ObjectNode payload = objectMapper.createObjectNode();
         payload.put("model", externalModelCode(model.code()));
@@ -104,9 +131,9 @@ public class InferenceGatewayService {
 
         JsonNode response = restClientBuilder.build()
                 .post()
-                .uri(provider.baseUrl() + "/messages")
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/messages")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("x-api-key", apiKey)
+                .header("x-api-key", providerCatalogService.credentialValue(provider, "apiKey"))
                 .header("anthropic-version", "2023-06-01")
                 .body(payload)
                 .retrieve()
@@ -127,8 +154,7 @@ public class InferenceGatewayService {
     private UnifiedInferenceResponse callGemini(
             ProviderDefinition provider,
             ModelDefinition model,
-            UnifiedInferenceRequest request,
-            String apiKey
+            UnifiedInferenceRequest request
     ) {
         ObjectNode payload = objectMapper.createObjectNode();
 
@@ -137,7 +163,7 @@ public class InferenceGatewayService {
             instruction.set("parts", objectMapper.createArrayNode().add(
                     objectMapper.createObjectNode().put("text", request.systemPrompt().trim())
             ));
-            payload.set("systemInstruction", instruction);
+            payload.set("system_instruction", instruction);
         }
 
         ArrayNode contents = objectMapper.createArrayNode();
@@ -158,8 +184,9 @@ public class InferenceGatewayService {
 
         JsonNode response = restClientBuilder.build()
                 .post()
-                .uri(provider.baseUrl() + "/models/" + externalModelCode(model.code()) + ":generateContent?key=" + apiKey)
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/models/" + externalModelCode(model.code()) + ":generateContent")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("x-goog-api-key", providerCatalogService.credentialValue(provider, "apiKey"))
                 .body(payload)
                 .retrieve()
                 .body(JsonNode.class);
@@ -174,6 +201,31 @@ public class InferenceGatewayService {
         }
 
         return success(provider, model, content.toString());
+    }
+
+    private UnifiedInferenceResponse callCohere(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            UnifiedInferenceRequest request
+    ) {
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("model", externalModelCode(model.code()));
+        payload.put("temperature", request.temperature() != null ? request.temperature() : 0.3);
+        if (request.systemPrompt() != null && !request.systemPrompt().isBlank()) {
+            payload.put("preamble", request.systemPrompt().trim());
+        }
+        payload.put("message", stringifyMessages(request));
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/chat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        return success(provider, model, response.path("message").path("content").path(0).path("text").asText(""));
     }
 
     private ArrayNode buildOpenAiMessages(UnifiedInferenceRequest request) {
@@ -222,6 +274,24 @@ public class InferenceGatewayService {
         return fallbackMessages;
     }
 
+    private String extractResponsesContent(JsonNode response) {
+        StringBuilder content = new StringBuilder();
+        if (response == null) {
+            return "";
+        }
+        for (JsonNode item : response.path("output")) {
+            for (JsonNode contentItem : item.path("content")) {
+                if ("output_text".equalsIgnoreCase(contentItem.path("type").asText())) {
+                    content.append(contentItem.path("text").asText(""));
+                }
+            }
+        }
+        if (content.isEmpty()) {
+            content.append(response.path("output_text").asText(""));
+        }
+        return content.toString();
+    }
+
     private String extractOpenAiContent(JsonNode response) {
         JsonNode contentNode = response.path("choices").path(0).path("message").path("content");
         if (contentNode.isTextual()) {
@@ -241,6 +311,17 @@ public class InferenceGatewayService {
         }
 
         return "";
+    }
+
+    private String stringifyMessages(UnifiedInferenceRequest request) {
+        StringBuilder builder = new StringBuilder();
+        if (request.systemPrompt() != null && !request.systemPrompt().isBlank()) {
+            builder.append("System: ").append(request.systemPrompt().trim()).append("\n\n");
+        }
+        for (UnifiedMessageRequest message : normalizeMessages(request)) {
+            builder.append(normalizeRole(message.role())).append(": ").append(message.content()).append("\n");
+        }
+        return builder.toString().trim();
     }
 
     private String externalModelCode(String internalModelCode) {
@@ -264,6 +345,7 @@ public class InferenceGatewayService {
                 provider.name(),
                 model.code(),
                 model.versionLabel(),
+                provider.apiStyle(),
                 true,
                 true,
                 false,
@@ -279,6 +361,7 @@ public class InferenceGatewayService {
                 provider.name(),
                 model.code(),
                 model.versionLabel(),
+                provider.apiStyle(),
                 providerCatalogService.isConfigured(provider),
                 provider.executionSupported(),
                 false,
