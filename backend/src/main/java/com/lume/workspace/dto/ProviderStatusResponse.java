@@ -10,6 +10,8 @@ public record ProviderStatusResponse(
         String catalogState,
         String category,
         boolean adminOnly,
+        boolean streamingSupported,
+        String readinessStatus,
         List<String> missingCredentialEnvVars
 ) {
 }

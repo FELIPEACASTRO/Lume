@@ -119,6 +119,12 @@ export interface AgentProfile {
   providerCode: string;
   modelCode: string;
   versionLabel: string;
+  apiStyle: string;
+  credentialState: string;
+  catalogState: string;
+  configured: boolean;
+  executionSupported: boolean;
+  toolset: string[];
 }
 
 export interface AgentMessage {
@@ -200,6 +206,9 @@ export interface AgentThread {
   providerCode?: string | null;
   modelCode?: string | null;
   versionLabel?: string | null;
+  apiStyle?: string | null;
+  credentialState?: string | null;
+  catalogState?: string | null;
 }
 
 export interface AgentConversation {
@@ -299,6 +308,114 @@ export interface SettingsOverviewDto {
   usage: UsageSummaryDto;
   preferences: SettingsPreferencesDto;
   sections: SettingsSectionDto[];
+}
+
+export interface CredentialFieldDto {
+  key: string;
+  label: string;
+  envVar: string;
+  required: boolean;
+  secret: boolean;
+  configured: boolean;
+  description: string;
+}
+
+export interface ProviderDto {
+  code: string;
+  name: string;
+  category: string;
+  protocol: string;
+  apiStyle: string;
+  executionSupported: boolean;
+  configured: boolean;
+  adminOnly: boolean;
+  tenantScoped: boolean;
+  supportsResponsesApi: boolean;
+  supportsChatCompletions: boolean;
+  streamingSupported: boolean;
+  catalogState: string;
+  requiredHeaders: string[];
+  credentialFields: CredentialFieldDto[];
+  apiKeyPortalUrl: string;
+  docsUrl: string;
+  defaultModelCode: string;
+  capabilities: string[];
+  notes: string;
+}
+
+export interface ProviderStatusDto {
+  providerCode: string;
+  providerName: string;
+  configured: boolean;
+  executionSupported: boolean;
+  catalogState: string;
+  category: string;
+  adminOnly: boolean;
+  streamingSupported: boolean;
+  readinessStatus: string;
+  missingCredentialEnvVars: string[];
+}
+
+export interface ProviderCredentialDto {
+  providerCode: string;
+  providerName: string;
+  configured: boolean;
+  executionSupported: boolean;
+  category: string;
+  apiStyle: string;
+  adminOnly: boolean;
+  streamingSupported: boolean;
+  catalogState: string;
+  missingCredentialEnvVars: string[];
+  credentialFields: CredentialFieldDto[];
+  apiKeyPortalUrl: string;
+  docsUrl: string;
+}
+
+export interface ProviderConnectivityDto {
+  providerCode: string;
+  providerName: string;
+  category: string;
+  apiStyle: string;
+  status: string;
+  configured: boolean;
+  executionSupported: boolean;
+  streamingSupported: boolean;
+  latencyMs?: number | null;
+  message: string;
+  missingCredentialEnvVars: string[];
+}
+
+export interface ProviderHealthDto {
+  providerCode: string;
+  providerName: string;
+  category: string;
+  configured: boolean;
+  executionSupported: boolean;
+  streamingSupported: boolean;
+  readinessStatus: string;
+  message: string;
+  lastConnectivityStatus?: string | null;
+  lastCheckedAt?: string | null;
+  missingCredentialEnvVars: string[];
+}
+
+export interface ModelDto {
+  code: string;
+  providerCode: string;
+  label: string;
+  versionLabel: string;
+  apiStyle: string;
+  catalogState: string;
+  defaultModel: boolean;
+  enabledForAgents: boolean;
+}
+
+export interface UpdateAgentRuntimeRequest {
+  providerCode: string;
+  modelCode?: string;
+  versionLabel?: string;
+  systemPrompt?: string;
 }
 
 export interface CreateAgentThreadRequest {

@@ -39,3 +39,8 @@ frontend/.vite/
 
 # Backend
 backend/target/
+
+# Local tooling artifacts
+.codex-run/
+.playwright-cli/
+output/

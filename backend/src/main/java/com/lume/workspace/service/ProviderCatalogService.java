@@ -15,8 +15,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ProviderCatalogService {
@@ -24,11 +26,26 @@ public class ProviderCatalogService {
     private final Environment environment;
     private final Map<String, ProviderDefinition> providersByCode;
     private final Map<String, ModelDefinition> modelsByCode;
+    private final Map<String, String> aliasesToCanonical;
+    private final Set<String> streamingSupportedProviderCodes;
 
     public ProviderCatalogService(Environment environment) {
         this.environment = environment;
         this.providersByCode = buildProviders();
         this.modelsByCode = buildModels();
+        this.aliasesToCanonical = Map.of(
+                "gemini", "google-gemini",
+                "claude", "anthropic",
+                "grok", "xai"
+        );
+        this.streamingSupportedProviderCodes = Set.of(
+                "openai",
+                "google-gemini",
+                "deepseek",
+                "anthropic",
+                "xai",
+                "perplexity"
+        );
     }
 
     public List<ProviderResponse> listProviders() {
@@ -54,6 +71,8 @@ public class ProviderCatalogService {
                         provider.catalogState(),
                         provider.category(),
                         provider.adminOnly(),
+                        isStreamingSupported(provider),
+                        readinessStatus(provider),
                         missingCredentialEnvVars(provider)
                 ))
                 .toList();
@@ -61,7 +80,7 @@ public class ProviderCatalogService {
 
     public List<ModelResponse> listModels(String providerCode) {
         return modelsByCode.values().stream()
-                .filter(model -> providerCode == null || providerCode.isBlank() || model.providerCode().equalsIgnoreCase(providerCode))
+                .filter(model -> providerCode == null || providerCode.isBlank() || model.providerCode().equalsIgnoreCase(normalizeProviderCode(providerCode)))
                 .map(this::toModelResponse)
                 .toList();
     }
@@ -76,6 +95,7 @@ public class ProviderCatalogService {
                         provider.category(),
                         provider.apiStyle(),
                         provider.adminOnly(),
+                        isStreamingSupported(provider),
                         provider.catalogState(),
                         missingCredentialEnvVars(provider),
                         toCredentialResponses(provider),
@@ -94,7 +114,15 @@ public class ProviderCatalogService {
         if (providerCode == null || providerCode.isBlank()) {
             return Optional.empty();
         }
-        return Optional.ofNullable(providersByCode.get(providerCode.trim().toLowerCase()));
+        return Optional.ofNullable(providersByCode.get(normalizeProviderCode(providerCode)));
+    }
+
+    public String normalizeProviderCode(String providerCode) {
+        if (providerCode == null || providerCode.isBlank()) {
+            return providerCode;
+        }
+        String normalized = providerCode.trim().toLowerCase(Locale.ROOT);
+        return aliasesToCanonical.getOrDefault(normalized, normalized);
     }
 
     public ModelDefinition resolveModel(String providerCode, String modelCode) {
@@ -180,6 +208,7 @@ public class ProviderCatalogService {
                 provider.tenantScoped(),
                 provider.supportsResponsesApi(),
                 provider.supportsChatCompletions(),
+                isStreamingSupported(provider),
                 provider.catalogState(),
                 provider.requiredHeaders(),
                 toCredentialResponses(provider),
@@ -219,6 +248,21 @@ public class ProviderCatalogService {
         );
     }
 
+    public boolean isStreamingSupported(String providerCode) {
+        return findProvider(providerCode).map(this::isStreamingSupported).orElse(false);
+    }
+
+    public boolean isStreamingSupported(ProviderDefinition provider) {
+        return provider.executionSupported() && streamingSupportedProviderCodes.contains(provider.code());
+    }
+
+    public String readinessStatus(ProviderDefinition provider) {
+        if (!provider.executionSupported()) {
+            return provider.catalogState();
+        }
+        return isConfigured(provider) ? "ready" : "missing_credentials";
+    }
+
     private Map<String, ProviderDefinition> buildProviders() {
         Map<String, ProviderDefinition> providers = new LinkedHashMap<>();
         register(providers, provider("openai", "OpenAI", "text-runtime", InferenceProtocol.OPENAI_RESPONSES, true, "https://api.openai.com/v1", "bearer", "responses", false, true, true, false, "live", "https://platform.openai.com/settings/organization/api-keys", "https://developers.openai.com/api/docs/guides/text/", "openai:gpt-4.1-mini", List.of("chat", "reasoning", "multimodal"), "Responses API como caminho principal.", cred("apiKey", "API Key", "OPENAI_API_KEY", true, true, "Chave principal do projeto OpenAI."), List.of("Authorization: Bearer <OPENAI_API_KEY>")));
@@ -227,14 +271,14 @@ public class ProviderCatalogService {
         register(providers, provider("deepseek", "DeepSeek", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.deepseek.com/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://platform.deepseek.com/api_keys", "https://api-docs.deepseek.com/api/create-chat-completion/", "deepseek:deepseek-chat", List.of("chat", "reasoning", "code"), "Compatibilidade OpenAI suficiente para chat completions.", cred("apiKey", "API Key", "DEEPSEEK_API_KEY", true, true, "Chave da plataforma DeepSeek."), List.of("Authorization: Bearer <DEEPSEEK_API_KEY>")));
         register(providers, provider("xai", "xAI", "text-runtime", InferenceProtocol.OPENAI_RESPONSES, true, "https://api.x.ai/v1", "bearer", "responses", false, true, true, false, "live", "https://console.x.ai", "https://docs.x.ai/docs", "xai:grok-4", List.of("chat", "reasoning", "vision"), "Responses API oficial.", cred("apiKey", "API Key", "XAI_API_KEY", true, true, "Chave xAI / Grok."), List.of("Authorization: Bearer <XAI_API_KEY>")));
         register(providers, provider("perplexity", "Perplexity", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.perplexity.ai", "bearer", "chat-completions", false, false, true, false, "live", "https://www.perplexity.ai/settings/api", "https://docs.perplexity.ai/docs/grounded-llm/openai-compatibility", "perplexity:sonar", List.of("chat", "search-grounded"), "Compatibilidade OpenAI para Sonar.", cred("apiKey", "API Key", "PERPLEXITY_API_KEY", true, true, "Chave Perplexity para Sonar API."), List.of("Authorization: Bearer <PERPLEXITY_API_KEY>")));
-        register(providers, provider("groq", "Groq", "text-runtime", InferenceProtocol.OPENAI_RESPONSES, true, "https://api.groq.com/openai/v1", "bearer", "responses", false, true, true, false, "live", "https://console.groq.com/keys", "https://console.groq.com/docs/openai", "groq:llama-3.3-70b-versatile", List.of("chat", "speed"), "Compatibilidade OpenAI e Responses.", cred("apiKey", "API Key", "GROQ_API_KEY", true, true, "Chave Groq."), List.of("Authorization: Bearer <GROQ_API_KEY>")));
-        register(providers, provider("mistral", "Mistral AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.mistral.ai/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://admin.mistral.ai/organization/api-keys", "https://docs.mistral.ai/capabilities/completion/", "mistral:mistral-small-latest", List.of("chat", "code", "vision"), "Chat completions oficial.", cred("apiKey", "API Key", "MISTRAL_API_KEY", true, true, "Chave Mistral."), List.of("Authorization: Bearer <MISTRAL_API_KEY>")));
-        register(providers, provider("openrouter", "OpenRouter", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://openrouter.ai/api/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://openrouter.ai/keys", "https://openrouter.ai/docs", "openrouter:openai/gpt-4.1-mini", List.of("chat", "routing", "aggregation"), "Gateway com compatibilidade OpenAI.", cred("apiKey", "API Key", "OPENROUTER_API_KEY", true, true, "Chave OpenRouter."), List.of("Authorization: Bearer <OPENROUTER_API_KEY>")));
-        register(providers, provider("cohere", "Cohere", "text-runtime", InferenceProtocol.COHERE_CHAT_V2, true, "https://api.cohere.com/v2", "bearer", "chat-v2", false, false, false, false, "live", "https://dashboard.cohere.com/api-keys", "https://docs.cohere.com/v2/reference/chat", "cohere:command-r", List.of("chat", "embeddings", "rerank"), "Chat v2 oficial.", cred("apiKey", "API Key", "COHERE_API_KEY", true, true, "Chave Cohere."), List.of("Authorization: Bearer <COHERE_API_KEY>")));
-        register(providers, provider("cloudflare-workers-ai", "Cloudflare Workers AI", "text-runtime", InferenceProtocol.CLOUDFLARE_OPENAI_COMPAT, true, "https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/v1", "bearer+account", "openai-compat", false, false, true, false, "live", "https://dash.cloudflare.com/profile/api-tokens", "https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/", "cloudflare-workers-ai:@cf/meta/llama-3.1-8b-instruct", List.of("chat", "image", "speech"), "OpenAI compatibility com Account ID.", cred("apiToken", "API Token", "CLOUDFLARE_API_TOKEN", true, true, "Token Cloudflare com permissoes de Workers AI."), cred("accountId", "Account ID", "CLOUDFLARE_ACCOUNT_ID", true, false, "Identificador da conta Cloudflare."), List.of("Authorization: Bearer <CLOUDFLARE_API_TOKEN>")));
-        register(providers, provider("together", "Together AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.together.xyz/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://api.together.ai/settings/api-keys", "https://docs.together.ai/docs/openai-api-compatibility", "together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", List.of("chat", "image", "embeddings"), "Compatibilidade OpenAI para inferencia textual.", cred("apiKey", "API Key", "TOGETHER_API_KEY", true, true, "Chave Together."), List.of("Authorization: Bearer <TOGETHER_API_KEY>")));
-        register(providers, provider("fireworks", "Fireworks AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.fireworks.ai/inference/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://fireworks.ai/account/api-keys", "https://docs.fireworks.ai/guides/querying-text-models", "fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct", List.of("chat", "image"), "Text models via API Fireworks.", cred("apiKey", "API Key", "FIREWORKS_API_KEY", true, true, "Chave Fireworks."), List.of("Authorization: Bearer <FIREWORKS_API_KEY>")));
-        register(providers, provider("deepinfra", "DeepInfra", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.deepinfra.com/v1/openai", "bearer", "chat-completions", false, false, true, false, "live", "https://deepinfra.com/dash/api_keys", "https://deepinfra.com/docs/openai_api", "deepinfra:meta-llama/Meta-Llama-3.1-8B-Instruct", List.of("chat", "image", "embeddings"), "OpenAI-compatible endpoint.", cred("apiKey", "API Key", "DEEPINFRA_API_KEY", true, true, "Chave DeepInfra."), List.of("Authorization: Bearer <DEEPINFRA_API_KEY>")));
+        register(providers, provider("groq", "Groq", "text-runtime", InferenceProtocol.OPENAI_RESPONSES, false, "https://api.groq.com/openai/v1", "bearer", "responses", false, true, true, false, "catalog-only", "https://console.groq.com/keys", "https://console.groq.com/docs/openai", "groq:llama-3.3-70b-versatile", List.of("chat", "speed"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "GROQ_API_KEY", true, true, "Chave Groq."), List.of("Authorization: Bearer <GROQ_API_KEY>")));
+        register(providers, provider("mistral", "Mistral AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, false, "https://api.mistral.ai/v1", "bearer", "chat-completions", false, false, true, false, "catalog-only", "https://admin.mistral.ai/organization/api-keys", "https://docs.mistral.ai/capabilities/completion/", "mistral:mistral-small-latest", List.of("chat", "code", "vision"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "MISTRAL_API_KEY", true, true, "Chave Mistral."), List.of("Authorization: Bearer <MISTRAL_API_KEY>")));
+        register(providers, provider("openrouter", "OpenRouter", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, false, "https://openrouter.ai/api/v1", "bearer", "chat-completions", false, false, true, false, "catalog-only", "https://openrouter.ai/keys", "https://openrouter.ai/docs", "openrouter:openai/gpt-4.1-mini", List.of("chat", "routing", "aggregation"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "OPENROUTER_API_KEY", true, true, "Chave OpenRouter."), List.of("Authorization: Bearer <OPENROUTER_API_KEY>")));
+        register(providers, provider("cohere", "Cohere", "text-runtime", InferenceProtocol.COHERE_CHAT_V2, false, "https://api.cohere.com/v2", "bearer", "chat-v2", false, false, false, false, "catalog-only", "https://dashboard.cohere.com/api-keys", "https://docs.cohere.com/v2/reference/chat", "cohere:command-r", List.of("chat", "embeddings", "rerank"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "COHERE_API_KEY", true, true, "Chave Cohere."), List.of("Authorization: Bearer <COHERE_API_KEY>")));
+        register(providers, provider("cloudflare-workers-ai", "Cloudflare Workers AI", "text-runtime", InferenceProtocol.CLOUDFLARE_OPENAI_COMPAT, false, "https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/v1", "bearer+account", "openai-compat", false, false, true, false, "manual", "https://dash.cloudflare.com/profile/api-tokens", "https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/", "cloudflare-workers-ai:@cf/meta/llama-3.1-8b-instruct", List.of("chat", "image", "speech"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiToken", "API Token", "CLOUDFLARE_API_TOKEN", true, true, "Token Cloudflare com permissoes de Workers AI."), cred("accountId", "Account ID", "CLOUDFLARE_ACCOUNT_ID", true, false, "Identificador da conta Cloudflare."), List.of("Authorization: Bearer <CLOUDFLARE_API_TOKEN>")));
+        register(providers, provider("together", "Together AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, false, "https://api.together.xyz/v1", "bearer", "chat-completions", false, false, true, false, "catalog-only", "https://api.together.ai/settings/api-keys", "https://docs.together.ai/docs/openai-api-compatibility", "together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", List.of("chat", "image", "embeddings"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "TOGETHER_API_KEY", true, true, "Chave Together."), List.of("Authorization: Bearer <TOGETHER_API_KEY>")));
+        register(providers, provider("fireworks", "Fireworks AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, false, "https://api.fireworks.ai/inference/v1", "bearer", "chat-completions", false, false, true, false, "catalog-only", "https://fireworks.ai/account/api-keys", "https://docs.fireworks.ai/guides/querying-text-models", "fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct", List.of("chat", "image"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "FIREWORKS_API_KEY", true, true, "Chave Fireworks."), List.of("Authorization: Bearer <FIREWORKS_API_KEY>")));
+        register(providers, provider("deepinfra", "DeepInfra", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, false, "https://api.deepinfra.com/v1/openai", "bearer", "chat-completions", false, false, true, false, "catalog-only", "https://deepinfra.com/dash/api_keys", "https://deepinfra.com/docs/openai_api", "deepinfra:meta-llama/Meta-Llama-3.1-8B-Instruct", List.of("chat", "image", "embeddings"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "DEEPINFRA_API_KEY", true, true, "Chave DeepInfra."), List.of("Authorization: Bearer <DEEPINFRA_API_KEY>")));
         register(providers, provider("aws-bedrock", "AWS Bedrock", "text-runtime", InferenceProtocol.BEDROCK_CONVERSE, false, "https://bedrock-runtime.{AWS_REGION}.amazonaws.com", "aws-sigv4", "converse", false, false, false, false, "manual", "https://console.aws.amazon.com/bedrock/", "https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html", "aws-bedrock:amazon.nova-lite-v1:0", List.of("chat", "multimodal"), "Requer assinatura AWS SigV4; mantido manual.", cred("accessKeyId", "AWS Access Key ID", "AWS_ACCESS_KEY_ID", true, true, "Credencial AWS."), cred("secretAccessKey", "AWS Secret Access Key", "AWS_SECRET_ACCESS_KEY", true, true, "Segredo AWS."), cred("region", "AWS Region", "AWS_REGION", true, false, "Regiao do runtime Bedrock."), List.of("x-amz-date", "Authorization: AWS4-HMAC-SHA256")));
         register(providers, provider("hugging-face", "Hugging Face", "text-runtime", InferenceProtocol.UNSUPPORTED, false, "https://api-inference.huggingface.co/models", "bearer", "inference-api", false, false, false, false, "catalog-only", "https://huggingface.co/settings/tokens", "https://huggingface.co/docs/api-inference", "hugging-face:meta-llama/Llama-3.1-8B-Instruct", List.of("chat", "embeddings", "image", "audio"), "Mantido como catalog-only ate padronizacao por tarefa.", cred("token", "HF Token", "HF_TOKEN", true, true, "Token pessoal Hugging Face."), List.of("Authorization: Bearer <HF_TOKEN>")));
         register(providers, provider("github-models", "GitHub Models", "text-runtime", InferenceProtocol.UNSUPPORTED, false, "https://models.inference.ai.azure.com", "pat:models", "prototype", false, false, false, false, "manual", "https://github.com/settings/personal-access-tokens", "https://docs.github.com/en/github-models/prototyping-with-ai-models", "github-models:gpt-4o-mini", List.of("chat", "multimodal"), "Uso focado em prototipagem; nao entra como runtime automatico.", cred("pat", "GitHub Models PAT", "GITHUB_MODELS_PAT", true, true, "PAT com scope models."), List.of("Authorization: Bearer <GITHUB_MODELS_PAT>")));

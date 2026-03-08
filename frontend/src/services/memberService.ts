@@ -1,7 +1,7 @@
 import api from './api';
 import { User, UserCreateRequest, UserUpdateRequest } from '../types';
 
-const BASE_PATH = '/api/v1/members';
+const BASE_PATH = '/v1/members';
 
 export const memberService = {
   async findAll(): Promise<User[]> {

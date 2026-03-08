@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasItem;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -62,8 +63,18 @@ class ProviderCatalogIT {
     void shouldReturnProviderStatuses() throws Exception {
         mockMvc.perform(get("/api/v1/providers/status"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.code=='openai')].category").value("text-runtime"))
-                .andExpect(jsonPath("$[?(@.code=='darkowl')].adminOnly").value(true));
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].category", hasItem("text-runtime")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='darkowl')].adminOnly", hasItem(true)));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/providers/health - should expose readiness and last connectivity state")
+    void shouldReturnProviderHealth() throws Exception {
+        mockMvc.perform(get("/api/v1/providers/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].readinessStatus", hasItem("missing_credentials")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingSupported", hasItem(true)));
     }
 
     @Test
@@ -95,6 +106,8 @@ class ProviderCatalogIT {
                 .andExpect(jsonPath("$.providerCode").value("openai"))
                 .andExpect(jsonPath("$.status").value("missing_credentials"))
                 .andExpect(jsonPath("$.configured").value(false))
-                .andExpect(jsonPath("$.apiStyle").value("responses"));
+                .andExpect(jsonPath("$.apiStyle").value("responses"))
+                .andExpect(jsonPath("$.requestedProviderCode").value("openai"))
+                .andExpect(jsonPath("$.streamingSupported").value(true));
     }
 }

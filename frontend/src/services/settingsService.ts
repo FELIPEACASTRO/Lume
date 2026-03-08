@@ -8,12 +8,12 @@ export const settingsService = {
   },
 
   async getPreferences(): Promise<SettingsPreferencesDto> {
-    const response = await api.get<SettingsPreferencesDto>('/api/v1/settings/preferences');
+    const response = await api.get<SettingsPreferencesDto>('/v1/settings/preferences');
     return response.data;
   },
 
   async updatePreferences(payload: Partial<SettingsPreferencesDto>): Promise<SettingsPreferencesDto> {
-    const response = await api.patch<SettingsPreferencesDto>('/api/v1/settings/preferences', payload);
+    const response = await api.patch<SettingsPreferencesDto>('/v1/settings/preferences', payload);
     return response.data;
   },
 };

@@ -85,6 +85,9 @@ public class AgentService {
         if (!"text-runtime".equalsIgnoreCase(provider.category())) {
             throw new IllegalArgumentException("O runtime do agente aceita apenas providers da categoria text-runtime.");
         }
+        if (!provider.executionSupported()) {
+            throw new IllegalArgumentException("O runtime do agente nesta fase aceita apenas providers com execucao real habilitada.");
+        }
 
         var model = providerCatalogService.resolveModel(provider.code(), request.modelCode());
         profile.setProviderCode(provider.code());

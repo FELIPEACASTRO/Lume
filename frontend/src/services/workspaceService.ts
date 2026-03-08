@@ -8,11 +8,11 @@ export const workspaceService = {
   },
 
   async getAvailableWorkspaces(): Promise<WorkspaceOptionDto[]> {
-    const response = await api.get<WorkspaceOptionDto[]>('/api/v1/workspaces');
+    const response = await api.get<WorkspaceOptionDto[]>('/v1/workspaces');
     return response.data;
   },
 
   async activateWorkspace(workspaceId: number): Promise<void> {
-    await api.post(`/api/v1/workspaces/${workspaceId}/activate`);
+    await api.post(`/v1/workspaces/${workspaceId}/activate`);
   },
 };

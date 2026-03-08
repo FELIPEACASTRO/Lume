@@ -221,7 +221,7 @@ docker compose up -d postgres
 
 # 2. Backend
 cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 # 3. Frontend (em outro terminal)
 cd frontend
@@ -266,13 +266,13 @@ A documentação interativa completa está disponível via **Swagger UI** em `ht
 cd backend
 
 # Testes unitários
-./mvnw test
+mvn test
 
 # Testes de integração
-./mvnw verify
+mvn verify
 
 # Gerar relatório de cobertura (JaCoCo)
-./mvnw test jacoco:report
+mvn test jacoco:report
 # Relatório em: target/site/jacoco/index.html
 ```
 
@@ -326,6 +326,81 @@ A tabela abaixo documenta a complexidade computacional das operações principai
 | `DB_PASSWORD` | `lume_pass` | Senha do banco |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Perfil ativo do Spring |
 | `VITE_API_URL` | `/api` | URL base da API no frontend |
+| `OPENAI_API_KEY` | vazio | Credencial do provider OpenAI |
+| `GEMINI_API_KEY` | vazio | Credencial do provider Gemini |
+| `DEEPSEEK_API_KEY` | vazio | Credencial do provider DeepSeek |
+| `ANTHROPIC_API_KEY` | vazio | Credencial do provider Anthropic / Claude |
+| `XAI_API_KEY` | vazio | Credencial do provider xAI / Grok |
+| `PERPLEXITY_API_KEY` | vazio | Credencial do provider Perplexity |
+| `RUN_REAL_AI_TESTS` | `false` | Habilita smoke tests reais opt-in |
+
+---
+
+## Integração Multi-Provider de IA
+
+O backend agora possui runtime real e testado para `OpenAI`, `Gemini`, `DeepSeek`, `Anthropic`, `xAI` e `Perplexity`, sempre por variáveis de ambiente. Nenhuma chave deve ser hardcoded no código ou salva em arquivos versionados.
+
+### Configuração local
+
+1. Copie `.env.example` para `.env`.
+2. Preencha apenas as chaves dos providers que deseja ativar.
+3. Suba o backend com `mvn spring-boot:run -Dspring-boot.run.profiles=dev`.
+4. Consulte `GET /api/v1/providers`, `GET /api/v1/providers/status` e `GET /api/v1/providers/health` para validar readiness.
+
+### Testes mockados
+
+```bash
+cd backend
+mvn verify
+
+cd ../frontend
+pnpm lint
+pnpm test
+pnpm build
+```
+
+### Testes reais opcionais
+
+```bash
+set RUN_REAL_AI_TESTS=true
+mvn -Dtest=AiRealSmokeIT test
+```
+
+Os testes reais só executam quando `RUN_REAL_AI_TESTS=true` e quando a env var do provider correspondente está presente.
+
+### Exemplo de chamada unificada
+
+```bash
+curl -X POST http://localhost:8080/api/v1/inference/execute ^
+  -H "Content-Type: application/json" ^
+  -d "{\"providerCode\":\"openai\",\"prompt\":\"Responda apenas OK.\",\"fallbackProviderCodes\":[\"anthropic\"]}"
+```
+
+### Exemplo SSE
+
+```bash
+curl -N -X POST http://localhost:8080/api/v1/inference/stream ^
+  -H "Content-Type: application/json" ^
+  -d "{\"providerCode\":\"google-gemini\",\"prompt\":\"Explique o status atual em poucas linhas.\"}"
+```
+
+### Adicionar um novo provider
+
+1. Registrar o provider e os modelos em `ProviderCatalogService`.
+2. Criar um novo adapter em `backend/src/main/java/com/lume/workspace/inference/adapter/`.
+3. Garantir `healthCheck`, `estimateCost`, `sendPrompt` e `streamPrompt`.
+4. Cobrir o adapter com testes mockados e testes de contrato.
+5. Atualizar `docs/ai-providers.md`.
+
+### Checklist de segurança
+
+- Não hardcodar API keys.
+- Não versionar `.env`.
+- Não logar `Authorization`, `x-api-key` ou `x-goog-api-key`.
+- Não logar prompts brutos em `INFO/WARN/ERROR`.
+- Validar readiness via startup logs e endpoints `/providers/status` e `/providers/health`.
+
+Consulte também `docs/ai-providers.md` para a matriz detalhada de providers, aliases, modelos padrão e limites desta fase.
 
 ---
 

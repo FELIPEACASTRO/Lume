@@ -1,12 +1,13 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FiArrowRight, FiClock, FiMessageSquare, FiSend, FiZap } from 'react-icons/fi';
+import { FiArrowRight, FiClock, FiCpu, FiMessageSquare, FiSend, FiShield, FiZap } from 'react-icons/fi';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import StatusBadge from '../components/common/StatusBadge';
 import WorkspaceNotice from '../components/common/WorkspaceNotice';
 import { useShell } from '../components/shell/ShellContext';
 import { agentService } from '../services/agentService';
 import { toApiClientError } from '../services/api';
-import { AgentMessage, AgentProfile, AgentThread } from '../types';
+import { providerService } from '../services/providerService';
+import { AgentMessage, AgentProfile, AgentThread, ModelDto, ProviderDto, ProviderStatusDto } from '../types';
 
 interface AgentRouteState {
   draftPrompt?: string;
@@ -16,18 +17,27 @@ interface AgentRouteState {
 export default function Agents() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { refreshSummary } = useShell();
+  const { refreshSummary, session } = useShell();
   const routeState = (location.state as AgentRouteState | null) ?? null;
   const handledNonceRef = useRef<number | null>(null);
   const [profiles, setProfiles] = useState<AgentProfile[]>([]);
   const [threads, setThreads] = useState<AgentThread[]>([]);
+  const [providers, setProviders] = useState<ProviderDto[]>([]);
+  const [models, setModels] = useState<ModelDto[]>([]);
+  const [providerStatuses, setProviderStatuses] = useState<ProviderStatusDto[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState('');
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(searchParams.get('thread'));
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const [conversationLoading, setConversationLoading] = useState(false);
+  const [runtimeSaving, setRuntimeSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [runtimeProviderCode, setRuntimeProviderCode] = useState('');
+  const [runtimeModelCode, setRuntimeModelCode] = useState('');
+  const [runtimeVersionLabel, setRuntimeVersionLabel] = useState('');
+
+  const canManageRuntime = session?.role.permissions.includes('agents.runtime.manage') ?? false;
 
   const selectedAgent = useMemo(() => {
     return profiles.find((agent) => agent.id === selectedAgentId) ?? profiles[0] ?? null;
@@ -40,17 +50,52 @@ export default function Agents() {
     return threads.find((thread) => thread.id === selectedThreadId) ?? null;
   }, [selectedThreadId, threads]);
 
+  const runtimeProviders = useMemo(() => {
+    return providers.filter((provider) => provider.category === 'text-runtime' && provider.executionSupported);
+  }, [providers]);
+
+  const runtimeModels = useMemo(() => {
+    return models.filter((model) => model.providerCode === runtimeProviderCode && model.enabledForAgents);
+  }, [models, runtimeProviderCode]);
+
+  const selectedProviderStatus = useMemo(() => {
+    if (!selectedAgent) {
+      return null;
+    }
+    return providerStatuses.find((item) => item.providerCode === selectedAgent.providerCode) ?? null;
+  }, [providerStatuses, selectedAgent]);
+
   const loadShellData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const [nextProfiles, nextThreads] = await Promise.all([
+      const catalogRequests: [
+        Promise<ProviderDto[]>,
+        Promise<ModelDto[]>,
+        Promise<ProviderStatusDto[]>,
+      ] = canManageRuntime
+        ? [
+            providerService.findProviders(),
+            providerService.findModels(),
+            providerService.findProviderStatuses(),
+          ]
+        : [
+            Promise.resolve([]),
+            Promise.resolve([]),
+            Promise.resolve([]),
+          ];
+
+      const [nextProfiles, nextThreads, nextProviders, nextModels, nextProviderStatuses] = await Promise.all([
         agentService.findProfiles(),
         agentService.findThreads(),
-      ]);
+        ...catalogRequests,
+      ] as const);
 
       setProfiles(nextProfiles);
       setThreads(nextThreads);
+      setProviders(nextProviders);
+      setModels(nextModels);
+      setProviderStatuses(nextProviderStatuses);
 
       const routeThreadId = searchParams.get('thread');
       const effectiveThreadId = routeThreadId || nextThreads[0]?.id || null;
@@ -76,7 +121,7 @@ export default function Agents() {
     } finally {
       setLoading(false);
     }
-  }, [searchParams]);
+  }, [canManageRuntime, searchParams]);
 
   useEffect(() => {
     void loadShellData();
@@ -133,6 +178,31 @@ export default function Agents() {
       }
     })();
   }, [refreshSummary, routeState, selectedAgentId, setSearchParams]);
+
+  useEffect(() => {
+    if (!selectedAgent) {
+      setRuntimeProviderCode('');
+      setRuntimeModelCode('');
+      setRuntimeVersionLabel('');
+      return;
+    }
+
+    setRuntimeProviderCode(selectedAgent.providerCode);
+    setRuntimeModelCode(selectedAgent.modelCode);
+    setRuntimeVersionLabel(selectedAgent.versionLabel);
+  }, [selectedAgent]);
+
+  useEffect(() => {
+    if (!runtimeProviderCode) {
+      return;
+    }
+
+    if (runtimeModels.some((model) => model.code === runtimeModelCode)) {
+      return;
+    }
+
+    setRuntimeModelCode(runtimeModels[0]?.code ?? '');
+  }, [runtimeModelCode, runtimeModels, runtimeProviderCode]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -210,24 +280,53 @@ export default function Agents() {
     })();
   };
 
+  const handleRuntimeSave = async () => {
+    if (!selectedAgent || !runtimeProviderCode || !runtimeModelCode) {
+      return;
+    }
+
+    try {
+      setRuntimeSaving(true);
+      setError(null);
+
+      const updatedProfile = await agentService.updateRuntime(selectedAgent.id, {
+        providerCode: runtimeProviderCode,
+        modelCode: runtimeModelCode,
+        versionLabel: runtimeVersionLabel,
+      });
+
+      setProfiles((current) => current.map((profile) => (
+        profile.id === updatedProfile.id ? updatedProfile : profile
+      )));
+
+      const nextThreads = await agentService.findThreads();
+      setThreads(nextThreads);
+      await refreshSummary();
+    } catch (runtimeError) {
+      setError(toApiClientError(runtimeError).message);
+    } finally {
+      setRuntimeSaving(false);
+    }
+  };
+
   return (
     <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <WorkspaceNotice
-          title="Agents opera em preview assistido."
-          description="Perfis, threads e mensagens ja persistem no backend do Lume. A inferencia continua simulada nesta fase para preservar a shell enquanto a camada de providers nao entra."
-          state="preview"
-          detail="Cada envio cria ou atualiza uma thread real, auditavel e indexavel na busca global."
+          title="Agents com runtime versionado."
+          description="Perfis, threads e mensagens persistem no backend. Cada agente agora expõe provider, modelo, estilo de API, readiness, streaming e estado de credencial de forma explicita."
+          state={selectedAgent?.availability ?? 'preview'}
+          detail="Quando a credencial existe, a thread usa inferencia real. Fallback continua opt-in por chamada, e providers fora do runtime real ficam bloqueados no seletor."
         />
 
         <div className="shell-surface p-5">
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Agents</p>
-            <StatusBadge state="preview" />
+            <StatusBadge state={selectedAgent?.availability ?? 'preview'} />
           </div>
-          <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">Preview assistido</h2>
+          <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">Runtime real por perfil</h2>
           <p className="mt-3 text-sm leading-6 text-[var(--ink-soft)]">
-            O backend ja sustenta perfis, threads e mensagens. O que segue em preview e a inferencia real com providers externos.
+            O runtime do agente ja informa provider, modelo, apiStyle, credentialState, catalogState, readiness e suporte a streaming. So os providers realmente suportados e configurados entram como `live`.
           </p>
         </div>
 
@@ -250,9 +349,17 @@ export default function Agents() {
             <p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">{agent.description}</p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
               <span>{agent.providerCode}</span>
+              <span>{agent.apiStyle}</span>
+              <span>{agent.credentialState}</span>
+              <span>{agent.catalogState}</span>
               <span>{agent.versionLabel}</span>
             </div>
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">{agent.modelCode}</p>
+            {agent.toolset.length > 0 ? (
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+                {agent.toolset.join(' • ')}
+              </p>
+            ) : null}
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">{agent.note}</p>
           </button>
         ))}
@@ -282,6 +389,8 @@ export default function Agents() {
                   <p className="mt-1 text-sm leading-6 text-[var(--ink-soft)]">{thread.lastMessagePreview}</p>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
                     {thread.providerCode ? <span>{thread.providerCode}</span> : null}
+                    {thread.apiStyle ? <span>{thread.apiStyle}</span> : null}
+                    {thread.credentialState ? <span>{thread.credentialState}</span> : null}
                     {thread.versionLabel ? <span>{thread.versionLabel}</span> : null}
                   </div>
                   <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">{thread.updatedAt}</p>
@@ -311,6 +420,9 @@ export default function Agents() {
                 <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
                   <span>{selectedAgent.providerCode}</span>
                   <span>{selectedAgent.modelCode}</span>
+                  <span>{selectedAgent.apiStyle}</span>
+                  <span>{selectedAgent.credentialState}</span>
+                  <span>{selectedAgent.catalogState}</span>
                   <span>{selectedAgent.versionLabel}</span>
                 </div>
               ) : null}
@@ -321,10 +433,79 @@ export default function Agents() {
                   {selectedAgent.specialty}
                 </div>
               ) : null}
-              <StatusBadge state="preview" />
+              <StatusBadge state={selectedAgent?.availability ?? 'preview'} />
             </div>
           </div>
         </div>
+
+        {canManageRuntime && selectedAgent ? (
+          <div className="border-b px-5 py-5 sm:px-7" style={{ borderColor: 'var(--line-soft)' }}>
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px_auto]">
+              <label className="space-y-2 text-sm">
+                <span className="font-semibold text-[var(--ink-strong)]">Provider</span>
+                <select
+                  aria-label="Selecionar provider do agent"
+                  className="shell-input min-h-[48px]"
+                  value={runtimeProviderCode}
+                  onChange={(event) => setRuntimeProviderCode(event.target.value)}
+                  disabled={runtimeSaving}
+                >
+                  {runtimeProviders.map((provider) => (
+                    <option key={provider.code} value={provider.code}>
+                      {provider.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="space-y-2 text-sm">
+                <span className="font-semibold text-[var(--ink-strong)]">Modelo</span>
+                <select
+                  aria-label="Selecionar modelo do agent"
+                  className="shell-input min-h-[48px]"
+                  value={runtimeModelCode}
+                  onChange={(event) => setRuntimeModelCode(event.target.value)}
+                  disabled={runtimeSaving}
+                >
+                  {runtimeModels.map((model) => (
+                    <option key={model.code} value={model.code}>
+                      {model.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="space-y-2 text-sm">
+                <span className="font-semibold text-[var(--ink-strong)]">Versao</span>
+                <input
+                  aria-label="Versao do agent"
+                  className="shell-input min-h-[48px]"
+                  value={runtimeVersionLabel}
+                  onChange={(event) => setRuntimeVersionLabel(event.target.value)}
+                  disabled={runtimeSaving}
+                />
+              </label>
+
+              <div className="flex items-end">
+                <button type="button" className="btn-primary w-full lg:w-auto" onClick={() => void handleRuntimeSave()} disabled={runtimeSaving}>
+                  <FiCpu size={16} />
+                  {runtimeSaving ? 'Salvando...' : 'Salvar runtime'}
+                </button>
+              </div>
+            </div>
+
+            {selectedProviderStatus ? (
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+                <FiShield size={12} />
+                <span>{selectedProviderStatus.category}</span>
+                <span>{selectedProviderStatus.readinessStatus}</span>
+                <span>{selectedProviderStatus.configured ? 'configured' : 'missing_credentials'}</span>
+                <span>{selectedProviderStatus.executionSupported ? 'execution_supported' : 'manual_only'}</span>
+                <span>{selectedProviderStatus.streamingSupported ? 'streaming' : 'sem_streaming'}</span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-6 sm:px-7">
           {loading || conversationLoading ? (

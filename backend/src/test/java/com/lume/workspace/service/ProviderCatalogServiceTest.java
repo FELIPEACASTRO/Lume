@@ -27,6 +27,7 @@ class ProviderCatalogServiceTest {
                     assertThat(credential.executionSupported()).isTrue();
                     assertThat(credential.configured()).isFalse();
                     assertThat(credential.apiStyle()).isEqualTo("responses");
+                    assertThat(credential.streamingSupported()).isTrue();
                 });
     }
 
@@ -42,6 +43,8 @@ class ProviderCatalogServiceTest {
         assertThat(service.isConfigured("openai")).isTrue();
         assertThat(service.isConfigured("perplexity")).isTrue();
         assertThat(service.isConfigured("anthropic")).isFalse();
+        assertThat(service.normalizeProviderCode("gemini")).isEqualTo("google-gemini");
+        assertThat(service.normalizeProviderCode("claude")).isEqualTo("anthropic");
         assertThat(service.missingCredentialEnvVars("cloudflare-workers-ai"))
                 .containsExactly("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID");
     }

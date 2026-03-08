@@ -14,6 +14,7 @@ public record ProviderResponse(
         boolean tenantScoped,
         boolean supportsResponsesApi,
         boolean supportsChatCompletions,
+        boolean streamingSupported,
         String catalogState,
         List<String> requiredHeaders,
         List<CredentialFieldResponse> credentialFields,

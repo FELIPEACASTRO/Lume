@@ -11,7 +11,22 @@ const baseSession = {
   user: { id: 1, name: 'Lume Operator', email: 'operator@lume.local', initials: 'LO' },
   organization: { id: 1, name: 'Lume', slug: 'lume' },
   workspace: { id: 1, name: 'Workspace Principal', slug: 'workspace-principal' },
-  role: { code: 'workspace_admin', label: 'Workspace Admin', permissions: ['workspace.read', 'workspace.switch', 'members.manage'] },
+  role: {
+    code: 'workspace_admin',
+    label: 'Workspace Admin',
+    permissions: [
+      'workspace.read',
+      'workspace.switch',
+      'members.manage',
+      'providers.read',
+      'providers.test',
+      'agents.runtime.manage',
+      'research.run',
+      'threat_intel.read',
+      'threat_intel.run',
+      'threat_intel.manage',
+    ],
+  },
 };
 
 const baseWorkspaces = [
@@ -131,6 +146,307 @@ const baseNotifications = [
   },
 ];
 
+const baseProviders = [
+  {
+    code: 'openai',
+    name: 'OpenAI',
+    category: 'text-runtime',
+    protocol: 'OPENAI_RESPONSES',
+    apiStyle: 'responses',
+    executionSupported: true,
+    configured: false,
+    adminOnly: false,
+    tenantScoped: false,
+    supportsResponsesApi: true,
+    supportsChatCompletions: true,
+    streamingSupported: true,
+    catalogState: 'live',
+    requiredHeaders: ['Authorization: Bearer <OPENAI_API_KEY>'],
+    credentialFields: [
+      {
+        key: 'apiKey',
+        label: 'API Key',
+        envVar: 'OPENAI_API_KEY',
+        required: true,
+        secret: true,
+        configured: false,
+        description: 'Chave principal do projeto OpenAI.',
+      },
+    ],
+    apiKeyPortalUrl: 'https://platform.openai.com/settings/organization/api-keys',
+    docsUrl: 'https://developers.openai.com/api/docs/guides/text/',
+    defaultModelCode: 'openai:gpt-4.1-mini',
+    capabilities: ['chat', 'reasoning', 'multimodal'],
+    notes: 'Responses API como caminho principal.',
+  },
+  {
+    code: 'anthropic',
+    name: 'Anthropic',
+    category: 'text-runtime',
+    protocol: 'ANTHROPIC_MESSAGES',
+    apiStyle: 'messages',
+    executionSupported: true,
+    configured: false,
+    adminOnly: false,
+    tenantScoped: false,
+    supportsResponsesApi: false,
+    supportsChatCompletions: false,
+    streamingSupported: true,
+    catalogState: 'live',
+    requiredHeaders: ['x-api-key', 'anthropic-version: 2023-06-01'],
+    credentialFields: [
+      {
+        key: 'apiKey',
+        label: 'API Key',
+        envVar: 'ANTHROPIC_API_KEY',
+        required: true,
+        secret: true,
+        configured: false,
+        description: 'Chave x-api-key da Anthropic.',
+      },
+    ],
+    apiKeyPortalUrl: 'https://console.anthropic.com/settings/keys',
+    docsUrl: 'https://docs.anthropic.com/en/api/messages',
+    defaultModelCode: 'anthropic:claude-sonnet-4-5',
+    capabilities: ['chat', 'vision', 'reasoning'],
+    notes: 'Messages API oficial.',
+  },
+  {
+    code: 'exa',
+    name: 'Exa',
+    category: 'research-search',
+    protocol: 'CUSTOM_RESEARCH',
+    apiStyle: 'research',
+    executionSupported: true,
+    configured: false,
+    adminOnly: false,
+    tenantScoped: false,
+    supportsResponsesApi: false,
+    supportsChatCompletions: false,
+    streamingSupported: false,
+    catalogState: 'live',
+    requiredHeaders: ['x-api-key'],
+    credentialFields: [
+      {
+        key: 'apiKey',
+        label: 'API Key',
+        envVar: 'EXA_API_KEY',
+        required: true,
+        secret: true,
+        configured: false,
+        description: 'Chave Exa.',
+      },
+    ],
+    apiKeyPortalUrl: 'https://dashboard.exa.ai/api-keys',
+    docsUrl: 'https://exa.ai/docs/reference/search',
+    defaultModelCode: 'exa:search',
+    capabilities: ['search', 'research'],
+    notes: 'Pesquisa neural pronta para execucao real.',
+  },
+  {
+    code: 'darkowl',
+    name: 'DarkOwl',
+    category: 'threat-intel',
+    protocol: 'CUSTOM_THREAT_INTEL',
+    apiStyle: 'threat-intel',
+    executionSupported: false,
+    configured: false,
+    adminOnly: true,
+    tenantScoped: true,
+    supportsResponsesApi: false,
+    supportsChatCompletions: false,
+    streamingSupported: false,
+    catalogState: 'manual',
+    requiredHeaders: ['X-DarkOwl-Date', 'X-DarkOwl-Authorization'],
+    credentialFields: [
+      {
+        key: 'publicKey',
+        label: 'Public Key',
+        envVar: 'DARKOWL_PUBLIC_KEY',
+        required: true,
+        secret: true,
+        configured: false,
+        description: 'Chave publica DarkOwl.',
+      },
+      {
+        key: 'privateKey',
+        label: 'Private Key',
+        envVar: 'DARKOWL_PRIVATE_KEY',
+        required: true,
+        secret: true,
+        configured: false,
+        description: 'Chave privada DarkOwl.',
+      },
+    ],
+    apiKeyPortalUrl: 'https://www.darkowl.com',
+    docsUrl: 'https://www.darkowl.com/wp-content/uploads/2022/02/API-Welcome-Packet.pdf',
+    defaultModelCode: 'darkowl:search',
+    capabilities: ['dark-web-search', 'threat-intel'],
+    notes: 'Requer chave publica, privada e assinatura HMAC.',
+  },
+];
+
+const baseProviderStatuses = [
+  {
+    providerCode: 'openai',
+    providerName: 'OpenAI',
+    configured: false,
+    executionSupported: true,
+    catalogState: 'live',
+    category: 'text-runtime',
+    adminOnly: false,
+    streamingSupported: true,
+    readinessStatus: 'missing_credentials',
+    missingCredentialEnvVars: ['OPENAI_API_KEY'],
+  },
+  {
+    providerCode: 'anthropic',
+    providerName: 'Anthropic',
+    configured: false,
+    executionSupported: true,
+    catalogState: 'live',
+    category: 'text-runtime',
+    adminOnly: false,
+    streamingSupported: true,
+    readinessStatus: 'missing_credentials',
+    missingCredentialEnvVars: ['ANTHROPIC_API_KEY'],
+  },
+  {
+    providerCode: 'exa',
+    providerName: 'Exa',
+    configured: false,
+    executionSupported: true,
+    catalogState: 'live',
+    category: 'research-search',
+    adminOnly: false,
+    streamingSupported: false,
+    readinessStatus: 'missing_credentials',
+    missingCredentialEnvVars: ['EXA_API_KEY'],
+  },
+  {
+    providerCode: 'darkowl',
+    providerName: 'DarkOwl',
+    configured: false,
+    executionSupported: false,
+    catalogState: 'manual',
+    category: 'threat-intel',
+    adminOnly: true,
+    streamingSupported: false,
+    readinessStatus: 'manual',
+    missingCredentialEnvVars: ['DARKOWL_PUBLIC_KEY', 'DARKOWL_PRIVATE_KEY'],
+  },
+];
+
+const baseProviderCredentials = baseProviders.map((provider) => ({
+  providerCode: provider.code,
+  providerName: provider.name,
+  configured: provider.configured,
+  executionSupported: provider.executionSupported,
+  category: provider.category,
+  apiStyle: provider.apiStyle,
+  adminOnly: provider.adminOnly,
+  streamingSupported: provider.streamingSupported,
+  catalogState: provider.catalogState,
+  missingCredentialEnvVars: provider.credentialFields.filter((field) => field.required && !field.configured).map((field) => field.envVar),
+  credentialFields: provider.credentialFields,
+  apiKeyPortalUrl: provider.apiKeyPortalUrl,
+  docsUrl: provider.docsUrl,
+}));
+
+const baseProviderHealth = baseProviderStatuses.map((status) => ({
+  providerCode: status.providerCode,
+  providerName: status.providerName,
+  category: status.category,
+  configured: status.configured,
+  executionSupported: status.executionSupported,
+  streamingSupported: status.streamingSupported,
+  readinessStatus: status.readinessStatus,
+  message: status.configured ? 'Provider configurado e pronto para execucao.' : 'Credenciais obrigatorias ainda nao estao presentes no ambiente.',
+  lastConnectivityStatus: null,
+  lastCheckedAt: null,
+  missingCredentialEnvVars: status.missingCredentialEnvVars,
+}));
+
+const baseModels = [
+  {
+    code: 'openai:gpt-4.1-mini',
+    providerCode: 'openai',
+    label: 'GPT-4.1 mini',
+    versionLabel: 'agent-v1-openai',
+    apiStyle: 'responses',
+    catalogState: 'live',
+    defaultModel: true,
+    enabledForAgents: true,
+  },
+  {
+    code: 'anthropic:claude-sonnet-4-5',
+    providerCode: 'anthropic',
+    label: 'Claude Sonnet 4.5',
+    versionLabel: 'agent-v1-claude',
+    apiStyle: 'messages',
+    catalogState: 'live',
+    defaultModel: true,
+    enabledForAgents: true,
+  },
+];
+
+const baseAgentProfiles = [
+  {
+    id: 'ops',
+    name: 'Ops Strategist',
+    specialty: 'Operacao e processos',
+    description: 'Traduz pedidos em fluxos executaveis com foco em custo, risco e velocidade.',
+    status: 'Configure credenciais',
+    availability: 'disabled-preview',
+    note: 'Configure OPENAI_API_KEY para ativar este runtime.',
+    providerCode: 'openai',
+    modelCode: 'openai:gpt-4.1-mini',
+    versionLabel: 'agent-v1-openai',
+    apiStyle: 'responses',
+    credentialState: 'missing_credentials',
+    catalogState: 'live',
+    configured: false,
+    executionSupported: true,
+    toolset: ['chat', 'reasoning', 'multimodal'],
+  },
+];
+
+const baseAgentThreads = [
+  {
+    id: 'thread-ops',
+    agentProfileId: 'ops',
+    agentName: 'Ops Strategist',
+    title: 'Fluxo de onboarding operacional',
+    status: 'Preview assistido',
+    availability: 'preview',
+    lastMessagePreview: 'Mapeie um fluxo de onboarding com checkpoints claros.',
+    updatedAt: '08/03/2026 00:00',
+    providerCode: 'openai',
+    modelCode: 'openai:gpt-4.1-mini',
+    versionLabel: 'agent-v1-openai',
+    apiStyle: 'responses',
+    credentialState: 'missing_credentials',
+    catalogState: 'live',
+  },
+];
+
+const baseAgentMessages = {
+  'thread-ops': [
+    {
+      id: 'msg-user',
+      role: 'user',
+      body: 'Mapeie um fluxo de onboarding com checkpoints claros.',
+      timestamp: '08/03/2026 00:00',
+    },
+    {
+      id: 'msg-assistant',
+      role: 'assistant',
+      body: 'Runtime em preview: configure as credenciais para ativar a inferencia real.',
+      timestamp: '08/03/2026 00:01',
+    },
+  ],
+};
+
 function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
@@ -223,6 +539,20 @@ function buildSettingsOverview(preferences: typeof basePreferences, workspaceNam
         availability: 'preview',
         previewState: 'disabled-preview',
       },
+      {
+        key: 'providers-runtime',
+        title: 'Providers & Runtime',
+        description: 'Catalogo e runtime real dos agentes.',
+        availability: 'live',
+        previewState: 'live',
+      },
+      {
+        key: 'threat-intelligence',
+        title: 'Threat Intelligence',
+        description: 'Secao administrativa e auditada.',
+        availability: 'preview',
+        previewState: 'disabled-preview',
+      },
     ],
   };
 }
@@ -236,6 +566,14 @@ test.beforeEach(async ({ page }) => {
   const libraryEntriesData = deepClone(baseLibraryEntries);
   const projectsData = deepClone(baseProjects);
   let membersData = deepClone(baseMembers);
+  const providersData = deepClone(baseProviders);
+  const providerHealthData = deepClone(baseProviderHealth);
+  const providerStatusesData = deepClone(baseProviderStatuses);
+  const providerCredentialsData = deepClone(baseProviderCredentials);
+  const modelsData = deepClone(baseModels);
+  let agentProfilesData = deepClone(baseAgentProfiles);
+  let agentThreadsData = deepClone(baseAgentThreads);
+  const agentMessagesData = deepClone(baseAgentMessages);
   const notificationsData = deepClone(baseNotifications);
   let summaryData = buildSummary(sessionData.workspace.name, membersData.length);
   let taskDetailsData = Object.fromEntries(tasksData.map((task) => [task.id, buildTaskDetail(task)]));
@@ -294,6 +632,52 @@ test.beforeEach(async ({ page }) => {
     if (pathname.endsWith('/api/settings/overview')) {
       return route.fulfill({
         json: buildSettingsOverview(preferences, sessionData.workspace.name),
+      });
+    }
+
+    if (pathname.endsWith('/api/v1/providers') && request.method() === 'GET') {
+      return route.fulfill({ json: providersData });
+    }
+
+    if (pathname.endsWith('/api/v1/providers/health') && request.method() === 'GET') {
+      return route.fulfill({ json: providerHealthData });
+    }
+
+    if (pathname.endsWith('/api/v1/providers/status') && request.method() === 'GET') {
+      return route.fulfill({ json: providerStatusesData });
+    }
+
+    if (pathname.endsWith('/api/v1/provider-credentials') && request.method() === 'GET') {
+      return route.fulfill({ json: providerCredentialsData });
+    }
+
+    if (pathname.endsWith('/api/v1/models') && request.method() === 'GET') {
+      const providerCode = new URL(request.url()).searchParams.get('provider');
+      const filteredModels = providerCode ? modelsData.filter((model) => model.providerCode === providerCode) : modelsData;
+      return route.fulfill({ json: filteredModels });
+    }
+
+    if (pathname.includes('/api/v1/providers/') && pathname.endsWith('/connectivity-test') && request.method() === 'POST') {
+      const segments = pathname.split('/');
+      const providerCode = segments[segments.length - 2];
+      const provider = providersData.find((item) => item.code === providerCode) ?? providersData[0];
+      const status = providerStatusesData.find((item) => item.providerCode === providerCode);
+      return route.fulfill({
+        json: {
+          providerCode,
+          providerName: provider.name,
+          category: provider.category,
+          apiStyle: provider.apiStyle,
+          status: status?.configured ? 'completed' : 'missing_credentials',
+          configured: status?.configured ?? false,
+          executionSupported: status?.executionSupported ?? provider.executionSupported,
+          streamingSupported: status?.streamingSupported ?? provider.streamingSupported,
+          latencyMs: status?.configured ? 180 : null,
+          message: status?.configured
+            ? 'Connectivity test concluido.'
+            : `Credenciais ausentes para ${provider.name}.`,
+          missingCredentialEnvVars: status?.missingCredentialEnvVars ?? [],
+        },
       });
     }
 
@@ -409,6 +793,75 @@ test.beforeEach(async ({ page }) => {
       return route.fulfill({ json: notificationsData });
     }
 
+    if (pathname.endsWith('/agents/profiles') && request.method() === 'GET') {
+      return route.fulfill({ json: agentProfilesData });
+    }
+
+    if (pathname.endsWith('/agents/threads') && request.method() === 'GET') {
+      return route.fulfill({ json: agentThreadsData });
+    }
+
+    if (pathname.endsWith('/agents/threads') && request.method() === 'POST') {
+      return route.fulfill({
+        json: {
+          thread: agentThreadsData[0],
+          messages: agentMessagesData['thread-ops'],
+        },
+      });
+    }
+
+    if (pathname.includes('/agents/threads/') && pathname.endsWith('/messages') && request.method() === 'GET') {
+      const segments = pathname.split('/');
+      const threadId = segments[segments.length - 2];
+      return route.fulfill({ json: agentMessagesData[threadId] ?? agentMessagesData['thread-ops'] });
+    }
+
+    if (pathname.includes('/agents/threads/') && pathname.endsWith('/messages') && request.method() === 'POST') {
+      const segments = pathname.split('/');
+      const threadId = segments[segments.length - 2];
+      return route.fulfill({
+        json: {
+          thread: agentThreadsData.find((thread) => thread.id === threadId) ?? agentThreadsData[0],
+          messages: agentMessagesData[threadId] ?? agentMessagesData['thread-ops'],
+        },
+      });
+    }
+
+    if (pathname.includes('/api/v1/agents/profiles/') && pathname.endsWith('/runtime') && request.method() === 'PATCH') {
+      const segments = pathname.split('/');
+      const profileId = segments[segments.length - 2];
+      const payload = request.postDataJSON() as { providerCode: string; modelCode: string; versionLabel?: string };
+      const provider = providersData.find((item) => item.code === payload.providerCode) ?? providersData[0];
+      const model = modelsData.find((item) => item.code === payload.modelCode) ?? modelsData[0];
+
+      agentProfilesData = agentProfilesData.map((profile) => (
+        profile.id !== profileId
+          ? profile
+          : {
+              ...profile,
+              providerCode: provider.code,
+              modelCode: model.code,
+              versionLabel: payload.versionLabel ?? model.versionLabel,
+              apiStyle: provider.apiStyle,
+              note: `Configure ${provider.credentialFields[0]?.envVar ?? 'API_KEY'} para ativar este runtime.`,
+            }
+      ));
+
+      agentThreadsData = agentThreadsData.map((thread) => (
+        thread.agentProfileId !== profileId
+          ? thread
+          : {
+              ...thread,
+              providerCode: provider.code,
+              modelCode: model.code,
+              versionLabel: payload.versionLabel ?? model.versionLabel,
+              apiStyle: provider.apiStyle,
+            }
+      ));
+
+      return route.fulfill({ json: agentProfilesData.find((profile) => profile.id === profileId) ?? agentProfilesData[0] });
+    }
+
     if (pathname.endsWith('/api/search')) {
       return route.fulfill({
         json: [
@@ -465,7 +918,7 @@ test('home creates a task and opens the generated task view', async ({ page }) =
   await page.getByLabel('Prompt principal').fill('Gerar um roteiro de onboarding com checkpoints claros.');
   await page.getByRole('button', { name: 'Enviar' }).click();
   await expect(page).toHaveURL(/\/tasks\/task-generated$/);
-  await expect(page.getByText('Nova task gerada a partir da home')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nova task gerada a partir da home' })).toBeVisible();
 });
 
 test('library filters entries with the local search field', async ({ page }) => {
@@ -521,8 +974,31 @@ test('preview sections stay visible but do not fire invalid preference updates',
   expect(preferencePatchCount).toBe(0);
 });
 
+test('settings renders providers runtime and threat intelligence sections with real catalog metadata', async ({ page }) => {
+  await page.goto('/settings?section=providers-runtime');
+  await expect(page.getByRole('heading', { name: 'Providers & Runtime' })).toBeVisible();
+  await expect(page.getByText('OpenAI', { exact: true })).toBeVisible();
+  await expect(page.getByText('Responses API como caminho principal.')).toBeVisible();
+
+  await page.getByRole('button', { name: /Threat Intelligence/ }).click();
+  await expect(page.getByText('Preview honesto, admin-only e sem execucao silenciosa')).toBeVisible();
+  await expect(page.getByText('DarkOwl', { exact: true })).toBeVisible();
+});
+
+test('agents page exposes runtime metadata and allows admin runtime updates', async ({ page }) => {
+  await page.goto('/agents');
+  await expect(page.getByText('Runtime real por perfil')).toBeVisible();
+  await page.getByLabel('Selecionar provider do agent').selectOption('anthropic');
+  await page.getByLabel('Selecionar modelo do agent').selectOption('anthropic:claude-sonnet-4-5');
+  await page.getByLabel('Versao do agent').fill('agent-v2-claude');
+  await page.getByRole('button', { name: /Salvar runtime/ }).click();
+  await expect(page.locator('button').filter({ hasText: 'Ops Strategist' }).getByText(/^anthropic$/)).toBeVisible();
+  await expect(page.getByText('agent-v2-claude').first()).toBeVisible();
+});
+
 test('core routes render with mocked backend contracts', async ({ page }) => {
   const routes = [
+    ['/agents', 'Runtime real por perfil'],
     ['/tasks', 'Task board inspirado no Manus'],
     ['/tasks/task-onboarding', 'Task view em linguagem de execucao.'],
     ['/library', 'Biblioteca agora opera sobre dados reais do workspace.'],

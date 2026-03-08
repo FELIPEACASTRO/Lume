@@ -10,6 +10,7 @@ public record ProviderCredentialResponse(
         String category,
         String apiStyle,
         boolean adminOnly,
+        boolean streamingSupported,
         String catalogState,
         List<String> missingCredentialEnvVars,
         List<CredentialFieldResponse> credentialFields,

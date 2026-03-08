@@ -3,7 +3,7 @@ import { SessionContext } from '../types';
 
 export const sessionService = {
   async getSession(): Promise<SessionContext> {
-    const response = await api.get<SessionContext>('/api/v1/auth/session');
+    const response = await api.get<SessionContext>('/v1/auth/session');
     return response.data;
   },
 };

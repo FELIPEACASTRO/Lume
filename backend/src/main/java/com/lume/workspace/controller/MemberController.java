@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/members")
+@RequestMapping({"/v1/members", "/api/v1/members"})
 public class MemberController {
 
     private final MemberService memberService;

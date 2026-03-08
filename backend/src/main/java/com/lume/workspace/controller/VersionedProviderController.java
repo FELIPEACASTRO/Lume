@@ -3,10 +3,12 @@ package com.lume.workspace.controller;
 import com.lume.workspace.dto.ModelResponse;
 import com.lume.workspace.dto.ProviderConnectivityResponse;
 import com.lume.workspace.dto.ProviderCredentialResponse;
+import com.lume.workspace.dto.ProviderHealthResponse;
 import com.lume.workspace.dto.ProviderResponse;
 import com.lume.workspace.dto.ProviderStatusResponse;
 import com.lume.workspace.service.ProviderConnectivityService;
 import com.lume.workspace.service.ProviderCatalogService;
+import com.lume.workspace.service.ProviderHealthService;
 import com.lume.workspace.service.WorkspaceContextService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,20 +21,23 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping({"/v1", "/api/v1"})
 public class VersionedProviderController {
 
     private final ProviderCatalogService providerCatalogService;
     private final ProviderConnectivityService providerConnectivityService;
+    private final ProviderHealthService providerHealthService;
     private final WorkspaceContextService workspaceContextService;
 
     public VersionedProviderController(
             ProviderCatalogService providerCatalogService,
             ProviderConnectivityService providerConnectivityService,
+            ProviderHealthService providerHealthService,
             WorkspaceContextService workspaceContextService
     ) {
         this.providerCatalogService = providerCatalogService;
         this.providerConnectivityService = providerConnectivityService;
+        this.providerHealthService = providerHealthService;
         this.workspaceContextService = workspaceContextService;
     }
 
@@ -58,6 +63,12 @@ public class VersionedProviderController {
     public ResponseEntity<List<ProviderStatusResponse>> statuses() {
         workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_PROVIDERS_READ);
         return ResponseEntity.ok(providerCatalogService.listProviderStatuses());
+    }
+
+    @GetMapping("/providers/health")
+    public ResponseEntity<List<ProviderHealthResponse>> health() {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_PROVIDERS_READ);
+        return ResponseEntity.ok(providerHealthService.listHealth());
     }
 
     @PostMapping("/providers/{code}/connectivity-test")

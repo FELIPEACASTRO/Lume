@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/research")
+@RequestMapping({"/v1/research", "/api/v1/research"})
 public class VersionedResearchController {
 
     private final ProviderCatalogService providerCatalogService;

@@ -1,0 +1,121 @@
+package com.lume.workspace.inference.orchestration;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lume.workspace.inference.error.AiAuthenticationException;
+import com.lume.workspace.inference.error.AiProviderException;
+import com.lume.workspace.inference.error.AiRateLimitException;
+import com.lume.workspace.inference.error.AiTimeoutException;
+import com.lume.workspace.inference.security.SecretMasker;
+import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+@Component
+public class AiHttpExecutor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AiHttpExecutor.class);
+
+    private final RestClient.Builder restClientBuilder;
+    private final ObjectMapper objectMapper;
+    private final ExecutorService executorService;
+
+    public AiHttpExecutor(RestClient.Builder restClientBuilder, ObjectMapper objectMapper) {
+        this.restClientBuilder = restClientBuilder;
+        this.objectMapper = objectMapper;
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    public JsonNode postJson(
+            String providerCode,
+            String url,
+            Map<String, String> headers,
+            JsonNode payload,
+            Duration timeout
+    ) {
+        Future<JsonNode> future = executorService.submit(() -> doPostJson(providerCode, url, headers, payload));
+        try {
+            return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException timeoutException) {
+            future.cancel(true);
+            throw new AiTimeoutException("Timeout ao consultar " + providerCode + ".");
+        } catch (ExecutionException executionException) {
+            Throwable cause = executionException.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new AiProviderException("Falha inesperada ao consultar " + providerCode + ".", cause, true);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            throw new AiTimeoutException("Execucao interrompida ao consultar " + providerCode + ".", interruptedException);
+        }
+    }
+
+    private JsonNode doPostJson(
+            String providerCode,
+            String url,
+            Map<String, String> headers,
+            JsonNode payload
+    ) {
+        try {
+            RestClient.RequestBodySpec request = restClientBuilder.build()
+                    .post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON);
+
+            headers.forEach(request::header);
+
+            return request.body(payload)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (RestClientResponseException responseException) {
+            String sanitizedMessage = SecretMasker.sanitizeErrorMessage(responseException.getResponseBodyAsString());
+            int statusCode = responseException.getStatusCode().value();
+            if (statusCode == 401 || statusCode == 403) {
+                throw new AiAuthenticationException("Autenticacao recusada por " + providerCode + ".");
+            }
+            if (statusCode == 429) {
+                throw new AiRateLimitException("Rate limit recebido de " + providerCode + ".");
+            }
+            LOGGER.warn(
+                    "Provider {} respondeu com erro HTTP {}. headers={} mensagem={}",
+                    providerCode,
+                    statusCode,
+                    SecretMasker.sanitizeHeaders(headers),
+                    sanitizedMessage
+            );
+            throw new AiProviderException("Erro HTTP " + statusCode + " ao consultar " + providerCode + ".", responseException, statusCode >= 500);
+        } catch (ResourceAccessException accessException) {
+            throw new AiTimeoutException("Falha de acesso de rede ao consultar " + providerCode + ".", accessException);
+        } catch (RuntimeException genericException) {
+            throw new AiProviderException(
+                    "Falha tecnica ao consultar " + providerCode + ": " + SecretMasker.sanitizeErrorMessage(genericException.getMessage()),
+                    genericException,
+                    true
+            );
+        }
+    }
+
+    public JsonNode toJsonNode(Object value) {
+        return objectMapper.valueToTree(value);
+    }
+
+    @PreDestroy
+    void close() {
+        executorService.close();
+    }
+}

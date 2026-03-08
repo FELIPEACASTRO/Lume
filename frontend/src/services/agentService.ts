@@ -6,6 +6,7 @@ import {
   AgentThread,
   CreateAgentMessageRequest,
   CreateAgentThreadRequest,
+  UpdateAgentRuntimeRequest,
 } from '../types';
 
 export const agentService = {
@@ -31,6 +32,11 @@ export const agentService = {
 
   async appendMessage(threadId: string, data: CreateAgentMessageRequest): Promise<AgentConversation> {
     const response = await api.post<AgentConversation>(`/agents/threads/${threadId}/messages`, data);
+    return response.data;
+  },
+
+  async updateRuntime(profileId: string, payload: UpdateAgentRuntimeRequest): Promise<AgentProfile> {
+    const response = await api.patch<AgentProfile>(`/v1/agents/profiles/${profileId}/runtime`, payload);
     return response.data;
   },
 };

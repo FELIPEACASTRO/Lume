@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/threat-intel")
+@RequestMapping({"/v1/threat-intel", "/api/v1/threat-intel"})
 public class VersionedThreatIntelController {
 
     private final ProviderCatalogService providerCatalogService;
