@@ -1,15 +1,19 @@
 package com.lume.presentation.controller;
 
+import com.lume.application.dto.request.UpdateUserRequestDTO;
 import com.lume.application.dto.request.UserRequestDTO;
 import com.lume.application.dto.response.UserResponseDTO;
 import com.lume.application.mapper.UserMapper;
 import com.lume.application.port.input.UserCommandUseCase;
+import com.lume.workspace.service.AuditLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * Controller REST para operações de escrita (Commands) de usuários.
@@ -31,9 +35,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserCommandController {
 
     private final UserCommandUseCase commandUseCase;
+    private final AuditLogService auditLogService;
 
-    public UserCommandController(UserCommandUseCase commandUseCase) {
+    public UserCommandController(UserCommandUseCase commandUseCase, AuditLogService auditLogService) {
         this.commandUseCase = commandUseCase;
+        this.auditLogService = auditLogService;
     }
 
     @PostMapping
@@ -41,6 +47,12 @@ public class UserCommandController {
     public ResponseEntity<UserResponseDTO> create(@Valid @RequestBody UserRequestDTO dto) {
         var command = UserMapper.toCreateCommand(dto);
         UserResponseDTO created = commandUseCase.create(command);
+        auditLogService.record(
+                "user",
+                String.valueOf(created.id()),
+                "created",
+                Map.of("email", created.email(), "active", created.active())
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -48,15 +60,23 @@ public class UserCommandController {
     @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário existente")
     public ResponseEntity<UserResponseDTO> update(
             @PathVariable Long id,
-            @Valid @RequestBody UserRequestDTO dto) {
+            @Valid @RequestBody UpdateUserRequestDTO dto) {
         var command = UserMapper.toUpdateCommand(id, dto);
-        return ResponseEntity.ok(commandUseCase.update(command));
+        UserResponseDTO updated = commandUseCase.update(command);
+        auditLogService.record(
+                "user",
+                String.valueOf(updated.id()),
+                "updated",
+                Map.of("email", updated.email(), "active", updated.active())
+        );
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Desativar usuário", description = "Desativa um usuário (soft delete)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         commandUseCase.delete(id);
+        auditLogService.record("user", String.valueOf(id), "deactivated", null);
         return ResponseEntity.noContent().build();
     }
 }

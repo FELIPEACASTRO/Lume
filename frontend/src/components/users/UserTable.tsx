@@ -1,72 +1,71 @@
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { User } from '../../types';
 import { formatDate } from '../../utils/formatters';
-import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 interface UserTableProps {
   users: User[];
   onEdit: (user: User) => void;
-  onDelete: (id: number) => void;
+  onDelete: (user: User) => void;
+  canManage?: boolean;
 }
 
-/**
- * Componente de tabela de usuários.
- * Princípio SRP: responsável apenas pela renderização da tabela.
- * A lógica de estado e ações é gerenciada pelo hook useUsers.
- */
-export default function UserTable({ users, onEdit, onDelete }: UserTableProps) {
+export default function UserTable({ users, onEdit, onDelete, canManage = true }: UserTableProps) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-dark-100">
-            <th className="text-left py-3 px-4 text-sm font-semibold text-dark-600">ID</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-dark-600">Nome</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-dark-600">E-mail</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-dark-600">Status</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-dark-600">Criado em</th>
-            <th className="text-right py-3 px-4 text-sm font-semibold text-dark-600">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="border-b border-dark-50 hover:bg-dark-50 transition-colors">
-              <td className="py-3 px-4 text-sm text-dark-500">{user.id}</td>
-              <td className="py-3 px-4 text-sm font-medium text-dark-900">{user.name}</td>
-              <td className="py-3 px-4 text-sm text-dark-600">{user.email}</td>
-              <td className="py-3 px-4">
+    <div className="space-y-3">
+      {users.map((user) => (
+        <article
+          key={user.id}
+          className="rounded-[24px] border bg-white px-5 py-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-panel"
+          style={{ borderColor: 'var(--line-soft)' }}
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <h3 className="text-lg font-semibold text-[var(--ink-strong)]">{user.name}</h3>
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    user.active
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
+                  className={[
+                    'rounded-full px-3 py-1 text-xs font-semibold',
+                    user.active ? 'bg-[rgba(44,134,86,0.12)] text-[#2c8656]' : 'bg-[rgba(163,60,47,0.12)] text-[#a33c2f]',
+                  ].join(' ')}
                 >
                   {user.active ? 'Ativo' : 'Inativo'}
                 </span>
-              </td>
-              <td className="py-3 px-4 text-sm text-dark-500">{formatDate(user.createdAt)}</td>
-              <td className="py-3 px-4">
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => onEdit(user)}
-                    className="p-2 text-dark-400 hover:text-lume-500 hover:bg-lume-50 rounded-lg transition-colors"
-                    title="Editar"
-                  >
-                    <FiEdit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => onDelete(user.id)}
-                    className="p-2 text-dark-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Excluir"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {user.roleLabel ? (
+                  <span className="rounded-full bg-[var(--surface-muted)] px-3 py-1 text-xs font-semibold text-[var(--ink-strong)]">
+                    {user.roleLabel}
+                  </span>
+                ) : null}
+                {user.currentUser ? (
+                  <span className="rounded-full border px-3 py-1 text-xs font-semibold text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
+                    Voce
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-2 text-sm text-[var(--ink-soft)]">{user.email}</p>
+              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+                <span>ID {user.id}</span>
+                <span>Criado em {formatDate(user.createdAt)}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button type="button" className="btn-secondary" onClick={() => onEdit(user)} disabled={!canManage}>
+                <FiEdit2 size={16} />
+                Editar
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={() => onDelete(user)}
+                disabled={!canManage || user.currentUser}
+              >
+                <FiTrash2 size={16} />
+                Desativar
+              </button>
+            </div>
+          </div>
+        </article>
+      ))}
     </div>
   );
 }

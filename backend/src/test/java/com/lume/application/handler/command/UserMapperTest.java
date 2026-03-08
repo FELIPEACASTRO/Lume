@@ -2,6 +2,7 @@ package com.lume.application.handler.command;
 
 import com.lume.application.command.CreateUserCommand;
 import com.lume.application.command.UpdateUserCommand;
+import com.lume.application.dto.request.UpdateUserRequestDTO;
 import com.lume.application.dto.request.UserRequestDTO;
 import com.lume.application.dto.response.UserResponseDTO;
 import com.lume.application.mapper.UserMapper;
@@ -45,9 +46,9 @@ class UserMapperTest {
     }
 
     @Test
-    @DisplayName("Deve converter UserRequestDTO para UpdateUserCommand com ID")
+    @DisplayName("Deve converter UpdateUserRequestDTO para UpdateUserCommand com ID")
     void shouldMapRequestToUpdateCommand() {
-        var dto = new UserRequestDTO("João", "joao@email.com", "senha123");
+        var dto = new UpdateUserRequestDTO("João", "joao@email.com", "senha123");
 
         UpdateUserCommand command = UserMapper.toUpdateCommand(5L, dto);
 
@@ -55,5 +56,18 @@ class UserMapperTest {
         assertEquals("João", command.name());
         assertEquals("joao@email.com", command.email());
         assertEquals("senha123", command.password());
+    }
+
+    @Test
+    @DisplayName("Deve converter UpdateUserRequestDTO sem senha para UpdateUserCommand")
+    void shouldMapRequestToUpdateCommandWithoutPassword() {
+        var dto = new UpdateUserRequestDTO("João", "joao@email.com", null);
+
+        UpdateUserCommand command = UserMapper.toUpdateCommand(5L, dto);
+
+        assertEquals(5L, command.id());
+        assertEquals("João", command.name());
+        assertEquals("joao@email.com", command.email());
+        assertNull(command.password());
     }
 }

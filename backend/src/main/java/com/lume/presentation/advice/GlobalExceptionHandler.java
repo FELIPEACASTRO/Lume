@@ -1,5 +1,6 @@
 package com.lume.presentation.advice;
 
+import com.lume.domain.exception.AccessDeniedException;
 import com.lume.domain.exception.BusinessRuleException;
 import com.lume.domain.exception.ResourceNotFoundException;
 import com.lume.presentation.response.ApiResponse;
@@ -13,18 +14,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Handler global de exceções para a camada de apresentação.
- *
- * <p><b>Clean Architecture:</b> Pertence à camada de apresentação e traduz
- * exceções de domínio em respostas HTTP apropriadas.</p>
- *
- * <p><b>Princípio SRP:</b> Responsável exclusivamente pelo mapeamento
- * exceção → resposta HTTP.</p>
- *
- * <p><b>Princípio OCP:</b> Novos handlers podem ser adicionados sem
- * modificar os existentes.</p>
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -33,6 +22,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.of(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
@@ -60,7 +56,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.of(HttpStatus.BAD_REQUEST.value(), "Erro de validação", errors));
+                .body(ApiResponse.of(HttpStatus.BAD_REQUEST.value(), "Erro de validacao", errors));
     }
 
     @ExceptionHandler(Exception.class)

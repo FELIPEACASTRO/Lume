@@ -1,57 +1,122 @@
-import { useState, useEffect, useCallback } from 'react';
-import { userService } from '../services/userService';
-import { User, UserRequest } from '../types';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { memberService } from '../services/memberService';
+import { toApiClientError } from '../services/api';
+import { User, UserCreateRequest, UserFormData, UserUpdateRequest } from '../types';
 
-/**
- * Custom Hook para gerenciamento de estado e operações de usuários.
- *
- * Princípio SRP: encapsula toda a lógica de estado e comunicação com a API,
- * separando-a da camada de apresentação (componentes).
- */
-export function useUsers() {
+interface UseUsersOptions {
+  onUsersChanged?: () => Promise<void> | void;
+}
+
+export function useUsers(options: UseUsersOptions = {}) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingDeletionUser, setPendingDeletionUser] = useState<User | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
 
   const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const page = await userService.findAll();
-      setUsers(page.content);
-    } catch {
-      toast.error('Erro ao carregar usuários');
+      setError(null);
+      const members = await memberService.findAll();
+      setUsers(members);
+    } catch (loadError) {
+      const apiError = toApiClientError(loadError);
+      setError(apiError.message);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, [loadUsers]);
 
-  const handleCreate = async (data: UserRequest) => {
-    await userService.create(data);
-    toast.success('Usuário criado com sucesso!');
-    setShowForm(false);
-    loadUsers();
+  const handleCreate = async (data: UserFormData) => {
+    const payload: UserCreateRequest = {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      roleCode: data.roleCode,
+    };
+
+    try {
+      await memberService.create(payload);
+      toast.success('Membro criado com sucesso.');
+      setShowForm(false);
+      await loadUsers();
+      await options.onUsersChanged?.();
+    } catch (createError) {
+      toast.error(toApiClientError(createError).message);
+    }
   };
 
-  const handleUpdate = async (data: UserRequest) => {
-    if (!editingUser) return;
-    await userService.update(editingUser.id, data);
-    toast.success('Usuário atualizado com sucesso!');
-    setEditingUser(null);
-    setShowForm(false);
-    loadUsers();
+  const handleUpdate = async (data: UserFormData) => {
+    if (!editingUser) {
+      return;
+    }
+
+    const payload: UserUpdateRequest = {
+      name: data.name,
+      email: data.email,
+      roleCode: data.roleCode,
+      active: editingUser.active,
+    };
+
+    if (data.password.trim()) {
+      payload.password = data.password.trim();
+    }
+
+    try {
+      await memberService.update(editingUser.membershipId ?? editingUser.id, payload);
+      toast.success('Membro atualizado com sucesso.');
+      setEditingUser(null);
+      setShowForm(false);
+      await loadUsers();
+      await options.onUsersChanged?.();
+    } catch (updateError) {
+      toast.error(toApiClientError(updateError).message);
+    }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja desativar este usuário?')) return;
-    await userService.delete(id);
-    toast.success('Usuário desativado com sucesso!');
-    loadUsers();
+  const requestDelete = (user: User) => {
+    setPendingDeletionUser(user);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeletionUser) {
+      return;
+    }
+
+    try {
+      setDeletePending(true);
+      await memberService.update(pendingDeletionUser.membershipId ?? pendingDeletionUser.id, {
+        name: pendingDeletionUser.name,
+        email: pendingDeletionUser.email,
+        roleCode: pendingDeletionUser.roleCode ?? 'workspace_member',
+        active: false,
+      });
+      toast.success('Membership desativada com sucesso.');
+      setPendingDeletionUser(null);
+      await loadUsers();
+      await options.onUsersChanged?.();
+    } catch (deleteError) {
+      toast.error(toApiClientError(deleteError).message);
+    } finally {
+      setDeletePending(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    if (deletePending) {
+      return;
+    }
+
+    setPendingDeletionUser(null);
   };
 
   const startEditing = (user: User) => {
@@ -72,13 +137,19 @@ export function useUsers() {
   return {
     users,
     loading,
+    error,
     showForm,
     editingUser,
+    pendingDeletionUser,
+    deletePending,
     handleCreate,
     handleUpdate,
-    handleDelete,
+    requestDelete,
+    confirmDelete,
+    cancelDelete,
     startEditing,
     cancelForm,
     openCreateForm,
+    reloadUsers: loadUsers,
   };
 }
