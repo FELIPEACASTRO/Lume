@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 public record ThreatIntelQueryRequest(
         @NotBlank String providerCode,
         @NotBlank String query,
-        @Positive Integer limit
+        @Positive Integer limit,
+        String justification
 ) {
 }

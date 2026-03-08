@@ -54,6 +54,10 @@ logging:
     org.springframework: WARN
     org.hibernate.SQL: WARN
 
+security:
+  compliance:
+    dark-web-enabled: false
+
 lume:
   ai:
     defaults:

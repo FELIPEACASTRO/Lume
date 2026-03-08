@@ -110,7 +110,7 @@ public class ProviderConnectivityService {
                 );
             }
             case "threat-intel" -> {
-                var threatResponse = threatIntelService.query(new ThreatIntelQueryRequest(provider.code(), "lume", 1));
+                var threatResponse = threatIntelService.query(new ThreatIntelQueryRequest(provider.code(), "lume", 1, "Provider connectivity test"));
                 yield new ProviderConnectivityResponse(
                         provider.code(),
                         provider.name(),

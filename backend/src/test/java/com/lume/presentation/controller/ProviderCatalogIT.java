@@ -50,6 +50,24 @@ class ProviderCatalogIT {
     }
 
     @Test
+    @DisplayName("GET /api/v1/providers/openrouter - should return provider detail")
+    void shouldReturnProviderDetail() throws Exception {
+        mockMvc.perform(get("/api/v1/providers/openrouter"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("openrouter"))
+                .andExpect(jsonPath("$.executionSupported").value(true))
+                .andExpect(jsonPath("$.catalogState").value("live"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/providers/openrouter/models - should return scoped models")
+    void shouldReturnModelsForProviderPath() throws Exception {
+        mockMvc.perform(get("/api/v1/providers/openrouter/models"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.providerCode=='openrouter')]").exists());
+    }
+
+    @Test
     @DisplayName("GET /api/v1/provider-credentials - should expose credential env vars without leaking values")
     void shouldReturnCredentialHints() throws Exception {
         mockMvc.perform(get("/api/v1/provider-credentials"))
@@ -65,6 +83,7 @@ class ProviderCatalogIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].category", hasItem("text-runtime")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='openrouter')].executionSupported", hasItem(true)))
                 .andExpect(jsonPath("$[?(@.providerCode=='darkowl')].adminOnly", hasItem(true)));
     }
 

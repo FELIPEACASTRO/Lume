@@ -154,6 +154,48 @@ class AiProviderAdapterHttpTest {
         assertThat(result.content()).isEqualTo("Resposta Sonar");
     }
 
+    @Test
+    @DisplayName("Groq adapter should call responses endpoint")
+    void shouldCallGroqResponsesApi() {
+        MockEnvironment environment = new MockEnvironment().withProperty("GROQ_API_KEY", "test-groq");
+        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://api.groq.com/openai/v1/responses"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-groq"))
+                .andRespond(withSuccess("""
+                        {"output":[{"content":[{"type":"output_text","text":"Resposta Groq"}]}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        GroqAdapter adapter = new GroqAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("groq", "Responda com uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("groq");
+        assertThat(result.content()).isEqualTo("Resposta Groq");
+    }
+
+    @Test
+    @DisplayName("OpenRouter adapter should call chat completions endpoint")
+    void shouldCallOpenRouterChatCompletions() {
+        MockEnvironment environment = new MockEnvironment().withProperty("OPENROUTER_API_KEY", "test-openrouter");
+        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://openrouter.ai/api/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-openrouter"))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"Resposta OpenRouter"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        OpenRouterAdapter adapter = new OpenRouterAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("openrouter", "Responda com uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("openrouter");
+        assertThat(result.content()).isEqualTo("Resposta OpenRouter");
+    }
+
     private AiPromptCommand command(String providerCode, String prompt) {
         return new AiPromptCommand(
                 "req-test-" + providerCode,

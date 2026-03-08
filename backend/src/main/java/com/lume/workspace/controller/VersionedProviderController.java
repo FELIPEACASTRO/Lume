@@ -47,10 +47,22 @@ public class VersionedProviderController {
         return ResponseEntity.ok(providerCatalogService.listProviders());
     }
 
+    @GetMapping("/providers/{provider}")
+    public ResponseEntity<ProviderResponse> provider(@PathVariable String provider) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_PROVIDERS_READ);
+        return ResponseEntity.ok(providerCatalogService.getProvider(provider));
+    }
+
     @GetMapping("/models")
     public ResponseEntity<List<ModelResponse>> models(@RequestParam(required = false) String provider) {
         workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_PROVIDERS_READ);
         return ResponseEntity.ok(providerCatalogService.listModels(provider));
+    }
+
+    @GetMapping("/providers/{provider}/models")
+    public ResponseEntity<List<ModelResponse>> providerModels(@PathVariable String provider) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_PROVIDERS_READ);
+        return ResponseEntity.ok(providerCatalogService.listModelsForProvider(provider));
     }
 
     @GetMapping("/provider-credentials")

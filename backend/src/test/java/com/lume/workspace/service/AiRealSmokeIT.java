@@ -4,9 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lume.workspace.dto.UnifiedInferenceRequest;
 import com.lume.workspace.inference.adapter.AnthropicAdapter;
 import com.lume.workspace.inference.adapter.DeepSeekAdapter;
+import com.lume.workspace.inference.adapter.DeepInfraAdapter;
+import com.lume.workspace.inference.adapter.FireworksAdapter;
 import com.lume.workspace.inference.adapter.GeminiAdapter;
+import com.lume.workspace.inference.adapter.GroqAdapter;
+import com.lume.workspace.inference.adapter.MistralAdapter;
 import com.lume.workspace.inference.adapter.OpenAiAdapter;
+import com.lume.workspace.inference.adapter.OpenRouterAdapter;
 import com.lume.workspace.inference.adapter.PerplexityAdapter;
+import com.lume.workspace.inference.adapter.TogetherAdapter;
 import com.lume.workspace.inference.adapter.XaiAdapter;
 import com.lume.workspace.inference.config.AiRuntimeProperties;
 import com.lume.workspace.inference.metrics.AiMetricsRecorder;
@@ -38,13 +44,19 @@ class AiRealSmokeIT {
         Assumptions.assumeTrue("true".equalsIgnoreCase(System.getenv().getOrDefault("RUN_REAL_AI_TESTS", "false")));
 
         MockEnvironment environment = new MockEnvironment();
-        Map.of(
-                "OPENAI_API_KEY", System.getenv("OPENAI_API_KEY"),
-                "GEMINI_API_KEY", System.getenv("GEMINI_API_KEY"),
-                "DEEPSEEK_API_KEY", System.getenv("DEEPSEEK_API_KEY"),
-                "ANTHROPIC_API_KEY", System.getenv("ANTHROPIC_API_KEY"),
-                "XAI_API_KEY", System.getenv("XAI_API_KEY"),
-                "PERPLEXITY_API_KEY", System.getenv("PERPLEXITY_API_KEY")
+        Map.ofEntries(
+                Map.entry("OPENAI_API_KEY", System.getenv("OPENAI_API_KEY")),
+                Map.entry("GEMINI_API_KEY", System.getenv("GEMINI_API_KEY")),
+                Map.entry("DEEPSEEK_API_KEY", System.getenv("DEEPSEEK_API_KEY")),
+                Map.entry("ANTHROPIC_API_KEY", System.getenv("ANTHROPIC_API_KEY")),
+                Map.entry("XAI_API_KEY", System.getenv("XAI_API_KEY")),
+                Map.entry("PERPLEXITY_API_KEY", System.getenv("PERPLEXITY_API_KEY")),
+                Map.entry("GROQ_API_KEY", System.getenv("GROQ_API_KEY")),
+                Map.entry("OPENROUTER_API_KEY", System.getenv("OPENROUTER_API_KEY")),
+                Map.entry("TOGETHER_API_KEY", System.getenv("TOGETHER_API_KEY")),
+                Map.entry("FIREWORKS_API_KEY", System.getenv("FIREWORKS_API_KEY")),
+                Map.entry("DEEPINFRA_API_KEY", System.getenv("DEEPINFRA_API_KEY")),
+                Map.entry("MISTRAL_API_KEY", System.getenv("MISTRAL_API_KEY"))
         ).forEach((key, value) -> {
             if (value != null && !value.isBlank()) {
                 environment.setProperty(key, value);
@@ -64,7 +76,13 @@ class AiRealSmokeIT {
                         new DeepSeekAdapter(catalogService, executor, runtimeProperties, objectMapper),
                         new AnthropicAdapter(catalogService, executor, runtimeProperties, objectMapper),
                         new XaiAdapter(catalogService, executor, runtimeProperties, objectMapper),
-                        new PerplexityAdapter(catalogService, executor, runtimeProperties, objectMapper)
+                        new PerplexityAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                        new GroqAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                        new OpenRouterAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                        new TogetherAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                        new FireworksAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                        new DeepInfraAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                        new MistralAdapter(catalogService, executor, runtimeProperties, objectMapper)
                 )),
                 runtimeProperties,
                 new AiCircuitBreakerRegistry(),
@@ -73,7 +91,7 @@ class AiRealSmokeIT {
         InferenceGatewayService service = new InferenceGatewayService(orchestrator);
 
         List<String> availableProviders = new ArrayList<>();
-        for (String providerCode : List.of("openai", "google-gemini", "deepseek", "anthropic", "xai", "perplexity")) {
+        for (String providerCode : List.of("openai", "google-gemini", "deepseek", "anthropic", "xai", "perplexity", "groq", "openrouter", "together", "fireworks", "deepinfra", "mistral")) {
             if (catalogService.isConfigured(providerCode)) {
                 availableProviders.add(providerCode);
             }

@@ -11,7 +11,13 @@ public enum ProviderKey {
     DEEPSEEK("deepseek"),
     ANTHROPIC("anthropic", "claude"),
     XAI("xai", "grok"),
-    PERPLEXITY("perplexity");
+    PERPLEXITY("perplexity"),
+    GROQ("groq"),
+    OPENROUTER("openrouter"),
+    TOGETHER("together"),
+    FIREWORKS("fireworks"),
+    DEEPINFRA("deepinfra"),
+    MISTRAL("mistral");
 
     private final String code;
     private final Set<String> aliases;

@@ -338,7 +338,7 @@ A tabela abaixo documenta a complexidade computacional das operações principai
 
 ## Integração Multi-Provider de IA
 
-O backend agora possui runtime real e testado para `OpenAI`, `Gemini`, `DeepSeek`, `Anthropic`, `xAI` e `Perplexity`, sempre por variáveis de ambiente. Nenhuma chave deve ser hardcoded no código ou salva em arquivos versionados.
+O backend agora possui runtime real e testado para `OpenAI`, `Gemini`, `DeepSeek`, `Anthropic`, `xAI`, `Perplexity`, `Groq`, `OpenRouter`, `Together`, `Fireworks`, `DeepInfra` e `Mistral`, sempre por variáveis de ambiente. Nenhuma chave deve ser hardcoded no código ou salva em arquivos versionados.
 
 ### Configuração local
 
@@ -346,6 +346,7 @@ O backend agora possui runtime real e testado para `OpenAI`, `Gemini`, `DeepSeek
 2. Preencha apenas as chaves dos providers que deseja ativar.
 3. Suba o backend com `mvn spring-boot:run -Dspring-boot.run.profiles=dev`.
 4. Consulte `GET /api/v1/providers`, `GET /api/v1/providers/status` e `GET /api/v1/providers/health` para validar readiness.
+5. A nova API unificada por capability fica disponível em `/api/v1/chat`, `/api/v1/responses`, `/api/v1/search`, `/api/v1/web-grounded-chat` e `/api/v1/threat-intel/search`.
 
 ### Testes mockados
 
@@ -376,6 +377,26 @@ curl -X POST http://localhost:8080/api/v1/inference/execute ^
   -d "{\"providerCode\":\"openai\",\"prompt\":\"Responda apenas OK.\",\"fallbackProviderCodes\":[\"anthropic\"]}"
 ```
 
+### Exemplo da API por capability
+
+```bash
+curl -X POST http://localhost:8080/api/v1/chat ^
+  -H "Content-Type: application/json" ^
+  -d "{\"providerCode\":\"openrouter\",\"modelCode\":\"openrouter:meta-llama/llama-3.3-8b-instruct:free\",\"prompt\":\"Responda apenas OK.\",\"freeTierOnly\":true}"
+```
+
+```bash
+curl -X POST http://localhost:8080/api/v1/search ^
+  -H "Content-Type: application/json" ^
+  -d "{\"providerCode\":\"exa\",\"query\":\"latest enterprise ai platform patterns\",\"limit\":5}"
+```
+
+```bash
+curl -X POST http://localhost:8080/api/v1/threat-intel/search ^
+  -H "Content-Type: application/json" ^
+  -d "{\"providerCode\":\"darkowl\",\"query\":\"example market\",\"limit\":5,\"justification\":\"Incidente interno sob análise\"}"
+```
+
 ### Exemplo SSE
 
 ```bash
@@ -389,8 +410,9 @@ curl -N -X POST http://localhost:8080/api/v1/inference/stream ^
 1. Registrar o provider e os modelos em `ProviderCatalogService`.
 2. Criar um novo adapter em `backend/src/main/java/com/lume/workspace/inference/adapter/`.
 3. Garantir `healthCheck`, `estimateCost`, `sendPrompt` e `streamPrompt`.
-4. Cobrir o adapter com testes mockados e testes de contrato.
-5. Atualizar `docs/ai-providers.md`.
+4. Se a integração for capability-specific, expor também o binding em `AiCapabilityService`.
+5. Cobrir o adapter com testes mockados e testes de contrato.
+6. Atualizar `docs/ai-providers.md`.
 
 ### Checklist de segurança
 
@@ -398,6 +420,7 @@ curl -N -X POST http://localhost:8080/api/v1/inference/stream ^
 - Não versionar `.env`.
 - Não logar `Authorization`, `x-api-key` ou `x-goog-api-key`.
 - Não logar prompts brutos em `INFO/WARN/ERROR`.
+- Threat-intel exige `SECURITY_COMPLIANCE_DARK_WEB_ENABLED=true` e justificativa por chamada.
 - Validar readiness via startup logs e endpoints `/providers/status` e `/providers/health`.
 
 Consulte também `docs/ai-providers.md` para a matriz detalhada de providers, aliases, modelos padrão e limites desta fase.

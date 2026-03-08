@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -58,6 +59,7 @@ public class ResearchService {
         try {
             response = switch (provider.code()) {
                 case "exa" -> queryExa(provider, request);
+                case "newscatcher" -> queryNewsCatcher(provider, request);
                 default -> unsupported(provider, request.query(), "O adapter deste provedor ainda nao foi implementado.");
             };
         } catch (RestClientException providerError) {
@@ -99,6 +101,35 @@ public class ResearchService {
                         result.path("text").asText(""),
                         provider.name(),
                         result.has("score") ? result.path("score").asDouble() : null
+                ))
+                .toList()
+                : List.of();
+
+        return new ResearchQueryResponse(provider.code(), provider.name(), true, true, "completed", request.query(), items, null);
+    }
+
+    private ResearchQueryResponse queryNewsCatcher(ProviderDefinition provider, ResearchQueryRequest request) {
+        String uri = UriComponentsBuilder.fromHttpUrl(providerCatalogService.resolveBaseUrl(provider) + "/search")
+                .queryParam("q", request.query())
+                .queryParam("page_size", request.limit() != null ? request.limit() : 5)
+                .toUriString();
+
+        JsonNode response = restClientBuilder.build()
+                .get()
+                .uri(uri)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("x-api-token", providerCatalogService.credentialValue(provider, "apiToken"))
+                .retrieve()
+                .body(JsonNode.class);
+
+        List<ResearchResultItemResponse> items = response.path("articles").isArray()
+                ? java.util.stream.StreamSupport.stream(response.path("articles").spliterator(), false)
+                .map(article -> new ResearchResultItemResponse(
+                        article.path("title").asText(""),
+                        article.path("link").asText(article.path("url").asText("")),
+                        article.path("summary").asText(article.path("excerpt").asText("")),
+                        provider.name(),
+                        article.has("rank") ? article.path("rank").asDouble() : null
                 ))
                 .toList()
                 : List.of();

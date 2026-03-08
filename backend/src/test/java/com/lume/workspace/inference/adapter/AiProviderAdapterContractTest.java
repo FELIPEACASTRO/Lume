@@ -32,7 +32,13 @@ class AiProviderAdapterContractTest {
                 new DeepSeekAdapter(catalogService, executor, runtimeProperties, objectMapper),
                 new AnthropicAdapter(catalogService, executor, runtimeProperties, objectMapper),
                 new XaiAdapter(catalogService, executor, runtimeProperties, objectMapper),
-                new PerplexityAdapter(catalogService, executor, runtimeProperties, objectMapper)
+                new PerplexityAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                new GroqAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                new OpenRouterAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                new TogetherAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                new FireworksAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                new DeepInfraAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                new MistralAdapter(catalogService, executor, runtimeProperties, objectMapper)
         );
 
         adapters.forEach(adapter -> {
