@@ -14,6 +14,54 @@ Este diretorio concentra os artefatos de diagnostico, estrategia e execucao do L
 
 ## Artefatos atuais
 
+### Governanca operacional e evidencia
+
+- `requirements-matrix.md`
+  - taxonomias oficiais de estado, evidencia e gates
+  - matriz por capability e precedencia de fontes
+
+- `provider-status-matrix.md`
+  - estado humano do catalogo por provider
+  - usado para reconciliar runtime, roadmap e onboarding
+
+- `provider-docs-matrix.md`
+  - proveniencia documental por familia
+  - risco de onboarding e tipo de fonte
+
+- `official-sources.md`
+  - links primarios por provider/familia
+  - referencia obrigatoria para promocao de estado
+
+- `implementation-roadmap.md`
+  - roadmap incremental capability-first
+  - fases e gates atuais do runtime
+
+- `architecture-overview.md`
+  - retrato honesto da arquitetura atual
+  - target architecture e limites da fase
+
+- `test-strategy.md`
+  - estrategia de teste por nivel de evidencia
+  - suites, gates e responsabilidades
+
+- `test-evidence.md`
+  - como registrar prova de teste e promocao de provider
+
+- `live-validation-matrix.md`
+  - o que esta apenas modelado, integrado ou validado online
+
+- `finops.md`
+  - principios de custo, quota e roteamento
+
+- `performance/500tps-report.md`
+  - status da meta de throughput e plano de benchmark
+
+- `provider-by-provider/`
+  - perfis curtos dos providers prioritarios
+
+- `adr/`
+  - registros arquiteturais vigentes
+
 ### Diagnostico e critica especializada
 
 - `double-check-lume-100-especialistas.md`

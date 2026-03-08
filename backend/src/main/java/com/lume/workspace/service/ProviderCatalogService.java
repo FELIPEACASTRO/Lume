@@ -10,7 +10,14 @@ import com.lume.workspace.inference.CredentialFieldDefinition;
 import com.lume.workspace.inference.InferenceProtocol;
 import com.lume.workspace.inference.ModelDefinition;
 import com.lume.workspace.inference.ProviderDefinition;
-import org.springframework.core.env.Environment;
+import com.lume.workspace.inference.catalog.DefaultProviderCredentialInspector;
+import com.lume.workspace.inference.catalog.ProviderGovernanceMetadata;
+import com.lume.workspace.inference.catalog.ProviderGovernanceMetadataCatalog;
+import com.lume.workspace.inference.catalog.DefaultProviderReadinessEvaluator;
+import com.lume.workspace.inference.catalog.ProviderCredentialInspector;
+import com.lume.workspace.inference.catalog.ProviderReadinessEvaluator;
+import com.lume.workspace.inference.security.SecretResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
@@ -18,39 +25,43 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class ProviderCatalogService {
 
-    private final Environment environment;
+    private final ProviderCredentialInspector credentialInspector;
+    private final ProviderReadinessEvaluator readinessEvaluator;
+    private final ProviderGovernanceMetadataCatalog governanceMetadataCatalog;
     private final Map<String, ProviderDefinition> providersByCode;
     private final Map<String, ModelDefinition> modelsByCode;
+    private final Map<String, List<ModelDefinition>> modelsByProviderCode;
     private final Map<String, String> aliasesToCanonical;
-    private final Set<String> streamingSupportedProviderCodes;
 
-    public ProviderCatalogService(Environment environment) {
-        this.environment = environment;
+    @Autowired
+    public ProviderCatalogService(
+            ProviderCredentialInspector credentialInspector,
+            ProviderReadinessEvaluator readinessEvaluator,
+            ProviderGovernanceMetadataCatalog governanceMetadataCatalog
+    ) {
+        this.credentialInspector = credentialInspector;
+        this.readinessEvaluator = readinessEvaluator;
+        this.governanceMetadataCatalog = governanceMetadataCatalog;
         this.providersByCode = buildProviders();
         this.modelsByCode = buildModels();
+        this.modelsByProviderCode = buildModelIndex(modelsByCode);
         this.aliasesToCanonical = Map.of(
                 "gemini", "google-gemini",
                 "claude", "anthropic",
-                "grok", "xai"
+                "grok", "xai",
+                "voyage", "voyage-ai"
         );
-        this.streamingSupportedProviderCodes = Set.of(
-                "openai",
-                "google-gemini",
-                "deepseek",
-                "anthropic",
-                "xai",
-                "perplexity",
-                "groq",
-                "openrouter",
-                "together",
-                "fireworks",
-                "deepinfra",
-                "mistral"
+    }
+
+    public ProviderCatalogService(SecretResolver secretResolver) {
+        this(
+                new DefaultProviderCredentialInspector(secretResolver),
+                new DefaultProviderReadinessEvaluator(new DefaultProviderCredentialInspector(secretResolver)),
+                ProviderGovernanceMetadataCatalog.defaultCatalog()
         );
     }
 
@@ -73,24 +84,34 @@ public class ProviderCatalogService {
 
     public List<ProviderStatusResponse> listProviderStatuses() {
         return providersByCode.values().stream()
-                .map(provider -> new ProviderStatusResponse(
-                        provider.code(),
-                        provider.name(),
-                        isConfigured(provider),
-                        provider.executionSupported(),
-                        provider.catalogState(),
-                        provider.category(),
-                        provider.adminOnly(),
-                        isStreamingSupported(provider),
-                        readinessStatus(provider),
-                        missingCredentialEnvVars(provider)
-                ))
+                .map(provider -> {
+                    ProviderGovernanceMetadata metadata = governanceMetadata(provider);
+                    return new ProviderStatusResponse(
+                            provider.code(),
+                            provider.name(),
+                            isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            provider.catalogState(),
+                            provider.category(),
+                            provider.adminOnly(),
+                            streamingMode(provider),
+                            runtimeMaturity(provider),
+                            readinessStatus(provider),
+                            missingCredentialEnvVars(provider)
+                    );
+                })
                 .toList();
     }
 
     public List<ModelResponse> listModels(String providerCode) {
-        return modelsByCode.values().stream()
-                .filter(model -> providerCode == null || providerCode.isBlank() || model.providerCode().equalsIgnoreCase(normalizeProviderCode(providerCode)))
+        if (providerCode == null || providerCode.isBlank()) {
+            return modelsByCode.values().stream()
+                    .map(this::toModelResponse)
+                    .toList();
+        }
+        return modelsByProviderCode.getOrDefault(normalizeProviderCode(providerCode), List.of()).stream()
                 .map(this::toModelResponse)
                 .toList();
     }
@@ -102,21 +123,31 @@ public class ProviderCatalogService {
 
     public List<ProviderCredentialResponse> listCredentials() {
         return providersByCode.values().stream()
-                .map(provider -> new ProviderCredentialResponse(
-                        provider.code(),
-                        provider.name(),
-                        isConfigured(provider),
-                        provider.executionSupported(),
-                        provider.category(),
-                        provider.apiStyle(),
-                        provider.adminOnly(),
-                        isStreamingSupported(provider),
-                        provider.catalogState(),
-                        missingCredentialEnvVars(provider),
-                        toCredentialResponses(provider),
-                        provider.apiKeyPortalUrl(),
-                        provider.docsUrl()
-                ))
+                .map(provider -> {
+                    ProviderGovernanceMetadata metadata = governanceMetadata(provider);
+                    return new ProviderCredentialResponse(
+                            provider.code(),
+                            provider.name(),
+                            isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            metadata.businessPriority(),
+                            metadata.syncMode(),
+                            provider.category(),
+                            provider.apiStyle(),
+                            provider.adminOnly(),
+                            streamingMode(provider),
+                            runtimeMaturity(provider),
+                            provider.catalogState(),
+                            metadata.pricingSummary(),
+                            metadata.rateLimitSummary(),
+                            missingCredentialEnvVars(provider),
+                            toCredentialResponses(provider),
+                            metadata.apiKeyPortalUrl(),
+                            metadata.docsUrl()
+                    );
+                })
                 .toList();
     }
 
@@ -165,12 +196,7 @@ public class ProviderCatalogService {
     }
 
     public boolean isConfigured(ProviderDefinition provider) {
-        return provider.credentialFields().stream()
-                .filter(CredentialFieldDefinition::required)
-                .allMatch(field -> {
-                    String value = environment.getProperty(field.envVar());
-                    return value != null && !value.isBlank();
-                });
+        return credentialInspector.isConfigured(provider);
     }
 
     public List<String> missingCredentialEnvVars(String providerCode) {
@@ -178,39 +204,19 @@ public class ProviderCatalogService {
     }
 
     public List<String> missingCredentialEnvVars(ProviderDefinition provider) {
-        return provider.credentialFields().stream()
-                .filter(CredentialFieldDefinition::required)
-                .filter(field -> {
-                    String value = environment.getProperty(field.envVar());
-                    return value == null || value.isBlank();
-                })
-                .map(CredentialFieldDefinition::envVar)
-                .toList();
+        return credentialInspector.missingCredentialEnvVars(provider);
     }
 
     public String credentialValue(ProviderDefinition provider, String key) {
-        return provider.credentialFields().stream()
-                .filter(field -> field.key().equalsIgnoreCase(key))
-                .findFirst()
-                .map(field -> environment.getProperty(field.envVar()))
-                .orElse(null);
+        return credentialInspector.credentialValue(provider, key);
     }
 
     public String resolveBaseUrl(ProviderDefinition provider) {
-        String baseUrl = provider.baseUrlTemplate();
-        if (baseUrl == null || baseUrl.isBlank()) {
-            return baseUrl;
-        }
-        for (CredentialFieldDefinition field : provider.credentialFields()) {
-            String placeholder = "{" + field.envVar() + "}";
-            if (baseUrl.contains(placeholder)) {
-                baseUrl = baseUrl.replace(placeholder, environment.getProperty(field.envVar(), ""));
-            }
-        }
-        return baseUrl;
+        return credentialInspector.resolveBaseUrl(provider);
     }
 
     private ProviderResponse toProviderResponse(ProviderDefinition provider) {
+        ProviderGovernanceMetadata metadata = governanceMetadata(provider);
         return new ProviderResponse(
                 provider.code(),
                 provider.name(),
@@ -219,19 +225,28 @@ public class ProviderCatalogService {
                 provider.apiStyle(),
                 provider.executionSupported(),
                 isConfigured(provider),
+                metadata.implementationStatus(),
+                metadata.evidenceLevel(),
+                metadata.businessPriority(),
+                metadata.syncMode(),
                 provider.adminOnly(),
                 provider.tenantScoped(),
                 provider.supportsResponsesApi(),
                 provider.supportsChatCompletions(),
-                isStreamingSupported(provider),
+                streamingMode(provider),
+                runtimeMaturity(provider),
                 provider.catalogState(),
+                metadata.pricingSummary(),
+                metadata.rateLimitSummary(),
+                metadata.routingModes(),
+                metadata.documentationSource(),
                 provider.requiredHeaders(),
                 toCredentialResponses(provider),
-                provider.apiKeyPortalUrl(),
-                provider.docsUrl(),
+                metadata.apiKeyPortalUrl(),
+                metadata.docsUrl(),
                 provider.defaultModelCode(),
-                provider.capabilities(),
-                provider.notes()
+                metadata.capabilities(),
+                metadata.notes()
         );
     }
 
@@ -243,7 +258,7 @@ public class ProviderCatalogService {
                         field.envVar(),
                         field.required(),
                         field.secret(),
-                        environment.getProperty(field.envVar()) != null && !environment.getProperty(field.envVar()).isBlank(),
+                        credentialInspector.credentialValue(provider, field.key()) != null,
                         field.description()
                 ))
                 .toList();
@@ -263,19 +278,34 @@ public class ProviderCatalogService {
         );
     }
 
-    public boolean isStreamingSupported(String providerCode) {
-        return findProvider(providerCode).map(this::isStreamingSupported).orElse(false);
+    public String streamingMode(String providerCode) {
+        return findProvider(providerCode).map(this::streamingMode).orElse("unsupported");
     }
 
-    public boolean isStreamingSupported(ProviderDefinition provider) {
-        return provider.executionSupported() && streamingSupportedProviderCodes.contains(provider.code());
+    public String streamingMode(ProviderDefinition provider) {
+        return readinessEvaluator.streamingMode(provider);
+    }
+
+    public String runtimeMaturity(String providerCode) {
+        return findProvider(providerCode).map(this::runtimeMaturity).orElse("catalog_only");
+    }
+
+    public String runtimeMaturity(ProviderDefinition provider) {
+        return readinessEvaluator.runtimeMaturity(provider);
     }
 
     public String readinessStatus(ProviderDefinition provider) {
-        if (!provider.executionSupported()) {
-            return provider.catalogState();
-        }
-        return isConfigured(provider) ? "ready" : "missing_credentials";
+        return readinessEvaluator.readinessStatus(provider);
+    }
+
+    public ProviderGovernanceMetadata governanceMetadata(String providerCode) {
+        return findProvider(providerCode)
+                .map(this::governanceMetadata)
+                .orElse(ProviderGovernanceMetadata.empty());
+    }
+
+    public ProviderGovernanceMetadata governanceMetadata(ProviderDefinition provider) {
+        return governanceMetadataCatalog.resolve(provider);
     }
 
     private Map<String, ProviderDefinition> buildProviders() {
@@ -287,9 +317,9 @@ public class ProviderCatalogService {
         register(providers, provider("xai", "xAI", "text-runtime", InferenceProtocol.OPENAI_RESPONSES, true, "https://api.x.ai/v1", "bearer", "responses", false, true, true, false, "live", "https://console.x.ai", "https://docs.x.ai/docs", "xai:grok-4", List.of("chat", "reasoning", "vision"), "Responses API oficial.", cred("apiKey", "API Key", "XAI_API_KEY", true, true, "Chave xAI / Grok."), List.of("Authorization: Bearer <XAI_API_KEY>")));
         register(providers, provider("perplexity", "Perplexity", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.perplexity.ai", "bearer", "chat-completions", false, false, true, false, "live", "https://www.perplexity.ai/settings/api", "https://docs.perplexity.ai/docs/grounded-llm/openai-compatibility", "perplexity:sonar", List.of("chat", "search-grounded"), "Compatibilidade OpenAI para Sonar.", cred("apiKey", "API Key", "PERPLEXITY_API_KEY", true, true, "Chave Perplexity para Sonar API."), List.of("Authorization: Bearer <PERPLEXITY_API_KEY>")));
         register(providers, provider("groq", "Groq", "text-runtime", InferenceProtocol.OPENAI_RESPONSES, true, "https://api.groq.com/openai/v1", "bearer", "responses", false, true, true, false, "live", "https://console.groq.com/keys", "https://console.groq.com/docs/openai", "groq:llama-3.3-70b-versatile", List.of("chat", "speed"), "Runtime real habilitado via OpenAI-compatible responses.", cred("apiKey", "API Key", "GROQ_API_KEY", true, true, "Chave Groq."), List.of("Authorization: Bearer <GROQ_API_KEY>")));
-        register(providers, provider("mistral", "Mistral AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.mistral.ai/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://admin.mistral.ai/organization/api-keys", "https://docs.mistral.ai/capabilities/completion/", "mistral:mistral-small-latest", List.of("chat", "code", "vision", "ocr", "embeddings"), "Runtime textual habilitado; OCR e embeddings seguem expostos apenas via capability API.", cred("apiKey", "API Key", "MISTRAL_API_KEY", true, true, "Chave Mistral."), List.of("Authorization: Bearer <MISTRAL_API_KEY>")));
+        register(providers, provider("mistral", "Mistral AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.mistral.ai/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://admin.mistral.ai/organization/api-keys", "https://docs.mistral.ai/capabilities/completion/", "mistral:mistral-small-latest", List.of("chat", "code", "vision", "ocr", "embeddings"), "Runtime textual habilitado; OCR agora segue exposto via capability API dedicada.", cred("apiKey", "API Key", "MISTRAL_API_KEY", true, true, "Chave Mistral."), List.of("Authorization: Bearer <MISTRAL_API_KEY>")));
         register(providers, provider("openrouter", "OpenRouter", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://openrouter.ai/api/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://openrouter.ai/keys", "https://openrouter.ai/docs", "openrouter:openai/gpt-4.1-mini", List.of("chat", "routing", "aggregation"), "Runtime textual habilitado; modo gratuito exige modelo com sufixo :free.", cred("apiKey", "API Key", "OPENROUTER_API_KEY", true, true, "Chave OpenRouter."), List.of("Authorization: Bearer <OPENROUTER_API_KEY>")));
-        register(providers, provider("cohere", "Cohere", "text-runtime", InferenceProtocol.COHERE_CHAT_V2, false, "https://api.cohere.com/v2", "bearer", "chat-v2", false, false, false, false, "catalog-only", "https://dashboard.cohere.com/api-keys", "https://docs.cohere.com/v2/reference/chat", "cohere:command-r", List.of("chat", "embeddings", "rerank"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiKey", "API Key", "COHERE_API_KEY", true, true, "Chave Cohere."), List.of("Authorization: Bearer <COHERE_API_KEY>")));
+        register(providers, provider("cohere", "Cohere", "text-runtime", InferenceProtocol.COHERE_CHAT_V2, true, "https://api.cohere.com/v2", "bearer", "chat-v2", false, false, false, false, "live", "https://dashboard.cohere.com/api-keys", "https://docs.cohere.com/v2/reference/chat", "cohere:command-r", List.of("chat", "embeddings", "rerank"), "Runtime de chat, embeddings e rerank habilitado nesta rodada.", cred("apiKey", "API Key", "COHERE_API_KEY", true, true, "Chave Cohere."), List.of("Authorization: Bearer <COHERE_API_KEY>")));
         register(providers, provider("cloudflare-workers-ai", "Cloudflare Workers AI", "text-runtime", InferenceProtocol.CLOUDFLARE_OPENAI_COMPAT, false, "https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/v1", "bearer+account", "openai-compat", false, false, true, false, "manual", "https://dash.cloudflare.com/profile/api-tokens", "https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/", "cloudflare-workers-ai:@cf/meta/llama-3.1-8b-instruct", List.of("chat", "image", "speech"), "Catalogado; adaptador dedicado fica fora desta fase.", cred("apiToken", "API Token", "CLOUDFLARE_API_TOKEN", true, true, "Token Cloudflare com permissoes de Workers AI."), cred("accountId", "Account ID", "CLOUDFLARE_ACCOUNT_ID", true, false, "Identificador da conta Cloudflare."), List.of("Authorization: Bearer <CLOUDFLARE_API_TOKEN>")));
         register(providers, provider("together", "Together AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.together.xyz/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://api.together.ai/settings/api-keys", "https://docs.together.ai/docs/openai-api-compatibility", "together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", List.of("chat", "image", "embeddings"), "Runtime textual habilitado; image/embeddings seguem em roadmap por capability.", cred("apiKey", "API Key", "TOGETHER_API_KEY", true, true, "Chave Together."), List.of("Authorization: Bearer <TOGETHER_API_KEY>")));
         register(providers, provider("fireworks", "Fireworks AI", "text-runtime", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, true, "https://api.fireworks.ai/inference/v1", "bearer", "chat-completions", false, false, true, false, "live", "https://fireworks.ai/account/api-keys", "https://docs.fireworks.ai/guides/querying-text-models", "fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct", List.of("chat", "image"), "Runtime textual habilitado; workloads de imagem ficam na camada de media.", cred("apiKey", "API Key", "FIREWORKS_API_KEY", true, true, "Chave Fireworks."), List.of("Authorization: Bearer <FIREWORKS_API_KEY>")));
@@ -304,20 +334,23 @@ public class ProviderCatalogService {
         register(providers, provider("github-models", "GitHub Models", "text-runtime", InferenceProtocol.UNSUPPORTED, false, "https://models.inference.ai.azure.com", "pat:models", "prototype", false, false, false, false, "manual", "https://github.com/settings/personal-access-tokens", "https://docs.github.com/en/github-models/prototyping-with-ai-models", "github-models:gpt-4o-mini", List.of("chat", "multimodal"), "Uso focado em prototipagem; nao entra como runtime automatico.", cred("pat", "GitHub Models PAT", "GITHUB_MODELS_PAT", true, true, "PAT com scope models."), List.of("Authorization: Bearer <GITHUB_MODELS_PAT>")));
         register(providers, provider("exa", "Exa", "research-search", InferenceProtocol.CUSTOM_RESEARCH, true, "https://api.exa.ai", "header:x-api-key", "research", false, false, false, false, "live", "https://dashboard.exa.ai/api-keys", "https://exa.ai/docs/reference/search", "exa:search", List.of("search", "research"), "Pesquisa neural pronta para execucao real.", cred("apiKey", "API Key", "EXA_API_KEY", true, true, "Chave Exa."), List.of("x-api-key")));
         register(providers, provider("newscatcher", "NewsCatcher", "research-search", InferenceProtocol.CUSTOM_RESEARCH, true, "https://v3-api.newscatcherapi.com", "header:x-api-token", "research", false, false, false, false, "live", "https://www.newscatcherapi.com/docs/v3/api-reference/overview/authentication", "https://www.newscatcherapi.com/docs/v3/api-reference/overview/authentication", "newscatcher:search", List.of("news-search", "web-search"), "Runtime de search por noticias habilitado via API v3.", cred("apiToken", "API Token", "NEWSCATCHER_API_KEY", true, true, "Token NewsCatcher."), List.of("x-api-token")));
-        register(providers, provider("stability-ai", "Stability AI", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.stability.ai", "bearer", "media", false, false, false, false, "catalog-only", "https://platform.stability.ai/account/keys", "https://platform.stability.ai/docs", "stability-ai:stable-image-core", List.of("image", "video", "audio"), "Catalogado para runtime de tools.", cred("apiKey", "API Key", "STABILITY_API_KEY", true, true, "Chave Stability."), List.of("Authorization: Bearer <STABILITY_API_KEY>")));
+        register(providers, provider("tavily", "Tavily", "research-search", InferenceProtocol.CUSTOM_RESEARCH, true, "https://api.tavily.com", "bearer", "research", false, false, false, false, "live", "https://app.tavily.com/home", "https://docs.tavily.com/documentation/api-reference/endpoint/search", "tavily:search", List.of("web-search", "research"), "Search web otimizado para agentes, com retorno sintese + links.", cred("apiKey", "API Key", "TAVILY_API_KEY", true, true, "Chave Tavily."), List.of("Authorization: Bearer <TAVILY_API_KEY>")));
+        register(providers, provider("serpapi", "SerpApi", "research-search", InferenceProtocol.CUSTOM_RESEARCH, true, "https://serpapi.com", "query:api_key", "research", false, false, false, false, "live", "https://serpapi.com/manage-api-key", "https://serpapi.com/search-api", "serpapi:google-search", List.of("web-search", "serp"), "Search web com engine-based routing; nesta fase o adapter usa Google organic results.", cred("apiKey", "API Key", "SERPAPI_API_KEY", true, true, "Chave SerpApi."), List.of("api_key (query string)")));
+        register(providers, provider("voyage-ai", "Voyage AI", "vector-runtime", InferenceProtocol.UNSUPPORTED, true, "https://api.voyageai.com/v1", "bearer", "embeddings-rerank", false, false, false, false, "live", "https://dash.voyageai.com", "https://docs.voyageai.com/docs/embeddings", "voyage-ai:voyage-3-large", List.of("embeddings", "rerank"), "Embeddings e rerank voltados para retrieval, expostos via capability API.", cred("apiKey", "API Key", "VOYAGE_API_KEY", true, true, "Chave Voyage AI."), List.of("Authorization: Bearer <VOYAGE_API_KEY>")));
+        register(providers, provider("stability-ai", "Stability AI", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.stability.ai", "bearer", "image-capability", false, false, false, false, "live", "https://platform.stability.ai/account/keys", "https://platform.stability.ai/docs", "stability-ai:stable-image-core", List.of("image"), "Image generation ligada via Stable Image Core em REST v2beta; image editing, video e audio seguem em roadmap.", cred("apiKey", "API Key", "STABILITY_API_KEY", true, true, "Chave Stability."), List.of("Authorization: Bearer <STABILITY_API_KEY>", "Accept: application/json")));
         register(providers, provider("fal-ai", "fal.ai", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://fal.run", "key-header", "media", false, false, false, false, "catalog-only", "https://fal.ai/dashboard/keys", "https://docs.fal.ai", "fal-ai:fal-ai/flux/schnell", List.of("image", "video"), "Catalogado para tools futuras.", cred("key", "fal Key", "FAL_KEY", true, true, "Chave fal.ai."), List.of("Authorization: Key <FAL_KEY>")));
-        register(providers, provider("replicate", "Replicate", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.replicate.com/v1", "bearer", "media", false, false, false, false, "catalog-only", "https://replicate.com/account/api-tokens", "https://replicate.com/docs", "replicate:black-forest-labs/flux-schnell", List.of("image", "video", "audio"), "Catalogado para tools futuras.", cred("apiToken", "API Token", "REPLICATE_API_TOKEN", true, true, "Token Replicate."), List.of("Authorization: Bearer <REPLICATE_API_TOKEN>")));
-        register(providers, provider("deepgram", "Deepgram", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.deepgram.com/v1", "token", "audio", false, false, false, false, "catalog-only", "https://console.deepgram.com", "https://developers.deepgram.com", "deepgram:nova-3", List.of("stt", "tts", "voice"), "Catalogado para tools futuras.", cred("apiKey", "API Key", "DEEPGRAM_API_KEY", true, true, "Chave Deepgram."), List.of("Authorization: Token <DEEPGRAM_API_KEY>")));
-        register(providers, provider("assemblyai", "AssemblyAI", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.assemblyai.com/v2", "header:authorization", "audio", false, false, false, false, "catalog-only", "https://www.assemblyai.com/dashboard", "https://www.assemblyai.com/docs", "assemblyai:universal", List.of("stt", "audio-intelligence"), "Catalogado para tools futuras.", cred("apiKey", "API Key", "ASSEMBLYAI_API_KEY", true, true, "Chave AssemblyAI."), List.of("authorization")));
-        register(providers, provider("elevenlabs", "ElevenLabs", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.elevenlabs.io/v1", "header:xi-api-key", "audio", false, false, false, false, "catalog-only", "https://elevenlabs.io/app/settings/api-keys", "https://elevenlabs.io/docs/api-reference", "elevenlabs:multilingual-v2", List.of("tts", "voice-cloning"), "Catalogado para tools futuras.", cred("apiKey", "API Key", "ELEVENLABS_API_KEY", true, true, "Chave ElevenLabs."), List.of("xi-api-key")));
+        register(providers, provider("replicate", "Replicate", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.replicate.com/v1", "bearer", "media-job", false, false, false, false, "live", "https://replicate.com/account/api-tokens", "https://replicate.com/docs", "replicate:black-forest-labs/flux-2-dev", List.of("image", "image-editing", "video"), "Image generation e editing assincronos ligados via official model predictions; image-to-video ligado via xAI Grok Imagine Video na camada de jobs.", cred("apiToken", "API Token", "REPLICATE_API_TOKEN", true, true, "Token Replicate."), List.of("Authorization: Bearer <REPLICATE_API_TOKEN>")));
+        register(providers, provider("deepgram", "Deepgram", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.deepgram.com/v1", "token", "audio-capability", false, false, false, false, "live", "https://console.deepgram.com", "https://developers.deepgram.com", "deepgram:nova-3", List.of("stt", "tts", "voice"), "Speech-to-text ligado via capability API; text-to-speech permanece em roadmap dedicado.", cred("apiKey", "API Key", "DEEPGRAM_API_KEY", true, true, "Chave Deepgram."), List.of("Authorization: Token <DEEPGRAM_API_KEY>")));
+        register(providers, provider("assemblyai", "AssemblyAI", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.assemblyai.com/v2", "header:authorization", "audio-capability", false, false, false, false, "live", "https://www.assemblyai.com/dashboard", "https://www.assemblyai.com/docs", "assemblyai:universal", List.of("stt", "audio-intelligence"), "Speech-to-text ligado via submit + polling curto no endpoint de transcript.", cred("apiKey", "API Key", "ASSEMBLYAI_API_KEY", true, true, "Chave AssemblyAI."), List.of("Authorization")));
+        register(providers, provider("elevenlabs", "ElevenLabs", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.elevenlabs.io", "header:xi-api-key", "audio-capability", false, false, false, false, "live", "https://elevenlabs.io/app/settings/api-keys", "https://elevenlabs.io/docs/api-reference", "elevenlabs:eleven_multilingual_v2", List.of("tts", "voice-cloning"), "Text-to-speech ligado via capability API; selecao de voz pode ser explicita ou descoberta on-demand.", cred("apiKey", "API Key", "ELEVENLABS_API_KEY", true, true, "Chave ElevenLabs."), List.of("xi-api-key")));
         register(providers, provider("google-vision", "Google Cloud Vision", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://vision.googleapis.com/v1", "google-service-account", "ocr", false, false, false, false, "manual", "https://console.cloud.google.com/apis/credentials", "https://cloud.google.com/vision/docs", "google-vision:document-text-detection", List.of("ocr", "vision"), "Catalogado; preferencia por cliente oficial Google Cloud.", cred("credentialsJson", "Service Account JSON", "GOOGLE_CLOUD_CREDENTIALS_JSON", true, true, "Credenciais do Google Cloud."), List.of("Authorization: Bearer <GOOGLE_OAUTH_TOKEN>")));
         register(providers, provider("google-speech-to-text", "Google Cloud Speech-to-Text", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://speech.googleapis.com/v1", "google-service-account", "audio", false, false, false, false, "manual", "https://console.cloud.google.com/apis/credentials", "https://cloud.google.com/speech-to-text/docs", "google-speech-to-text:latest-long", List.of("stt"), "Catalogado; suporta sync e async conforme tamanho do audio.", cred("credentialsJson", "Service Account JSON", "GOOGLE_CLOUD_CREDENTIALS_JSON", true, true, "Credenciais do Google Cloud."), List.of("Authorization: Bearer <GOOGLE_OAUTH_TOKEN>")));
         register(providers, provider("google-natural-language", "Google Cloud Natural Language", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://language.googleapis.com/v1", "google-service-account", "nlp", false, false, false, false, "manual", "https://console.cloud.google.com/apis/credentials", "https://cloud.google.com/natural-language/docs", "google-natural-language:analyze-entities", List.of("analysis"), "Catalogado; foge do contrato puro de LLM e entra como capability especializada.", cred("credentialsJson", "Service Account JSON", "GOOGLE_CLOUD_CREDENTIALS_JSON", true, true, "Credenciais do Google Cloud."), List.of("Authorization: Bearer <GOOGLE_OAUTH_TOKEN>")));
         register(providers, provider("google-translation", "Google Cloud Translation", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://translation.googleapis.com/v3", "google-service-account", "translation", false, false, false, false, "manual", "https://console.cloud.google.com/apis/credentials", "https://cloud.google.com/translate/docs", "google-translation:text", List.of("translation"), "Catalogado; capability especializada fora do runtime textual unificado.", cred("credentialsJson", "Service Account JSON", "GOOGLE_CLOUD_CREDENTIALS_JSON", true, true, "Credenciais do Google Cloud."), List.of("Authorization: Bearer <GOOGLE_OAUTH_TOKEN>")));
         register(providers, provider("google-text-to-speech", "Google Cloud Text-to-Speech", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://texttospeech.googleapis.com/v1", "google-service-account", "audio", false, false, false, false, "manual", "https://console.cloud.google.com/apis/credentials", "https://cloud.google.com/text-to-speech/docs", "google-text-to-speech:neural2", List.of("tts"), "Catalogado; capability especializada via Google Cloud.", cred("credentialsJson", "Service Account JSON", "GOOGLE_CLOUD_CREDENTIALS_JSON", true, true, "Credenciais do Google Cloud."), List.of("Authorization: Bearer <GOOGLE_OAUTH_TOKEN>")));
-        register(providers, provider("bfl", "Black Forest Labs", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.us1.bfl.ai/v1", "bearer", "image", false, false, false, false, "manual", "https://bfl.ai", "https://docs.bfl.ai", "bfl:flux-pro", List.of("image", "image-editing"), "Catalogado para FLUX; fine-tunes e host-your-own ficam em roadmap.", cred("apiKey", "API Key", "BFL_API_KEY", true, true, "Chave Black Forest Labs."), List.of("Authorization: Bearer <BFL_API_KEY>")));
-        register(providers, provider("runway", "Runway", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.dev.runwayml.com/v1", "bearer", "video", false, false, false, false, "manual", "https://app.runwayml.com/account/api-keys", "https://docs.dev.runwayml.com", "runway:gen4_turbo", List.of("video", "image"), "Catalogado com fluxo assincrono submit/poll/result.", cred("apiKey", "API Key", "RUNWAY_API_KEY", true, true, "Chave Runway API."), List.of("Authorization: Bearer <RUNWAY_API_KEY>")));
-        register(providers, provider("ideogram", "Ideogram", "media-audio", InferenceProtocol.UNSUPPORTED, false, "https://api.ideogram.ai", "bearer", "image", false, false, false, false, "manual", "https://developer.ideogram.ai", "https://developer.ideogram.ai", "ideogram:v3", List.of("image", "image-editing"), "Catalogado para image generation e editing com presets proprios.", cred("apiKey", "API Key", "IDEOGRAM_API_KEY", true, true, "Chave Ideogram."), List.of("Api-Key: <IDEOGRAM_API_KEY>")));
+        register(providers, provider("bfl", "Black Forest Labs", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.bfl.ai/v1", "header:x-key", "image-job", false, false, false, false, "live", "https://bfl.ai", "https://docs.bfl.ai", "bfl:flux-2-pro", List.of("image", "image-editing"), "Image generation e editing assincronos ligados com submit + poll; assets retornam por polling_url do provider.", cred("apiKey", "API Key", "BFL_API_KEY", true, true, "Chave Black Forest Labs."), List.of("x-key: <BFL_API_KEY>")));
+        register(providers, provider("runway", "Runway", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.dev.runwayml.com/v1", "bearer", "video-job", false, false, false, false, "live", "https://app.runwayml.com/account/api-keys", "https://docs.dev.runwayml.com", "runway:gen4.5", List.of("video", "image"), "Video generation assincrona ligada com submit + poll interno; text-to-video puro segue fora desta fase.", cred("apiKey", "API Key", "RUNWAY_API_KEY", true, true, "Chave Runway API."), List.of("Authorization: Bearer <RUNWAY_API_KEY>", "X-Runway-Version: 2024-11-06")));
+        register(providers, provider("ideogram", "Ideogram", "media-audio", InferenceProtocol.UNSUPPORTED, true, "https://api.ideogram.ai", "header:api-key", "image-capability", false, false, false, false, "live", "https://developer.ideogram.ai", "https://developer.ideogram.ai", "ideogram:v3", List.of("image", "image-editing"), "Image generation e editing ligadas via endpoints v3 sincronas.", cred("apiKey", "API Key", "IDEOGRAM_API_KEY", true, true, "Chave Ideogram."), List.of("Api-Key: <IDEOGRAM_API_KEY>")));
         register(providers, provider("azure-openai", "Azure OpenAI", "enterprise-gateway", InferenceProtocol.OPENAI_CHAT_COMPLETIONS, false, "{AZURE_OPENAI_ENDPOINT}", "azure-api-key", "azure-openai", false, true, true, true, "manual", "https://portal.azure.com", "https://learn.microsoft.com/azure/ai-services/openai/reference", "azure-openai:gpt-4.1", List.of("chat", "responses", "embeddings", "image"), "Gateway enterprise distinto do OpenAI publico, com deployment e api-version proprios.", cred("endpoint", "Resource Endpoint", "AZURE_OPENAI_ENDPOINT", true, false, "Endpoint do recurso Azure OpenAI."), cred("apiKey", "API Key", "AZURE_OPENAI_API_KEY", true, true, "Chave Azure OpenAI."), cred("apiVersion", "API Version", "AZURE_OPENAI_API_VERSION", true, false, "Versao da API Azure OpenAI."), List.of("api-key", "api-version")));
         register(providers, provider("darkowl", "DarkOwl", "threat-intel", InferenceProtocol.CUSTOM_THREAT_INTEL, false, "https://api.darkowl.com", "darkowl-hmac", "threat-intel", true, false, false, true, "manual", "https://www.darkowl.com", "https://www.darkowl.com/wp-content/uploads/2022/02/API-Welcome-Packet.pdf", "darkowl:search", List.of("dark-web-search", "threat-intel"), "Requer chave publica, privada e assinatura HMAC.", cred("publicKey", "Public Key", "DARKOWL_PUBLIC_KEY", true, true, "Chave publica DarkOwl."), cred("privateKey", "Private Key", "DARKOWL_PRIVATE_KEY", true, true, "Chave privada DarkOwl."), List.of("X-DarkOwl-Date", "X-DarkOwl-Authorization")));
         register(providers, provider("onion-search-engine", "Onion Search Engine", "threat-intel", InferenceProtocol.CUSTOM_THREAT_INTEL, false, "https://onionsearchengine.com/api", "header:x-api-key", "threat-intel", true, false, false, false, "catalog-only", "https://onionsearchengine.com", "https://onionsearchengine.com", "onion-search-engine:search", List.of("dark-web-search"), "Catalogado; execucao manual.", cred("apiKey", "API Key", "ONION_SEARCH_API_KEY", true, true, "Chave Onion Search Engine."), List.of("x-api-key")));
@@ -343,11 +376,14 @@ public class ProviderCatalogService {
         register(models, new ModelDefinition("perplexity:sonar", "perplexity", "Sonar", "agent-v1-sonar", true, true));
         register(models, new ModelDefinition("groq:llama-3.3-70b-versatile", "groq", "Llama 3.3 70B Versatile", "agent-v1-groq", true, true));
         register(models, new ModelDefinition("mistral:mistral-small-latest", "mistral", "Mistral Small Latest", "agent-v1-mistral", true, true));
+        register(models, new ModelDefinition("mistral:mistral-ocr-latest", "mistral", "Mistral OCR Latest", "ocr-mistral", false, false));
         register(models, new ModelDefinition("together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", "together", "Meta Llama 3.1 8B Turbo", "agent-v1-together", true, true));
         register(models, new ModelDefinition("fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct", "fireworks", "Llama v3.1 8B Instruct", "agent-v1-fireworks", true, true));
         register(models, new ModelDefinition("deepinfra:meta-llama/Meta-Llama-3.1-8B-Instruct", "deepinfra", "Meta Llama 3.1 8B Instruct", "agent-v1-deepinfra", true, true));
         register(models, new ModelDefinition("openrouter:openai/gpt-4.1-mini", "openrouter", "GPT-4.1 mini via OpenRouter", "agent-v1-openrouter", true, true));
         register(models, new ModelDefinition("cohere:command-r", "cohere", "Command R", "agent-v1-cohere", true, true));
+        register(models, new ModelDefinition("cohere:embed-v4.0", "cohere", "Embed v4.0", "vector-cohere-embed", false, false));
+        register(models, new ModelDefinition("cohere:rerank-v3.5", "cohere", "Rerank v3.5", "vector-cohere-rerank", false, false));
         register(models, new ModelDefinition("cloudflare-workers-ai:@cf/meta/llama-3.1-8b-instruct", "cloudflare-workers-ai", "Llama 3.1 8B Instruct", "agent-v1-cloudflare", true, true));
         register(models, new ModelDefinition("groq:llama-4-scout-17b-16e-instruct", "groq", "Llama 4 Scout", "agent-v1-groq-scout", false, true));
         register(models, new ModelDefinition("openrouter:meta-llama/llama-3.3-8b-instruct:free", "openrouter", "Llama 3.3 8B Instruct Free", "agent-v1-openrouter-free", false, true));
@@ -357,13 +393,33 @@ public class ProviderCatalogService {
         register(models, new ModelDefinition("siliconflow:Qwen/Qwen2.5-72B-Instruct", "siliconflow", "Qwen 2.5 72B Instruct", "catalog-siliconflow", true, false));
         register(models, new ModelDefinition("ai21:jamba-1.5-large", "ai21", "Jamba 1.5 Large", "catalog-ai21", true, false));
         register(models, new ModelDefinition("azure-openai:gpt-4.1", "azure-openai", "GPT-4.1 via Azure OpenAI", "catalog-azure-openai", true, false));
-        register(models, new ModelDefinition("bfl:flux-pro", "bfl", "FLUX Pro", "catalog-bfl", true, false));
-        register(models, new ModelDefinition("runway:gen4_turbo", "runway", "Gen-4 Turbo", "catalog-runway", true, false));
+        register(models, new ModelDefinition("bfl:flux-2-pro", "bfl", "FLUX 2 Pro", "image-bfl-flux-2-pro", true, false));
+        register(models, new ModelDefinition("bfl:flux-2-klein-4b", "bfl", "FLUX 2 Klein 4B", "image-bfl-flux-2-klein", false, false));
+        register(models, new ModelDefinition("stability-ai:stable-image-core", "stability-ai", "Stable Image Core", "image-stability-core", true, false));
+        register(models, new ModelDefinition("replicate:black-forest-labs/flux-2-dev", "replicate", "FLUX 2 Dev via Replicate", "image-replicate-flux-2-dev", true, false));
+        register(models, new ModelDefinition("replicate:black-forest-labs/flux-kontext-dev", "replicate", "FLUX Kontext Dev via Replicate", "image-replicate-flux-kontext-dev", false, false));
+        register(models, new ModelDefinition("replicate:xai/grok-imagine-video", "replicate", "Grok Imagine Video via Replicate", "video-replicate-grok-imagine", false, false));
+        register(models, new ModelDefinition("runway:gen4.5", "runway", "Gen-4.5", "video-runway-gen4.5", true, false));
+        register(models, new ModelDefinition("runway:gen4_turbo", "runway", "Gen-4 Turbo", "video-runway-gen4-turbo", false, false));
         register(models, new ModelDefinition("ideogram:v3", "ideogram", "Ideogram V3", "catalog-ideogram", true, false));
         register(models, new ModelDefinition("exa:search", "exa", "Neural Search", "live-research", true, false));
         register(models, new ModelDefinition("newscatcher:search", "newscatcher", "News Search", "catalog-only", true, false));
+        register(models, new ModelDefinition("tavily:search", "tavily", "Tavily Search", "live-research-tavily", true, false));
+        register(models, new ModelDefinition("serpapi:google-search", "serpapi", "Google Search via SerpApi", "live-research-serpapi", true, false));
+        register(models, new ModelDefinition("voyage-ai:voyage-3-large", "voyage-ai", "Voyage 3 Large", "vector-voyage-embed", true, false));
+        register(models, new ModelDefinition("voyage-ai:rerank-2", "voyage-ai", "Rerank 2", "vector-voyage-rerank", false, false));
+        register(models, new ModelDefinition("deepgram:nova-3", "deepgram", "Deepgram Nova-3", "audio-stt-deepgram", true, false));
+        register(models, new ModelDefinition("assemblyai:universal", "assemblyai", "Universal", "audio-stt-assemblyai", true, false));
+        register(models, new ModelDefinition("elevenlabs:eleven_multilingual_v2", "elevenlabs", "Eleven Multilingual v2", "audio-tts-elevenlabs", true, false));
 
         return models;
+    }
+
+    private Map<String, List<ModelDefinition>> buildModelIndex(Map<String, ModelDefinition> modelsByCode) {
+        Map<String, List<ModelDefinition>> index = new LinkedHashMap<>();
+        modelsByCode.values().forEach(model -> index.computeIfAbsent(model.providerCode(), ignored -> new java.util.ArrayList<>()).add(model));
+        index.replaceAll((ignored, models) -> List.copyOf(models));
+        return Map.copyOf(index);
     }
 
     private void register(Map<String, ProviderDefinition> providers, ProviderDefinition provider) {

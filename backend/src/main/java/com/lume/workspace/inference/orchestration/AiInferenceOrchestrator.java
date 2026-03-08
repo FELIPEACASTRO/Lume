@@ -29,6 +29,8 @@ public class AiInferenceOrchestrator {
     private final AiProviderRegistry providerRegistry;
     private final AiRuntimeProperties runtimeProperties;
     private final AiCircuitBreakerRegistry circuitBreakerRegistry;
+    private final AiBulkheadRegistry bulkheadRegistry;
+    private final AiRateLimiterRegistry rateLimiterRegistry;
     private final AiMetricsRecorder metricsRecorder;
 
     public AiInferenceOrchestrator(
@@ -36,17 +38,22 @@ public class AiInferenceOrchestrator {
             AiProviderRegistry providerRegistry,
             AiRuntimeProperties runtimeProperties,
             AiCircuitBreakerRegistry circuitBreakerRegistry,
+            AiBulkheadRegistry bulkheadRegistry,
+            AiRateLimiterRegistry rateLimiterRegistry,
             AiMetricsRecorder metricsRecorder
     ) {
         this.providerCatalogService = providerCatalogService;
         this.providerRegistry = providerRegistry;
         this.runtimeProperties = runtimeProperties;
         this.circuitBreakerRegistry = circuitBreakerRegistry;
+        this.bulkheadRegistry = bulkheadRegistry;
+        this.rateLimiterRegistry = rateLimiterRegistry;
         this.metricsRecorder = metricsRecorder;
     }
 
     public UnifiedInferenceResponse execute(UnifiedInferenceRequest request) {
         List<String> attemptedProviderCodes = new ArrayList<>();
+        List<AiExecutionAttempt> attemptChain = new ArrayList<>();
         List<String> chain = resolveProviderChain(request.providerCode(), request.fallbackProviderCodes());
         String requestedProviderCode = providerCatalogService.normalizeProviderCode(request.providerCode());
         String requestId = requestIdFor(request);
@@ -59,12 +66,14 @@ public class AiInferenceOrchestrator {
 
             if (!provider.executionSupported()) {
                 lastError = "O provider " + provider.name() + " esta catalogado, mas nao entrou no runtime real desta fase.";
+                attemptChain.add(new AiExecutionAttempt(provider.code(), "unsupported", lastError, null));
                 continue;
             }
 
             List<String> missingCredentials = providerCatalogService.missingCredentialEnvVars(provider);
             if (!missingCredentials.isEmpty()) {
                 lastError = "Credenciais ausentes para " + provider.name() + ": " + String.join(", ", missingCredentials);
+                attemptChain.add(new AiExecutionAttempt(provider.code(), "missing_credentials", lastError, null));
                 continue;
             }
 
@@ -74,6 +83,8 @@ public class AiInferenceOrchestrator {
 
             try {
                 circuitBreakerRegistry.beforeCall(provider.code(), settings);
+                rateLimiterRegistry.beforeCall(provider.code(), settings);
+                bulkheadRegistry.acquire(provider.code(), settings);
                 AiPromptResult result = executeWithRetry(adapter, toCommand(request, provider.code(), model.versionLabel()), settings);
                 circuitBreakerRegistry.recordSuccess(provider.code(), settings);
                 long latencyMs = System.currentTimeMillis() - startedAt;
@@ -85,12 +96,14 @@ public class AiInferenceOrchestrator {
                 if (fallbackUsed) {
                     metricsRecorder.incrementFallback(requestedProviderCode, model.code(), "sendPrompt");
                 }
+                attemptChain.add(new AiExecutionAttempt(provider.code(), "completed", null, latencyMs));
 
                 LOGGER.info(
-                        "Inferencia concluida requestId={} provider={} model={} latencyMs={} fallbackUsed={}",
+                        "Inferencia concluida requestId={} provider={} model={} routingMode={} latencyMs={} fallbackUsed={}",
                         requestId,
                         provider.code(),
                         model.code(),
+                        request.routingMode(),
                         latencyMs,
                         fallbackUsed
                 );
@@ -109,17 +122,20 @@ public class AiInferenceOrchestrator {
                         null,
                         requestedProviderCode,
                         attemptedProviderCodes,
+                        List.copyOf(attemptChain),
                         latencyMs,
                         result.costEstimate().estimatedInputTokens(),
                         result.costEstimate().estimatedOutputTokens(),
                         result.costEstimate().estimatedCostUsd(),
-                        result.streamingSupported()
+                        result.streamingSupported() ? "native" : "unsupported",
+                        request.routingMode()
                 );
             } catch (AiProviderException providerException) {
                 circuitBreakerRegistry.recordFailure(provider.code(), settings);
                 long latencyMs = System.currentTimeMillis() - startedAt;
                 lastError = providerException.getMessage();
                 String status = statusFromException(providerException);
+                attemptChain.add(new AiExecutionAttempt(provider.code(), status, providerException.getMessage(), latencyMs));
                 metricsRecorder.recordLatency(provider.code(), model.code(), "sendPrompt", status, latencyMs);
                 metricsRecorder.incrementError(provider.code(), model.code(), "sendPrompt", status);
                 if ("timeout".equals(status)) {
@@ -127,14 +143,17 @@ public class AiInferenceOrchestrator {
                 }
 
                 LOGGER.warn(
-                        "Inferencia falhou requestId={} provider={} model={} status={} latencyMs={} detalhe={}",
+                        "Inferencia falhou requestId={} provider={} model={} routingMode={} status={} latencyMs={} detalhe={}",
                         requestId,
                         provider.code(),
                         model.code(),
+                        request.routingMode(),
                         status,
                         latencyMs,
                         providerException.getMessage()
-                );
+                    );
+            } finally {
+                bulkheadRegistry.release(provider.code());
             }
         }
 
@@ -154,34 +173,86 @@ public class AiInferenceOrchestrator {
                 lastError,
                 requestedProviderCode,
                 attemptedProviderCodes,
+                List.copyOf(attemptChain),
                 null,
                 null,
                 null,
                 null,
-                providerRegistry.supportsStreaming(requestedProvider.code())
+                providerRegistry.supportsStreaming(requestedProvider.code()) ? "native" : "unsupported",
+                request.routingMode()
         );
     }
 
     public void stream(UnifiedInferenceRequest request, AiStreamObserver observer) {
-        UnifiedInferenceResponse response = execute(request);
-        if (!"completed".equalsIgnoreCase(response.status()) || response.content() == null || response.content().isBlank()) {
-            observer.onError(new AiProviderException(response.error() == null ? "Falha na inferencia." : response.error(), false));
-            return;
-        }
-        if (!response.streamingSupported()) {
-            observer.onError(new AiProviderException("Streaming nao suportado para " + response.providerCode() + ".", false));
-            return;
-        }
-        emitChunks(response.content(), observer);
-    }
+        List<String> chain = resolveProviderChain(request.providerCode(), request.fallbackProviderCodes());
+        String lastError = null;
 
-    private void emitChunks(String content, AiStreamObserver observer) {
-        int chunkSize = 48;
-        for (int index = 0; index < content.length(); index += chunkSize) {
-            observer.onEvent(new AiStreamEvent("chunk", content.substring(index, Math.min(content.length(), index + chunkSize))));
+        for (String providerCode : chain) {
+            ProviderDefinition provider = providerCatalogService.requireProvider(providerCode);
+            ModelDefinition model = providerCatalogService.resolveModel(provider.code(), request.modelCode());
+            if (!provider.executionSupported()) {
+                lastError = "O provider " + provider.name() + " esta catalogado, mas nao entrou no runtime real desta fase.";
+                continue;
+            }
+            List<String> missingCredentials = providerCatalogService.missingCredentialEnvVars(provider);
+            if (!missingCredentials.isEmpty()) {
+                lastError = "Credenciais ausentes para " + provider.name() + ": " + String.join(", ", missingCredentials);
+                continue;
+            }
+
+            AiProviderAdapter adapter = providerRegistry.require(provider.code());
+            if (!adapter.supportsStreaming()) {
+                lastError = "Streaming nao suportado para " + provider.name() + ".";
+                continue;
+            }
+
+            AiRuntimeProperties.ProviderRuntimeProperties settings = runtimeProperties.forProvider(provider.code());
+            String requestId = requestIdFor(request);
+            long startedAt = System.currentTimeMillis();
+
+            try {
+                circuitBreakerRegistry.beforeCall(provider.code(), settings);
+                rateLimiterRegistry.beforeCall(provider.code(), settings);
+                bulkheadRegistry.acquire(provider.code(), settings);
+                adapter.streamPrompt(toCommand(request, provider.code(), model.versionLabel()), observer);
+                circuitBreakerRegistry.recordSuccess(provider.code(), settings);
+                metricsRecorder.recordLatency(provider.code(), model.code(), "streamPrompt", "completed", System.currentTimeMillis() - startedAt);
+                metricsRecorder.incrementSuccess(provider.code(), model.code(), "streamPrompt");
+                LOGGER.info(
+                        "Streaming concluido requestId={} provider={} model={} routingMode={} latencyMs={}",
+                        requestId,
+                        provider.code(),
+                        model.code(),
+                        request.routingMode(),
+                        System.currentTimeMillis() - startedAt
+                );
+                return;
+            } catch (AiProviderException providerException) {
+                circuitBreakerRegistry.recordFailure(provider.code(), settings);
+                long latencyMs = System.currentTimeMillis() - startedAt;
+                lastError = providerException.getMessage();
+                String status = statusFromException(providerException);
+                metricsRecorder.recordLatency(provider.code(), model.code(), "streamPrompt", status, latencyMs);
+                metricsRecorder.incrementError(provider.code(), model.code(), "streamPrompt", status);
+                if ("timeout".equals(status)) {
+                    metricsRecorder.incrementTimeout(provider.code(), model.code(), "streamPrompt");
+                }
+                LOGGER.warn(
+                        "Streaming falhou requestId={} provider={} model={} routingMode={} status={} latencyMs={} detalhe={}",
+                        requestId,
+                        provider.code(),
+                        model.code(),
+                        request.routingMode(),
+                        status,
+                        latencyMs,
+                        providerException.getMessage()
+                );
+            } finally {
+                bulkheadRegistry.release(provider.code());
+            }
         }
-        observer.onEvent(new AiStreamEvent("done", ""));
-        observer.onComplete();
+
+        observer.onError(new AiProviderException(lastError == null ? "Streaming nao disponivel para os providers selecionados." : lastError, false));
     }
 
     private AiPromptResult executeWithRetry(
@@ -222,7 +293,10 @@ public class AiInferenceOrchestrator {
                 request.systemPrompt(),
                 messages,
                 request.temperature(),
-                request.maxTokens()
+                request.maxTokens(),
+                request.routingMode(),
+                request.tags(),
+                request.workspaceId()
         );
     }
 

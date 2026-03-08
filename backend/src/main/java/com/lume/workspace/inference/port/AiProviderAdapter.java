@@ -19,6 +19,6 @@ public interface AiProviderAdapter {
     AiCostEstimate estimateCost(AiPromptCommand command);
 
     default boolean supportsStreaming() {
-        return true;
+        return false;
     }
 }

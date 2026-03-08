@@ -37,6 +37,16 @@ class ProviderCatalogIT {
                 .andExpect(jsonPath("$[?(@.code=='openai')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='anthropic')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='exa')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='voyage-ai')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='stability-ai')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='replicate')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='deepgram')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='assemblyai')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='elevenlabs')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='ideogram')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='bfl')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='runway')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='tavily')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='darkowl')]").exists());
     }
 
@@ -56,7 +66,10 @@ class ProviderCatalogIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("openrouter"))
                 .andExpect(jsonPath("$.executionSupported").value(true))
-                .andExpect(jsonPath("$.catalogState").value("live"));
+                .andExpect(jsonPath("$.catalogState").value("live"))
+                .andExpect(jsonPath("$.implementationStatus").value("implemented_with_restrictions"))
+                .andExpect(jsonPath("$.evidenceLevel").value("integration_verified"))
+                .andExpect(jsonPath("$.pricingSummary").isNotEmpty());
     }
 
     @Test
@@ -82,8 +95,24 @@ class ProviderCatalogIT {
         mockMvc.perform(get("/api/v1/providers/status"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].category", hasItem("text-runtime")))
-                .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].implementationStatus", hasItem("live")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].evidenceLevel", hasItem("integration_verified")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingMode", hasItem("unsupported")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].runtimeMaturity", hasItem("live")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openrouter')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='deepgram')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='deepgram')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='assemblyai')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='assemblyai')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='elevenlabs')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='stability-ai')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='stability-ai')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='replicate')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='replicate')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='ideogram')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='bfl')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='bfl')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='runway')].executionSupported", hasItem(true)))
                 .andExpect(jsonPath("$[?(@.providerCode=='darkowl')].adminOnly", hasItem(true)));
     }
 
@@ -92,8 +121,12 @@ class ProviderCatalogIT {
     void shouldReturnProviderHealth() throws Exception {
         mockMvc.perform(get("/api/v1/providers/health"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].implementationStatus", hasItem("live")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].evidenceLevel", hasItem("integration_verified")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].readinessStatus", hasItem("missing_credentials")))
-                .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingSupported", hasItem(true)));
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingMode", hasItem("unsupported")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].healthSource", hasItem("static")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].snapshotPersistence", hasItem("memory")));
     }
 
     @Test
@@ -102,6 +135,8 @@ class ProviderCatalogIT {
         mockMvc.perform(get("/api/v1/research/providers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.code=='exa')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='tavily')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='serpapi')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='darkowl')]").doesNotExist());
     }
 
@@ -127,6 +162,6 @@ class ProviderCatalogIT {
                 .andExpect(jsonPath("$.configured").value(false))
                 .andExpect(jsonPath("$.apiStyle").value("responses"))
                 .andExpect(jsonPath("$.requestedProviderCode").value("openai"))
-                .andExpect(jsonPath("$.streamingSupported").value(true));
+                .andExpect(jsonPath("$.streamingMode").value("unsupported"));
     }
 }

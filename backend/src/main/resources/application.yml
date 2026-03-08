@@ -71,6 +71,10 @@ lume:
         failure-rate-threshold: 50
         sliding-window-size: 6
         open-state-duration-ms: 15000
+      bulkhead:
+        max-concurrent-calls: 8
+      rate-limiter:
+        permits-per-minute: 120
       pricing:
         input-per-1k-usd: 0.0
         output-per-1k-usd: 0.0

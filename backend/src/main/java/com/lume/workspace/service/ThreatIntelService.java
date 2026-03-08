@@ -114,6 +114,8 @@ public class ThreatIntelService {
         if (justification == null || justification.isBlank()) {
             return "missing";
         }
-        return justification.trim();
+        String normalized = justification.trim().replaceAll("\\s+", " ");
+        int previewLength = Math.min(24, normalized.length());
+        return normalized.substring(0, previewLength) + (normalized.length() > previewLength ? "***" : "");
     }
 }

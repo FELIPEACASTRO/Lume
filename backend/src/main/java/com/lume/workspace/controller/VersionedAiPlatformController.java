@@ -7,9 +7,12 @@ import com.lume.workspace.service.AiCapabilityService;
 import com.lume.workspace.service.WorkspaceContextService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -63,10 +66,29 @@ public class VersionedAiPlatformController {
         return ResponseEntity.ok(aiCapabilityService.editImage(request));
     }
 
+    @GetMapping("/images/jobs/{providerCode}/{jobId}")
+    public ResponseEntity<AiPlatformModels.ImageGenerationResponse> imageJobStatus(
+            @PathVariable String providerCode,
+            @PathVariable String jobId,
+            @RequestParam(required = false) String pollingUrl
+    ) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_WORKSPACE_READ);
+        return ResponseEntity.ok(aiCapabilityService.imageJobStatus(providerCode, jobId, pollingUrl));
+    }
+
     @PostMapping("/videos/generate")
     public ResponseEntity<AiPlatformModels.VideoGenerationResponse> generateVideo(@Valid @RequestBody AiPlatformModels.VideoGenerationRequest request) {
         workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_WORKSPACE_READ);
         return ResponseEntity.ok(aiCapabilityService.generateVideo(request));
+    }
+
+    @GetMapping("/videos/jobs/{providerCode}/{jobId}")
+    public ResponseEntity<AiPlatformModels.VideoGenerationResponse> videoJobStatus(
+            @PathVariable String providerCode,
+            @PathVariable String jobId
+    ) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_WORKSPACE_READ);
+        return ResponseEntity.ok(aiCapabilityService.videoJobStatus(providerCode, jobId));
     }
 
     @PostMapping("/audio/stt")

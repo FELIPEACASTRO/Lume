@@ -1,67 +1,148 @@
 # AI Providers do Lume
 
-## Escopo desta fase
+O catalogo exposto pela API agora recebe um overlay de governanca carregado de `provider-governance-metadata.json`.
 
-Runtime real habilitado:
+Campos novos e obrigatorios para leitura honesta do estado do produto:
 
-| Provider | Código canônico | Alias aceito | API style | Streaming | Modelo padrão |
+- `implementationStatus`
+- `evidenceLevel`
+- `businessPriority`
+- `syncMode`
+- `pricingSummary`
+- `rateLimitSummary`
+- `routingModes`
+- `documentationSource`
+
+## Escopo real desta fase
+
+Runtime textual realmente ligado:
+
+| Provider | Codigo canonico | Alias | API style | Streaming mode padrao | Modelo padrao |
 |---|---|---|---|---|---|
-| OpenAI | `openai` | - | `responses` | Sim | `openai:gpt-4.1-mini` |
-| Gemini | `google-gemini` | `gemini` | `generate-content` | Sim | `google-gemini:gemini-2.5-flash` |
-| DeepSeek | `deepseek` | - | `chat-completions` | Sim | `deepseek:deepseek-chat` |
-| Anthropic | `anthropic` | `claude` | `messages` | Sim | `anthropic:claude-sonnet-4-5` |
-| xAI | `xai` | `grok` | `responses` | Sim | `xai:grok-4` |
-| Perplexity | `perplexity` | - | `chat-completions` | Sim | `perplexity:sonar` |
-| Groq | `groq` | - | `responses` | Sim | `groq:llama-3.3-70b-versatile` |
-| OpenRouter | `openrouter` | - | `chat-completions` | Sim | `openrouter:openai/gpt-4.1-mini` |
-| Together | `together` | - | `chat-completions` | Sim | `together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo` |
-| Fireworks | `fireworks` | - | `chat-completions` | Sim | `fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct` |
-| DeepInfra | `deepinfra` | - | `chat-completions` | Sim | `deepinfra:meta-llama/Meta-Llama-3.1-8B-Instruct` |
-| Mistral | `mistral` | - | `chat-completions` | Sim | `mistral:mistral-small-latest` |
-| Exa | `exa` | - | `research` | N/A | `exa:search` |
-| NewsCatcher | `newscatcher` | - | `research` | N/A | `newscatcher:search` |
+| OpenAI | `openai` | - | `responses` | `unsupported` | `openai:gpt-4.1-mini` |
+| Gemini | `google-gemini` | `gemini` | `generate-content` | `unsupported` | `google-gemini:gemini-2.5-flash` |
+| DeepSeek | `deepseek` | - | `chat-completions` | `unsupported` | `deepseek:deepseek-chat` |
+| Anthropic | `anthropic` | `claude` | `messages` | `unsupported` | `anthropic:claude-sonnet-4-5` |
+| xAI | `xai` | `grok` | `responses` | `unsupported` | `xai:grok-4` |
+| Perplexity | `perplexity` | - | `chat-completions` | `unsupported` | `perplexity:sonar` |
+| Groq | `groq` | - | `responses` | `unsupported` | `groq:llama-3.3-70b-versatile` |
+| OpenRouter | `openrouter` | - | `chat-completions` | `unsupported` | `openrouter:openai/gpt-4.1-mini` |
+| Cohere | `cohere` | - | `chat-v2` | `unsupported` | `cohere:command-r` |
+| Together | `together` | - | `chat-completions` | `unsupported` | `together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo` |
+| Fireworks | `fireworks` | - | `chat-completions` | `unsupported` | `fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct` |
+| DeepInfra | `deepinfra` | - | `chat-completions` | `unsupported` | `deepinfra:meta-llama/Meta-Llama-3.1-8B-Instruct` |
+| Mistral | `mistral` | - | `chat-completions` | `unsupported` | `mistral:mistral-small-latest` |
 
-Catalogados, mas ainda manuais, skeleton ou fora do runtime capability-aware desta fase:
+Research live:
 
-- `cohere`
+| Provider | Codigo | API style | Capability |
+|---|---|---|---|
+| Exa | `exa` | `research` | `search` |
+| NewsCatcher | `newscatcher` | `research` | `search` |
+| Tavily | `tavily` | `research` | `search` |
+| SerpApi | `serpapi` | `research` | `search` |
+
+Vector runtime live:
+
+| Provider | Codigo | API style | Capability |
+|---|---|---|---|
+| Voyage AI | `voyage-ai` | `embeddings-rerank` | `embeddings`, `rerank` |
+| Cohere | `cohere` | `chat-v2` | `embeddings`, `rerank` |
+
+Media/audio/OCR live com restricoes:
+
+| Provider | Codigo | API style | Capability |
+|---|---|---|---|
+| Deepgram | `deepgram` | `audio-capability` | `speech-to-text` |
+| AssemblyAI | `assemblyai` | `audio-capability` | `speech-to-text` |
+| ElevenLabs | `elevenlabs` | `audio-capability` | `text-to-speech` |
+| Mistral | `mistral` | `chat-completions` | `ocr` |
+| Stability AI | `stability-ai` | `image-capability` | `image-generation` |
+| Replicate | `replicate` | `media-job` | `image-generation`, `image-editing`, `video-generation` |
+| Ideogram | `ideogram` | `image-capability` | `image-generation`, `image-editing` |
+| Black Forest Labs | `bfl` | `image-job` | `image-generation`, `image-editing` |
+| Runway | `runway` | `video-job` | `video-generation` |
+
+Catalogados/manual/skeleton nesta rodada:
+
 - `cloudflare-workers-ai`
+- `azure-openai`
+- `aws-bedrock`
+- `hugging-face`
+- `ai21`
 - `cerebras`
 - `nvidia-nim`
 - `sambanova`
 - `siliconflow`
-- `ai21`
-- `azure-openai`
 - `github-models`
-- `hugging-face`
-- `aws-bedrock`
-- `google-vision`
-- `google-speech-to-text`
-- `google-natural-language`
-- `google-translation`
-- `google-text-to-speech`
-- `bfl`
-- `runway`
-- `ideogram`
-- demais providers de `research-search`, `media-audio` e `threat-intel`
+- media/audio providers ainda fora desta rodada, exceto `deepgram`, `assemblyai`, `elevenlabs`, `mistral` OCR, `stability-ai`, `replicate`, `ideogram`, `bfl` e `runway`
+- threat-intel providers sem adapter live
 
-## Variáveis de ambiente obrigatórias
+## Capability API realmente ligada
 
-| Provider | Env var |
-|---|---|
-| OpenAI | `OPENAI_API_KEY` |
-| Gemini | `GEMINI_API_KEY` |
-| DeepSeek | `DEEPSEEK_API_KEY` |
-| Anthropic | `ANTHROPIC_API_KEY` |
-| xAI | `XAI_API_KEY` |
-| Perplexity | `PERPLEXITY_API_KEY` |
-| Groq | `GROQ_API_KEY` |
-| OpenRouter | `OPENROUTER_API_KEY` |
-| Together | `TOGETHER_API_KEY` |
-| Fireworks | `FIREWORKS_API_KEY` |
-| DeepInfra | `DEEPINFRA_API_KEY` |
-| Mistral | `MISTRAL_API_KEY` |
-| Exa | `EXA_API_KEY` |
-| NewsCatcher | `NEWSCATCHER_API_KEY` |
+- `POST /api/v1/embeddings`
+  - `cohere`
+  - `voyage-ai`
+- `POST /api/v1/rerank`
+  - `cohere`
+  - `voyage-ai`
+- `POST /api/v1/search`
+  - `exa`
+  - `newscatcher`
+  - `tavily`
+  - `serpapi`
+- `POST /api/v1/audio/stt`
+  - `deepgram`
+  - `assemblyai`
+- `POST /api/v1/audio/tts`
+  - `elevenlabs`
+- `POST /api/v1/ocr`
+  - `mistral`
+- `POST /api/v1/images/generate`
+  - `stability-ai`
+  - `replicate`
+  - `ideogram`
+  - `bfl`
+- `POST /api/v1/images/edit`
+  - `replicate`
+  - `ideogram`
+  - `bfl`
+- `GET /api/v1/images/jobs/{provider}/{jobId}`
+  - `replicate`
+  - `bfl`
+- `POST /api/v1/videos/generate`
+  - `replicate`
+  - `runway`
+- `GET /api/v1/videos/jobs/{provider}/{jobId}`
+  - `replicate`
+  - `runway`
+
+## Contratos e metadados importantes
+
+### Provider DTO
+
+Os endpoints de provider agora expõem:
+
+- `streamingMode = native | unsupported`
+- `runtimeMaturity = live | partial | catalog_only`
+- `catalogState`
+- `credentialFields[]`
+
+### Health DTO
+
+`GET /api/v1/providers/health` agora diferencia:
+
+- `healthSource = static | last_connectivity_test`
+- `snapshotPersistence = memory | durable`
+
+Hoje o snapshot de conectividade e:
+
+- `snapshotPersistence = memory`
+
+Ou seja:
+
+- ele e util como contexto operacional recente
+- ele nao deve ser tratado como evidencia duravel ou readiness forte
 
 ## Endpoints relevantes
 
@@ -79,9 +160,9 @@ Catalogados, mas ainda manuais, skeleton ou fora do runtime capability-aware des
 - `GET /api/v1/providers/health`
 - `POST /api/v1/providers/{code}/connectivity-test`
 
-## Contrato de inferência
+## Contrato de inferencia
 
-Payload principal:
+Exemplo:
 
 ```json
 {
@@ -95,14 +176,15 @@ Payload principal:
 }
 ```
 
-Sem fallback implícito:
+Regras:
 
-- se `fallbackProviderCodes` estiver vazio, apenas o provider pedido é usado
-- se houver fallback, a ordem é respeitada exatamente como enviada
+- nao existe fallback implicito
+- a ordem de `fallbackProviderCodes` e respeitada
+- cada tentativa gera metricas, latencia e status proprios
 
 ## Observabilidade
 
-Métricas:
+Metricas registradas:
 
 - `lume.ai.request.latency`
 - `lume.ai.request.success`
@@ -111,24 +193,33 @@ Métricas:
 - `lume.ai.request.fallback`
 - `lume.ai.request.estimated_cost_usd`
 
-Tags:
+Tags padronizadas:
 
 - `provider`
 - `model`
 - `operation`
 - `status`
 
-## Segurança
+Observacao:
 
-- Segredos lidos apenas por env vars.
-- `.env` permanece fora do git.
-- Logs mascaram headers sensíveis.
-- Prompts não são logados em claro.
-- Startup valida readiness sem expor valores.
+- `streaming_mode` ainda nao esta propagado como tag em todas as metricas; isso segue como refinamento tecnico pendente.
 
-## Limites desta fase
+## Seguranca
 
-- O endpoint agregado de health não faz probe externo caro por padrão.
-- `estimateCost` é heurístico e depende da configuração opcional de pricing em `application.yml`.
-- Threat-intel é visível no produto, mas bloqueia execução se `SECURITY_COMPLIANCE_DARK_WEB_ENABLED` estiver desligada ou se a chamada vier sem justificativa.
-- Providers fora da lista principal permanecem `catalog-only`, `manual` ou `skeleton` com `TODO official-contract-validation`.
+- segredos lidos por `SecretResolver`
+- `Environment` nao deve ser acessado fora do resolvedor
+- `.env` fora do git
+- headers sensiveis mascarados
+- prompts nao devem ir para log em claro
+- threat-intel exige compliance flag e justificativa por chamada
+
+## Threat-intel
+
+Threat-intel continua:
+
+- `admin-only`
+- opt-in
+- bloqueado quando `SECURITY_COMPLIANCE_DARK_WEB_ENABLED` estiver desligado
+- dependente de justificativa por chamada
+
+Mesmo com visibilidade no produto, isso nao significa runtime live para todos os providers de threat-intel.

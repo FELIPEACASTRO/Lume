@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lume.workspace.inference.config.AiRuntimeProperties;
 import com.lume.workspace.inference.orchestration.AiHttpExecutor;
 import com.lume.workspace.inference.port.AiProviderAdapter;
+import com.lume.workspace.inference.security.EnvironmentSecretResolver;
 import com.lume.workspace.service.ProviderCatalogService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class AiProviderAdapterContractTest {
     @DisplayName("all adapters should expose consistent health and streaming contract")
     void allAdaptersShouldExposeConsistentHealthAndStreamingContract() {
         MockEnvironment environment = new MockEnvironment();
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = new ProviderCatalogService(new EnvironmentSecretResolver(environment));
         AiRuntimeProperties runtimeProperties = new AiRuntimeProperties();
         ObjectMapper objectMapper = new ObjectMapper();
         AiHttpExecutor executor = new AiHttpExecutor(RestClient.builder(), objectMapper);
@@ -35,6 +36,7 @@ class AiProviderAdapterContractTest {
                 new PerplexityAdapter(catalogService, executor, runtimeProperties, objectMapper),
                 new GroqAdapter(catalogService, executor, runtimeProperties, objectMapper),
                 new OpenRouterAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                new CohereAdapter(catalogService, executor, runtimeProperties, objectMapper),
                 new TogetherAdapter(catalogService, executor, runtimeProperties, objectMapper),
                 new FireworksAdapter(catalogService, executor, runtimeProperties, objectMapper),
                 new DeepInfraAdapter(catalogService, executor, runtimeProperties, objectMapper),
@@ -45,7 +47,7 @@ class AiProviderAdapterContractTest {
             var health = adapter.healthCheck();
             assertThat(health.providerCode()).isNotBlank();
             assertThat(health.executionSupported()).isTrue();
-            assertThat(health.streamingSupported()).isTrue();
+            assertThat(health.streamingSupported()).isFalse();
             assertThat(health.readinessStatus()).isEqualTo("missing_credentials");
             assertThat(health.missingCredentialEnvVars()).isNotEmpty();
         });

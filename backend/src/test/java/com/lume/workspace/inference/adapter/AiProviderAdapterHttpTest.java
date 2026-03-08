@@ -6,6 +6,7 @@ import com.lume.workspace.inference.orchestration.AiHttpExecutor;
 import com.lume.workspace.inference.orchestration.AiMessage;
 import com.lume.workspace.inference.orchestration.AiPromptCommand;
 import com.lume.workspace.inference.orchestration.AiPromptResult;
+import com.lume.workspace.inference.security.EnvironmentSecretResolver;
 import com.lume.workspace.service.ProviderCatalogService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("OpenAI adapter should call Responses API")
     void shouldCallOpenAiResponsesApi() {
         MockEnvironment environment = new MockEnvironment().withProperty("OPENAI_API_KEY", "test-openai");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://api.openai.com/v1/responses"))
@@ -53,7 +54,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("Gemini adapter should call generateContent")
     void shouldCallGeminiGenerateContent() {
         MockEnvironment environment = new MockEnvironment().withProperty("GEMINI_API_KEY", "test-gemini");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"))
@@ -74,7 +75,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("DeepSeek adapter should call chat completions")
     void shouldCallDeepSeekChatCompletions() {
         MockEnvironment environment = new MockEnvironment().withProperty("DEEPSEEK_API_KEY", "test-deepseek");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://api.deepseek.com/v1/chat/completions"))
@@ -95,7 +96,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("Anthropic adapter should call Messages API")
     void shouldCallAnthropicMessagesApi() {
         MockEnvironment environment = new MockEnvironment().withProperty("ANTHROPIC_API_KEY", "test-anthropic");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://api.anthropic.com/v1/messages"))
@@ -116,7 +117,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("xAI adapter should call Responses API")
     void shouldCallXaiResponsesApi() {
         MockEnvironment environment = new MockEnvironment().withProperty("XAI_API_KEY", "test-xai");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://api.x.ai/v1/responses"))
@@ -137,7 +138,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("Perplexity adapter should call Sonar via chat completions")
     void shouldCallPerplexityChatCompletions() {
         MockEnvironment environment = new MockEnvironment().withProperty("PERPLEXITY_API_KEY", "test-pplx");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://api.perplexity.ai/chat/completions"))
@@ -158,7 +159,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("Groq adapter should call responses endpoint")
     void shouldCallGroqResponsesApi() {
         MockEnvironment environment = new MockEnvironment().withProperty("GROQ_API_KEY", "test-groq");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://api.groq.com/openai/v1/responses"))
@@ -179,7 +180,7 @@ class AiProviderAdapterHttpTest {
     @DisplayName("OpenRouter adapter should call chat completions endpoint")
     void shouldCallOpenRouterChatCompletions() {
         MockEnvironment environment = new MockEnvironment().withProperty("OPENROUTER_API_KEY", "test-openrouter");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://openrouter.ai/api/v1/chat/completions"))
@@ -196,6 +197,27 @@ class AiProviderAdapterHttpTest {
         assertThat(result.content()).isEqualTo("Resposta OpenRouter");
     }
 
+    @Test
+    @DisplayName("Cohere adapter should call chat v2 endpoint")
+    void shouldCallCohereChatApi() {
+        MockEnvironment environment = new MockEnvironment().withProperty("COHERE_API_KEY", "test-cohere");
+        ProviderCatalogService catalogService = catalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://api.cohere.com/v2/chat"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-cohere"))
+                .andRespond(withSuccess("""
+                        {"message":{"content":[{"type":"text","text":"Resposta Cohere"}]}}
+                        """, MediaType.APPLICATION_JSON));
+
+        CohereAdapter adapter = new CohereAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("cohere", "Resuma em uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("cohere");
+        assertThat(result.content()).isEqualTo("Resposta Cohere");
+    }
+
     private AiPromptCommand command(String providerCode, String prompt) {
         return new AiPromptCommand(
                 "req-test-" + providerCode,
@@ -208,5 +230,9 @@ class AiProviderAdapterHttpTest {
                 0.2,
                 120
         );
+    }
+
+    private ProviderCatalogService catalogService(MockEnvironment environment) {
+        return new ProviderCatalogService(new EnvironmentSecretResolver(environment));
     }
 }

@@ -60,6 +60,8 @@ public class ResearchService {
             response = switch (provider.code()) {
                 case "exa" -> queryExa(provider, request);
                 case "newscatcher" -> queryNewsCatcher(provider, request);
+                case "tavily" -> queryTavily(provider, request);
+                case "serpapi" -> querySerpApi(provider, request);
                 default -> unsupported(provider, request.query(), "O adapter deste provedor ainda nao foi implementado.");
             };
         } catch (RestClientException providerError) {
@@ -109,10 +111,11 @@ public class ResearchService {
     }
 
     private ResearchQueryResponse queryNewsCatcher(ProviderDefinition provider, ResearchQueryRequest request) {
-        String uri = UriComponentsBuilder.fromHttpUrl(providerCatalogService.resolveBaseUrl(provider) + "/search")
+        var uri = UriComponentsBuilder.fromHttpUrl(providerCatalogService.resolveBaseUrl(provider) + "/search")
                 .queryParam("q", request.query())
                 .queryParam("page_size", request.limit() != null ? request.limit() : 5)
-                .toUriString();
+                .build()
+                .toUri();
 
         JsonNode response = restClientBuilder.build()
                 .get()
@@ -130,6 +133,66 @@ public class ResearchService {
                         article.path("summary").asText(article.path("excerpt").asText("")),
                         provider.name(),
                         article.has("rank") ? article.path("rank").asDouble() : null
+                ))
+                .toList()
+                : List.of();
+
+        return new ResearchQueryResponse(provider.code(), provider.name(), true, true, "completed", request.query(), items, null);
+    }
+
+    private ResearchQueryResponse queryTavily(ProviderDefinition provider, ResearchQueryRequest request) {
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("query", request.query());
+        payload.put("max_results", request.limit() != null ? request.limit() : 5);
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        List<ResearchResultItemResponse> items = response.path("results").isArray()
+                ? java.util.stream.StreamSupport.stream(response.path("results").spliterator(), false)
+                .map(result -> new ResearchResultItemResponse(
+                        result.path("title").asText(""),
+                        result.path("url").asText(""),
+                        result.path("content").asText(result.path("snippet").asText("")),
+                        provider.name(),
+                        result.has("score") ? result.path("score").asDouble() : null
+                ))
+                .toList()
+                : List.of();
+
+        return new ResearchQueryResponse(provider.code(), provider.name(), true, true, "completed", request.query(), items, null);
+    }
+
+    private ResearchQueryResponse querySerpApi(ProviderDefinition provider, ResearchQueryRequest request) {
+        var uri = UriComponentsBuilder.fromHttpUrl(providerCatalogService.resolveBaseUrl(provider) + "/search.json")
+                .queryParam("engine", "google")
+                .queryParam("q", request.query())
+                .queryParam("num", request.limit() != null ? request.limit() : 5)
+                .queryParam("api_key", providerCatalogService.credentialValue(provider, "apiKey"))
+                .build()
+                .toUri();
+
+        JsonNode response = restClientBuilder.build()
+                .get()
+                .uri(uri)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body(JsonNode.class);
+
+        List<ResearchResultItemResponse> items = response.path("organic_results").isArray()
+                ? java.util.stream.StreamSupport.stream(response.path("organic_results").spliterator(), false)
+                .map(result -> new ResearchResultItemResponse(
+                        result.path("title").asText(""),
+                        result.path("link").asText(result.path("url").asText("")),
+                        result.path("snippet").asText(result.path("snippet_highlighted_words").toString()),
+                        provider.name(),
+                        result.has("position") ? result.path("position").asDouble() : null
                 ))
                 .toList()
                 : List.of();

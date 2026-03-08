@@ -10,7 +10,10 @@ public record ProviderConnectivityResponse(
         String status,
         boolean configured,
         boolean executionSupported,
-        boolean streamingSupported,
+        String implementationStatus,
+        String evidenceLevel,
+        String streamingMode,
+        String runtimeMaturity,
         Long latencyMs,
         String message,
         List<String> missingCredentialEnvVars

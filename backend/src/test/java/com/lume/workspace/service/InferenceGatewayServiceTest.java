@@ -7,10 +7,13 @@ import com.lume.workspace.inference.adapter.AnthropicAdapter;
 import com.lume.workspace.inference.adapter.OpenAiAdapter;
 import com.lume.workspace.inference.config.AiRuntimeProperties;
 import com.lume.workspace.inference.metrics.AiMetricsRecorder;
+import com.lume.workspace.inference.orchestration.AiBulkheadRegistry;
 import com.lume.workspace.inference.orchestration.AiCircuitBreakerRegistry;
 import com.lume.workspace.inference.orchestration.AiHttpExecutor;
 import com.lume.workspace.inference.orchestration.AiInferenceOrchestrator;
 import com.lume.workspace.inference.orchestration.AiProviderRegistry;
+import com.lume.workspace.inference.orchestration.AiRateLimiterRegistry;
+import com.lume.workspace.inference.security.EnvironmentSecretResolver;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +42,7 @@ class InferenceGatewayServiceTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("OPENAI_API_KEY", "test-openai")
                 .withProperty("ANTHROPIC_API_KEY", "test-anthropic");
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = catalogService(environment);
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).ignoreExpectOrder(true).build();
 
@@ -67,6 +70,8 @@ class InferenceGatewayServiceTest {
                 )),
                 runtimeProperties,
                 new AiCircuitBreakerRegistry(),
+                new AiBulkheadRegistry(),
+                new AiRateLimiterRegistry(),
                 new AiMetricsRecorder(new SimpleMeterRegistry())
         );
         InferenceGatewayService service = new InferenceGatewayService(orchestrator);
@@ -88,13 +93,16 @@ class InferenceGatewayServiceTest {
         assertThat(response.requestedProviderCode()).isEqualTo("openai");
         assertThat(response.fallbackUsed()).isTrue();
         assertThat(response.attemptedProviderCodes()).containsExactly("openai", "anthropic");
+        assertThat(response.attemptChain()).hasSize(2);
+        assertThat(response.attemptChain().get(0).status()).isEqualTo("rate_limited");
+        assertThat(response.attemptChain().get(1).status()).isEqualTo("completed");
         assertThat(response.content()).isEqualTo("Resposta Claude");
     }
 
     @Test
     @DisplayName("should return missing credentials when provider key is absent")
     void shouldReturnMissingCredentialsWhenProviderKeyIsAbsent() {
-        ProviderCatalogService catalogService = new ProviderCatalogService(new MockEnvironment());
+        ProviderCatalogService catalogService = catalogService(new MockEnvironment());
         AiInferenceOrchestrator orchestrator = new AiInferenceOrchestrator(
                 catalogService,
                 new AiProviderRegistry(List.of(
@@ -102,6 +110,8 @@ class InferenceGatewayServiceTest {
                 )),
                 new AiRuntimeProperties(),
                 new AiCircuitBreakerRegistry(),
+                new AiBulkheadRegistry(),
+                new AiRateLimiterRegistry(),
                 new AiMetricsRecorder(new SimpleMeterRegistry())
         );
         InferenceGatewayService service = new InferenceGatewayService(orchestrator);
@@ -121,6 +131,12 @@ class InferenceGatewayServiceTest {
         assertThat(response.status()).isEqualTo("missing_credentials");
         assertThat(response.configured()).isFalse();
         assertThat(response.content()).isNull();
-        assertThat(response.streamingSupported()).isTrue();
+        assertThat(response.attemptChain()).hasSize(1);
+        assertThat(response.attemptChain().get(0).status()).isEqualTo("missing_credentials");
+        assertThat(response.streamingMode()).isEqualTo("unsupported");
+    }
+
+    private ProviderCatalogService catalogService(MockEnvironment environment) {
+        return new ProviderCatalogService(new EnvironmentSecretResolver(environment));
     }
 }

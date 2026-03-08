@@ -65,6 +65,13 @@ export default function Agents() {
     return providerStatuses.find((item) => item.providerCode === selectedAgent.providerCode) ?? null;
   }, [providerStatuses, selectedAgent]);
 
+  const selectedProvider = useMemo(() => {
+    if (!selectedAgent) {
+      return null;
+    }
+    return providers.find((item) => item.code === selectedAgent.providerCode) ?? null;
+  }, [providers, selectedAgent]);
+
   const loadShellData = useCallback(async () => {
     try {
       setLoading(true);
@@ -325,9 +332,12 @@ export default function Agents() {
             <StatusBadge state={selectedAgent?.availability ?? 'preview'} />
           </div>
           <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">Runtime real por perfil</h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--ink-soft)]">
-            O runtime do agente ja informa provider, modelo, apiStyle, credentialState, catalogState, readiness e suporte a streaming. So os providers realmente suportados e configurados entram como `live`.
-          </p>
+              <p className="mt-3 text-sm leading-6 text-[var(--ink-soft)]">
+                O runtime do agente ja informa provider, modelo, apiStyle, credentialState, catalogState, readiness e suporte a streaming. So os providers realmente suportados e configurados entram como `live`.
+              </p>
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+                Governanca explicita: live, implemented_with_restrictions, catalog_only, blocked e out_of_scope.
+              </p>
         </div>
 
         {profiles.map((agent) => (
@@ -417,12 +427,14 @@ export default function Agents() {
               <h1 className="mt-2 text-2xl font-semibold text-[var(--ink-strong)]">{selectedAgent?.name ?? 'Agents'}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--ink-soft)]">{selectedAgent?.description ?? 'Selecione um perfil para iniciar uma thread.'}</p>
               {selectedAgent ? (
-                <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+              <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
                   <span>{selectedAgent.providerCode}</span>
                   <span>{selectedAgent.modelCode}</span>
                   <span>{selectedAgent.apiStyle}</span>
                   <span>{selectedAgent.credentialState}</span>
                   <span>{selectedAgent.catalogState}</span>
+                  {selectedProvider ? <span>{selectedProvider.implementationStatus}</span> : null}
+                  {selectedProvider ? <span>{selectedProvider.evidenceLevel}</span> : null}
                   <span>{selectedAgent.versionLabel}</span>
                 </div>
               ) : null}
@@ -501,7 +513,10 @@ export default function Agents() {
                 <span>{selectedProviderStatus.readinessStatus}</span>
                 <span>{selectedProviderStatus.configured ? 'configured' : 'missing_credentials'}</span>
                 <span>{selectedProviderStatus.executionSupported ? 'execution_supported' : 'manual_only'}</span>
-                <span>{selectedProviderStatus.streamingSupported ? 'streaming' : 'sem_streaming'}</span>
+                <span>{selectedProviderStatus.implementationStatus}</span>
+                <span>{selectedProviderStatus.evidenceLevel}</span>
+                <span>{selectedProviderStatus.streamingMode}</span>
+                <span>{selectedProviderStatus.runtimeMaturity}</span>
               </div>
             ) : null}
           </div>

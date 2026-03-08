@@ -6,11 +6,14 @@ import com.lume.workspace.inference.error.AiAuthenticationException;
 import com.lume.workspace.inference.error.AiProviderException;
 import com.lume.workspace.inference.error.AiRateLimitException;
 import com.lume.workspace.inference.error.AiTimeoutException;
+import com.lume.workspace.inference.config.AiRuntimeProperties;
 import com.lume.workspace.inference.security.SecretMasker;
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -33,11 +36,26 @@ public class AiHttpExecutor {
     private final RestClient.Builder restClientBuilder;
     private final ObjectMapper objectMapper;
     private final ExecutorService executorService;
+    private final boolean applyRequestFactoryTimeouts;
+
+    @Autowired
+    public AiHttpExecutor(
+            RestClient.Builder restClientBuilder,
+            ObjectMapper objectMapper,
+            AiRuntimeProperties runtimeProperties
+    ) {
+        this(restClientBuilder, objectMapper, true);
+    }
 
     public AiHttpExecutor(RestClient.Builder restClientBuilder, ObjectMapper objectMapper) {
+        this(restClientBuilder, objectMapper, false);
+    }
+
+    private AiHttpExecutor(RestClient.Builder restClientBuilder, ObjectMapper objectMapper, boolean applyRequestFactoryTimeouts) {
         this.restClientBuilder = restClientBuilder;
         this.objectMapper = objectMapper;
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+        this.applyRequestFactoryTimeouts = applyRequestFactoryTimeouts;
     }
 
     public JsonNode postJson(
@@ -45,11 +63,12 @@ public class AiHttpExecutor {
             String url,
             Map<String, String> headers,
             JsonNode payload,
-            Duration timeout
+            Duration connectTimeout,
+            Duration readTimeout
     ) {
-        Future<JsonNode> future = executorService.submit(() -> doPostJson(providerCode, url, headers, payload));
+        Future<JsonNode> future = executorService.submit(() -> doPostJson(providerCode, url, headers, payload, connectTimeout, readTimeout));
         try {
-            return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return future.get(readTimeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException timeoutException) {
             future.cancel(true);
             throw new AiTimeoutException("Timeout ao consultar " + providerCode + ".");
@@ -69,10 +88,20 @@ public class AiHttpExecutor {
             String providerCode,
             String url,
             Map<String, String> headers,
-            JsonNode payload
+            JsonNode payload,
+            Duration connectTimeout,
+            Duration readTimeout
     ) {
         try {
-            RestClient.RequestBodySpec request = restClientBuilder.build()
+            RestClient.Builder builder = restClientBuilder.clone();
+            if (applyRequestFactoryTimeouts) {
+                SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+                requestFactory.setConnectTimeout((int) Math.min(Integer.MAX_VALUE, Math.max(1L, connectTimeout.toMillis())));
+                requestFactory.setReadTimeout((int) Math.min(Integer.MAX_VALUE, Math.max(1L, readTimeout.toMillis())));
+                builder.requestFactory(requestFactory);
+            }
+
+            RestClient.RequestBodySpec request = builder.build()
                     .post()
                     .uri(url)
                     .contentType(MediaType.APPLICATION_JSON);

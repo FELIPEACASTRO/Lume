@@ -1,5 +1,7 @@
 package com.lume.workspace.dto;
 
+import com.lume.workspace.inference.orchestration.AiExecutionAttempt;
+
 import java.util.List;
 
 public record UnifiedInferenceResponse(
@@ -16,10 +18,12 @@ public record UnifiedInferenceResponse(
         String error,
         String requestedProviderCode,
         List<String> attemptedProviderCodes,
+        List<AiExecutionAttempt> attemptChain,
         Long latencyMs,
         Integer estimatedInputTokens,
         Integer estimatedOutputTokens,
         Double estimatedCostUsd,
-        boolean streamingSupported
+        String streamingMode,
+        String routingMode
 ) {
 }

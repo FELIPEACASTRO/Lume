@@ -7,10 +7,13 @@ public record ProviderStatusResponse(
         String providerName,
         boolean configured,
         boolean executionSupported,
+        String implementationStatus,
+        String evidenceLevel,
         String catalogState,
         String category,
         boolean adminOnly,
-        boolean streamingSupported,
+        String streamingMode,
+        String runtimeMaturity,
         String readinessStatus,
         List<String> missingCredentialEnvVars
 ) {

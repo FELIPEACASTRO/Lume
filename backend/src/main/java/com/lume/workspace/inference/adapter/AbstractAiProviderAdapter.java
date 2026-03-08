@@ -12,13 +12,11 @@ import com.lume.workspace.inference.orchestration.AiMessage;
 import com.lume.workspace.inference.orchestration.AiPromptCommand;
 import com.lume.workspace.inference.orchestration.AiPromptResult;
 import com.lume.workspace.inference.orchestration.AiProviderHealth;
-import com.lume.workspace.inference.orchestration.AiStreamEvent;
 import com.lume.workspace.inference.port.AiProviderAdapter;
 import com.lume.workspace.inference.port.AiStreamObserver;
 import com.lume.workspace.service.ProviderCatalogService;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,12 +41,7 @@ public abstract class AbstractAiProviderAdapter implements AiProviderAdapter {
 
     @Override
     public void streamPrompt(AiPromptCommand command, AiStreamObserver observer) {
-        AiPromptResult result = sendPrompt(command);
-        if (result.content() == null || result.content().isBlank()) {
-            observer.onError(new AiUnsupportedOperationException("Nao houve conteudo para streaming em " + provider().code() + "."));
-            return;
-        }
-        chunkContent(result.content(), observer);
+        observer.onError(new AiUnsupportedOperationException("Streaming nativo ainda nao foi implementado para " + provider().code() + "."));
     }
 
     @Override
@@ -119,6 +112,10 @@ public abstract class AbstractAiProviderAdapter implements AiProviderAdapter {
         return Duration.ofMillis(runtimeProperties.forProvider(providerCode).getReadTimeoutMs());
     }
 
+    protected Duration connectTimeoutFor(String providerCode) {
+        return Duration.ofMillis(runtimeProperties.forProvider(providerCode).getConnectTimeoutMs());
+    }
+
     protected String baseUrl() {
         return providerCatalogService.resolveBaseUrl(provider());
     }
@@ -156,7 +153,14 @@ public abstract class AbstractAiProviderAdapter implements AiProviderAdapter {
     }
 
     protected JsonNode postJson(String url, Map<String, String> headers, JsonNode payload) {
-        return httpExecutor.postJson(provider().code(), url, headers, payload, timeoutFor(provider().code()));
+        return httpExecutor.postJson(
+                provider().code(),
+                url,
+                headers,
+                payload,
+                connectTimeoutFor(provider().code()),
+                timeoutFor(provider().code())
+        );
     }
 
     protected int estimateInputTokens(AiPromptCommand command) {
@@ -175,18 +179,5 @@ public abstract class AbstractAiProviderAdapter implements AiProviderAdapter {
             return 0;
         }
         return Math.max(1, (int) Math.ceil(text.length() / 4.0d));
-    }
-
-    protected void chunkContent(String content, AiStreamObserver observer) {
-        List<String> chunks = new ArrayList<>();
-        int chunkSize = 48;
-        for (int index = 0; index < content.length(); index += chunkSize) {
-            chunks.add(content.substring(index, Math.min(content.length(), index + chunkSize)));
-        }
-        for (String chunk : chunks) {
-            observer.onEvent(new AiStreamEvent("chunk", chunk));
-        }
-        observer.onEvent(new AiStreamEvent("done", ""));
-        observer.onComplete();
     }
 }

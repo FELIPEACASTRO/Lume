@@ -3,6 +3,7 @@ package com.lume.workspace.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lume.workspace.dto.UnifiedInferenceRequest;
 import com.lume.workspace.inference.adapter.AnthropicAdapter;
+import com.lume.workspace.inference.adapter.CohereAdapter;
 import com.lume.workspace.inference.adapter.DeepSeekAdapter;
 import com.lume.workspace.inference.adapter.DeepInfraAdapter;
 import com.lume.workspace.inference.adapter.FireworksAdapter;
@@ -16,10 +17,13 @@ import com.lume.workspace.inference.adapter.TogetherAdapter;
 import com.lume.workspace.inference.adapter.XaiAdapter;
 import com.lume.workspace.inference.config.AiRuntimeProperties;
 import com.lume.workspace.inference.metrics.AiMetricsRecorder;
+import com.lume.workspace.inference.orchestration.AiBulkheadRegistry;
 import com.lume.workspace.inference.orchestration.AiCircuitBreakerRegistry;
 import com.lume.workspace.inference.orchestration.AiHttpExecutor;
 import com.lume.workspace.inference.orchestration.AiInferenceOrchestrator;
 import com.lume.workspace.inference.orchestration.AiProviderRegistry;
+import com.lume.workspace.inference.orchestration.AiRateLimiterRegistry;
+import com.lume.workspace.inference.security.EnvironmentSecretResolver;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
@@ -53,6 +57,7 @@ class AiRealSmokeIT {
                 Map.entry("PERPLEXITY_API_KEY", System.getenv("PERPLEXITY_API_KEY")),
                 Map.entry("GROQ_API_KEY", System.getenv("GROQ_API_KEY")),
                 Map.entry("OPENROUTER_API_KEY", System.getenv("OPENROUTER_API_KEY")),
+                Map.entry("COHERE_API_KEY", System.getenv("COHERE_API_KEY")),
                 Map.entry("TOGETHER_API_KEY", System.getenv("TOGETHER_API_KEY")),
                 Map.entry("FIREWORKS_API_KEY", System.getenv("FIREWORKS_API_KEY")),
                 Map.entry("DEEPINFRA_API_KEY", System.getenv("DEEPINFRA_API_KEY")),
@@ -63,7 +68,7 @@ class AiRealSmokeIT {
             }
         });
 
-        ProviderCatalogService catalogService = new ProviderCatalogService(environment);
+        ProviderCatalogService catalogService = new ProviderCatalogService(new EnvironmentSecretResolver(environment));
         ObjectMapper objectMapper = new ObjectMapper();
         AiRuntimeProperties runtimeProperties = new AiRuntimeProperties();
         runtimeProperties.getDefaults().getRetry().setMaxAttempts(1);
@@ -79,6 +84,7 @@ class AiRealSmokeIT {
                         new PerplexityAdapter(catalogService, executor, runtimeProperties, objectMapper),
                         new GroqAdapter(catalogService, executor, runtimeProperties, objectMapper),
                         new OpenRouterAdapter(catalogService, executor, runtimeProperties, objectMapper),
+                        new CohereAdapter(catalogService, executor, runtimeProperties, objectMapper),
                         new TogetherAdapter(catalogService, executor, runtimeProperties, objectMapper),
                         new FireworksAdapter(catalogService, executor, runtimeProperties, objectMapper),
                         new DeepInfraAdapter(catalogService, executor, runtimeProperties, objectMapper),
@@ -86,12 +92,14 @@ class AiRealSmokeIT {
                 )),
                 runtimeProperties,
                 new AiCircuitBreakerRegistry(),
+                new AiBulkheadRegistry(),
+                new AiRateLimiterRegistry(),
                 new AiMetricsRecorder(new SimpleMeterRegistry())
         );
         InferenceGatewayService service = new InferenceGatewayService(orchestrator);
 
         List<String> availableProviders = new ArrayList<>();
-        for (String providerCode : List.of("openai", "google-gemini", "deepseek", "anthropic", "xai", "perplexity", "groq", "openrouter", "together", "fireworks", "deepinfra", "mistral")) {
+        for (String providerCode : List.of("openai", "google-gemini", "deepseek", "anthropic", "xai", "perplexity", "groq", "openrouter", "cohere", "together", "fireworks", "deepinfra", "mistral")) {
             if (catalogService.isConfigured(providerCode)) {
                 availableProviders.add(providerCode);
             }

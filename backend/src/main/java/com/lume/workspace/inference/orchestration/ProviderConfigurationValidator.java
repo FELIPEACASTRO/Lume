@@ -36,11 +36,12 @@ public class ProviderConfigurationValidator implements ApplicationRunner {
                 ? "configurado"
                 : status.missingCredentialEnvVars().size() == 1 ? "sem credencial" : "parcial";
         LOGGER.info(
-                "Provider {} ({}) iniciou com estado={} streamingSupported={} faltando={}",
+                "Provider {} ({}) iniciou com estado={} streamingMode={} runtimeMaturity={} faltando={}",
                 status.providerName(),
                 status.providerCode(),
                 state,
-                status.streamingSupported(),
+                status.streamingMode(),
+                status.runtimeMaturity(),
                 status.missingCredentialEnvVars()
         );
     }

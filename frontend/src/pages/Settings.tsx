@@ -61,6 +61,22 @@ function providerReadiness(card: ProviderCard) {
   return readiness.replace(/_/g, ' ');
 }
 
+function providerStreamingMode(card: ProviderCard) {
+  return (card.health?.streamingMode ?? card.status?.streamingMode ?? card.provider.streamingMode).replace(/_/g, ' ');
+}
+
+function providerRuntimeMaturity(card: ProviderCard) {
+  return (card.health?.runtimeMaturity ?? card.status?.runtimeMaturity ?? card.credentials?.runtimeMaturity ?? card.provider.runtimeMaturity).replace(/_/g, ' ');
+}
+
+function providerImplementationStatus(card: ProviderCard) {
+  return (card.health?.implementationStatus ?? card.status?.implementationStatus ?? card.credentials?.implementationStatus ?? card.provider.implementationStatus).replace(/_/g, ' ');
+}
+
+function providerEvidenceLevel(card: ProviderCard) {
+  return (card.health?.evidenceLevel ?? card.status?.evidenceLevel ?? card.credentials?.evidenceLevel ?? card.provider.evidenceLevel).replace(/_/g, ' ');
+}
+
 function ExternalLink({ href, label }: { href: string; label: string }) {
   return (
     <a className="pill-button" href={href} target="_blank" rel="noreferrer">
@@ -94,12 +110,15 @@ function ProviderCatalogCard({
         <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">
           <span>{card.provider.category}</span>
           <span>{card.provider.apiStyle}</span>
+          <span>{providerImplementationStatus(card)}</span>
+          <span>{providerEvidenceLevel(card)}</span>
           <span>{card.provider.catalogState}</span>
-          <span>{card.provider.streamingSupported ? 'streaming' : 'sem streaming'}</span>
+          <span>{providerStreamingMode(card)}</span>
+          <span>{providerRuntimeMaturity(card)}</span>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 xl:grid-cols-4">
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Credenciais</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">{credentialSummary(card)}</p>
@@ -110,10 +129,37 @@ function ProviderCatalogCard({
           <p className="mt-2 text-xs text-[var(--text-secondary)]">
             {card.health?.message ?? 'Health agregado sem chamadas externas pesadas.'}
           </p>
+          {card.health ? (
+            <p className="mt-2 text-xs text-[var(--text-tertiary)]">
+              Fonte: {card.health.healthSource.replace(/_/g, ' ')} | Snapshot: {card.health.snapshotPersistence}
+            </p>
+          ) : null}
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Headers</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.requiredHeaders.join(', ') || 'Nenhum header especial.'}</p>
+        </div>
+        <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Governanca</p>
+          <p className="mt-2 text-sm text-[var(--text-primary)]">
+            {providerImplementationStatus(card)} | {providerEvidenceLevel(card)}
+          </p>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">
+            {card.provider.businessPriority.replace(/_/g, ' ')} | {card.provider.syncMode.replace(/_/g, ' ')}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3 xl:grid-cols-2">
+        <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">FinOps</p>
+          <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.pricingSummary}</p>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">{card.provider.rateLimitSummary}</p>
+        </div>
+        <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Roteamento</p>
+          <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.routingModes.join(', ')}</p>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">Fonte documental: {card.provider.documentationSource.replace(/_/g, ' ')}</p>
         </div>
       </div>
 
@@ -264,22 +310,25 @@ export default function Settings() {
       const result = await providerService.testConnectivity(providerCode);
       setConnectivity((current) => ({ ...current, [providerCode]: result }));
     } catch (testError) {
-      setConnectivity((current) => ({
-        ...current,
-        [providerCode]: {
-          providerCode,
-          providerName: providerCode,
-          category: 'unknown',
-          apiStyle: 'unknown',
-          status: 'provider_error',
-          configured: false,
-          executionSupported: false,
-          streamingSupported: false,
-          latencyMs: null,
-          message: toApiClientError(testError).message,
-          missingCredentialEnvVars: [],
-        },
-      }));
+        setConnectivity((current) => ({
+          ...current,
+          [providerCode]: {
+            providerCode,
+            providerName: providerCode,
+            category: 'unknown',
+            apiStyle: 'unknown',
+            status: 'provider_error',
+            configured: false,
+            executionSupported: false,
+            implementationStatus: 'catalog_only',
+            evidenceLevel: 'offline_verified',
+            streamingMode: 'unsupported',
+            runtimeMaturity: 'catalog_only',
+            latencyMs: null,
+            message: toApiClientError(testError).message,
+            missingCredentialEnvVars: [],
+          },
+        }));
     } finally {
       setTestingProviderCode(null);
     }
@@ -481,6 +530,9 @@ export default function Settings() {
                               <ExternalLink href={card.provider.docsUrl} label="Docs" />
                               <ExternalLink href={card.provider.apiKeyPortalUrl} label="Portal" />
                             </div>
+                            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">
+                              {card.provider.implementationStatus.replace(/_/g, ' ')} | {card.provider.evidenceLevel.replace(/_/g, ' ')}
+                            </p>
                           </article>
                         ))}
                       </div>

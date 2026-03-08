@@ -46,6 +46,17 @@ export type PreviewState = 'live' | 'preview' | 'disabled-preview';
 export type WorkspaceDataState = PreviewState | 'loading' | 'empty' | 'error';
 export type ThemeMode = 'light' | 'dark';
 export type WorkspaceGroup = 'primary' | 'task-history' | 'secondary';
+export type StreamingMode = 'native' | 'unsupported';
+export type RuntimeMaturity = 'live' | 'partial' | 'catalog_only' | string;
+export type HealthSource = 'static' | 'last_connectivity_test';
+export type ImplementationStatus =
+  | 'live'
+  | 'implemented_with_restrictions'
+  | 'catalog_only'
+  | 'blocked'
+  | 'out_of_scope'
+  | string;
+export type EvidenceLevel = 'offline_verified' | 'integration_verified' | 'online_verified' | string;
 
 export type ShellIconKey =
   | 'home'
@@ -328,12 +339,21 @@ export interface ProviderDto {
   apiStyle: string;
   executionSupported: boolean;
   configured: boolean;
+  implementationStatus: ImplementationStatus;
+  evidenceLevel: EvidenceLevel;
+  businessPriority: string;
+  syncMode: string;
   adminOnly: boolean;
   tenantScoped: boolean;
   supportsResponsesApi: boolean;
   supportsChatCompletions: boolean;
-  streamingSupported: boolean;
+  streamingMode: StreamingMode;
+  runtimeMaturity: RuntimeMaturity;
   catalogState: string;
+  pricingSummary: string;
+  rateLimitSummary: string;
+  routingModes: string[];
+  documentationSource: string;
   requiredHeaders: string[];
   credentialFields: CredentialFieldDto[];
   apiKeyPortalUrl: string;
@@ -348,10 +368,13 @@ export interface ProviderStatusDto {
   providerName: string;
   configured: boolean;
   executionSupported: boolean;
+  implementationStatus: ImplementationStatus;
+  evidenceLevel: EvidenceLevel;
   catalogState: string;
   category: string;
   adminOnly: boolean;
-  streamingSupported: boolean;
+  streamingMode: StreamingMode;
+  runtimeMaturity: RuntimeMaturity;
   readinessStatus: string;
   missingCredentialEnvVars: string[];
 }
@@ -361,11 +384,18 @@ export interface ProviderCredentialDto {
   providerName: string;
   configured: boolean;
   executionSupported: boolean;
+  implementationStatus: ImplementationStatus;
+  evidenceLevel: EvidenceLevel;
+  businessPriority: string;
+  syncMode: string;
   category: string;
   apiStyle: string;
   adminOnly: boolean;
-  streamingSupported: boolean;
+  streamingMode: StreamingMode;
+  runtimeMaturity: RuntimeMaturity;
   catalogState: string;
+  pricingSummary: string;
+  rateLimitSummary: string;
   missingCredentialEnvVars: string[];
   credentialFields: CredentialFieldDto[];
   apiKeyPortalUrl: string;
@@ -380,7 +410,10 @@ export interface ProviderConnectivityDto {
   status: string;
   configured: boolean;
   executionSupported: boolean;
-  streamingSupported: boolean;
+  implementationStatus: ImplementationStatus;
+  evidenceLevel: EvidenceLevel;
+  streamingMode: StreamingMode;
+  runtimeMaturity: RuntimeMaturity;
   latencyMs?: number | null;
   message: string;
   missingCredentialEnvVars: string[];
@@ -392,8 +425,13 @@ export interface ProviderHealthDto {
   category: string;
   configured: boolean;
   executionSupported: boolean;
-  streamingSupported: boolean;
+  implementationStatus: ImplementationStatus;
+  evidenceLevel: EvidenceLevel;
+  streamingMode: StreamingMode;
+  runtimeMaturity: RuntimeMaturity;
   readinessStatus: string;
+  healthSource: HealthSource;
+  snapshotPersistence: 'memory' | 'durable' | string;
   message: string;
   lastConnectivityStatus?: string | null;
   lastCheckedAt?: string | null;

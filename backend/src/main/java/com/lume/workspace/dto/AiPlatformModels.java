@@ -49,6 +49,14 @@ public final class AiPlatformModels {
     ) {
     }
 
+    public record ExecutionAttemptMetadata(
+            String providerCode,
+            String status,
+            String error,
+            Long latencyMs
+    ) {
+    }
+
     public record ProviderConfigSnapshot(
             String providerCode,
             String providerName,
@@ -69,14 +77,35 @@ public final class AiPlatformModels {
             Integer maxTokens,
             List<String> fallbackProviderCodes,
             Boolean freeTierOnly,
-            String requestId
+            String requestId,
+            String routingMode,
+            Boolean stream,
+            List<String> tags,
+            String workspaceId
     ) {
+        public ChatRequest(
+                String providerCode,
+                String modelCode,
+                String systemPrompt,
+                String prompt,
+                List<UnifiedMessageRequest> messages,
+                Double temperature,
+                Integer maxTokens,
+                List<String> fallbackProviderCodes,
+                Boolean freeTierOnly,
+                String requestId
+        ) {
+            this(providerCode, modelCode, systemPrompt, prompt, messages, temperature, maxTokens, fallbackProviderCodes, freeTierOnly, requestId, null, null, List.of(), null);
+        }
     }
 
     public record ChatResponse(
             String providerCode,
             String providerName,
             String modelCode,
+            String requestedProviderCode,
+            String providerUsed,
+            String modelUsed,
             String status,
             String content,
             String error,
@@ -86,6 +115,8 @@ public final class AiPlatformModels {
             List<GroundingMetadata> grounding,
             boolean fallbackUsed,
             List<String> attemptedProviderCodes,
+            List<ExecutionAttemptMetadata> attemptChain,
+            String streamingMode,
             boolean streamingSupported
     ) {
     }
@@ -100,14 +131,35 @@ public final class AiPlatformModels {
             Integer maxTokens,
             List<String> fallbackProviderCodes,
             Boolean freeTierOnly,
-            String requestId
+            String requestId,
+            String routingMode,
+            Boolean stream,
+            List<String> tags,
+            String workspaceId
     ) {
+        public ResponseRequest(
+                String providerCode,
+                String modelCode,
+                String systemPrompt,
+                String prompt,
+                List<UnifiedMessageRequest> messages,
+                Double temperature,
+                Integer maxTokens,
+                List<String> fallbackProviderCodes,
+                Boolean freeTierOnly,
+                String requestId
+        ) {
+            this(providerCode, modelCode, systemPrompt, prompt, messages, temperature, maxTokens, fallbackProviderCodes, freeTierOnly, requestId, null, null, List.of(), null);
+        }
     }
 
     public record ResponseResponse(
             String providerCode,
             String providerName,
             String modelCode,
+            String requestedProviderCode,
+            String providerUsed,
+            String modelUsed,
             String status,
             String outputText,
             String error,
@@ -117,6 +169,8 @@ public final class AiPlatformModels {
             List<GroundingMetadata> grounding,
             boolean fallbackUsed,
             List<String> attemptedProviderCodes,
+            List<ExecutionAttemptMetadata> attemptChain,
+            String streamingMode,
             boolean streamingSupported
     ) {
     }
@@ -124,8 +178,18 @@ public final class AiPlatformModels {
     public record EmbeddingRequest(
             @NotBlank String providerCode,
             String modelCode,
-            @NotBlank String input
+            @NotBlank String input,
+            String routingMode,
+            List<String> tags,
+            String workspaceId
     ) {
+        public EmbeddingRequest(
+                String providerCode,
+                String modelCode,
+                String input
+        ) {
+            this(providerCode, modelCode, input, null, List.of(), null);
+        }
     }
 
     public record EmbeddingResponse(
@@ -145,8 +209,20 @@ public final class AiPlatformModels {
             String modelCode,
             @NotBlank String query,
             List<String> documents,
-            @Positive Integer topN
+            @Positive Integer topN,
+            String routingMode,
+            List<String> tags,
+            String workspaceId
     ) {
+        public RerankRequest(
+                String providerCode,
+                String modelCode,
+                String query,
+                List<String> documents,
+                Integer topN
+        ) {
+            this(providerCode, modelCode, query, documents, topN, null, List.of(), null);
+        }
     }
 
     public record RerankResponse(
@@ -289,8 +365,18 @@ public final class AiPlatformModels {
     public record AiSearchRequest(
             @NotBlank String providerCode,
             @NotBlank String query,
-            @Positive Integer limit
+            @Positive Integer limit,
+            String routingMode,
+            List<String> tags,
+            String workspaceId
     ) {
+        public AiSearchRequest(
+                String providerCode,
+                String query,
+                Integer limit
+        ) {
+            this(providerCode, query, limit, null, List.of(), null);
+        }
     }
 
     public record AiSearchResultItem(
@@ -320,14 +406,36 @@ public final class AiPlatformModels {
             Double temperature,
             Integer maxTokens,
             List<String> fallbackProviderCodes,
-            String requestId
+            String requestId,
+            String routingMode,
+            Boolean stream,
+            List<String> tags,
+            String workspaceId,
+            String researchProviderCode,
+            Integer searchLimit
     ) {
+        public WebGroundedChatRequest(
+                String providerCode,
+                String modelCode,
+                String systemPrompt,
+                String prompt,
+                List<UnifiedMessageRequest> messages,
+                Double temperature,
+                Integer maxTokens,
+                List<String> fallbackProviderCodes,
+                String requestId
+        ) {
+            this(providerCode, modelCode, systemPrompt, prompt, messages, temperature, maxTokens, fallbackProviderCodes, requestId, null, null, List.of(), null, null, null);
+        }
     }
 
     public record WebGroundedChatResponse(
             String providerCode,
             String providerName,
             String modelCode,
+            String requestedProviderCode,
+            String providerUsed,
+            String modelUsed,
             String status,
             String content,
             String error,
@@ -336,6 +444,8 @@ public final class AiPlatformModels {
             List<GroundingMetadata> grounding,
             boolean fallbackUsed,
             List<String> attemptedProviderCodes,
+            List<ExecutionAttemptMetadata> attemptChain,
+            String streamingMode,
             boolean streamingSupported
     ) {
     }

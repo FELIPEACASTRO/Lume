@@ -4,6 +4,6 @@ public record AiExecutionAttempt(
         String providerCode,
         String status,
         String error,
-        long latencyMs
+        Long latencyMs
 ) {
 }

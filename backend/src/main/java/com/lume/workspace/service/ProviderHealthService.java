@@ -1,6 +1,7 @@
 package com.lume.workspace.service;
 
 import com.lume.workspace.dto.ProviderHealthResponse;
+import com.lume.workspace.inference.catalog.ProviderGovernanceMetadata;
 import com.lume.workspace.inference.orchestration.AiProviderRegistry;
 import com.lume.workspace.inference.orchestration.ProviderConnectivitySnapshot;
 import com.lume.workspace.inference.port.AiProviderAdapter;
@@ -30,18 +31,27 @@ public class ProviderHealthService {
         Map<String, ProviderConnectivitySnapshot> snapshots = providerConnectivityService.lastConnectivitySnapshots();
         return providerCatalogService.listProviders().stream()
                 .map(provider -> {
+                    ProviderGovernanceMetadata metadata = providerCatalogService.governanceMetadata(provider.code());
                     boolean supportedByAdapter = providerRegistry.supportedProviderCodes().contains(providerCatalogService.normalizeProviderCode(provider.code()));
                     if (!supportedByAdapter) {
                         ProviderConnectivitySnapshot snapshot = snapshots.get(provider.code());
+                        String readinessStatus = providerCatalogService.readinessStatus(providerCatalogService.requireProvider(provider.code()));
                         return new ProviderHealthResponse(
                                 provider.code(),
                                 provider.name(),
                                 provider.category(),
                                 provider.configured(),
                                 provider.executionSupported(),
-                                false,
-                                provider.executionSupported() ? "catalog_only" : provider.catalogState(),
-                                "Provider fora do runtime real desta fase.",
+                                metadata.implementationStatus(),
+                                metadata.evidenceLevel(),
+                                providerCatalogService.streamingMode(provider.code()),
+                                providerCatalogService.runtimeMaturity(provider.code()),
+                                readinessStatus,
+                                snapshot != null ? "last_connectivity_test" : "static",
+                                "memory",
+                                provider.executionSupported()
+                                        ? "Provider suportado fora do runtime textual principal; health deriva do catalogo e do ultimo snapshot."
+                                        : "Provider fora do runtime real desta fase.",
                                 snapshot != null ? snapshot.status() : null,
                                 snapshot != null ? snapshot.checkedAt().toString() : null,
                                 provider.credentialFields().stream().filter(field -> field.required() && !field.configured()).map(field -> field.envVar()).toList()
@@ -56,8 +66,13 @@ public class ProviderHealthService {
                             health.category(),
                             health.configured(),
                             health.executionSupported(),
-                            health.streamingSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            providerCatalogService.streamingMode(health.providerCode()),
+                            providerCatalogService.runtimeMaturity(health.providerCode()),
                             health.readinessStatus(),
+                            snapshot != null ? "last_connectivity_test" : "static",
+                            "memory",
                             health.message(),
                             snapshot != null ? snapshot.status() : null,
                             snapshot != null ? snapshot.checkedAt().toString() : null,

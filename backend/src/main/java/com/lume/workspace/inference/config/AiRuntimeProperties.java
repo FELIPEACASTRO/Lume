@@ -42,6 +42,8 @@ public class AiRuntimeProperties {
         private long readTimeoutMs = 30_000;
         private RetryProperties retry = new RetryProperties();
         private CircuitBreakerProperties circuitBreaker = new CircuitBreakerProperties();
+        private BulkheadProperties bulkhead = new BulkheadProperties();
+        private RateLimiterProperties rateLimiter = new RateLimiterProperties();
         private PricingProperties pricing = new PricingProperties();
 
         public long getConnectTimeoutMs() {
@@ -76,6 +78,22 @@ public class AiRuntimeProperties {
             this.circuitBreaker = circuitBreaker;
         }
 
+        public BulkheadProperties getBulkhead() {
+            return bulkhead;
+        }
+
+        public void setBulkhead(BulkheadProperties bulkhead) {
+            this.bulkhead = bulkhead;
+        }
+
+        public RateLimiterProperties getRateLimiter() {
+            return rateLimiter;
+        }
+
+        public void setRateLimiter(RateLimiterProperties rateLimiter) {
+            this.rateLimiter = rateLimiter;
+        }
+
         public PricingProperties getPricing() {
             return pricing;
         }
@@ -92,6 +110,8 @@ public class AiRuntimeProperties {
             this.readTimeoutMs = source.readTimeoutMs;
             this.retry = source.retry.copy();
             this.circuitBreaker = source.circuitBreaker.copy();
+            this.bulkhead = source.bulkhead.copy();
+            this.rateLimiter = source.rateLimiter.copy();
             this.pricing = source.pricing.copy();
         }
     }
@@ -168,6 +188,42 @@ public class AiRuntimeProperties {
             copy.failureRateThreshold = failureRateThreshold;
             copy.slidingWindowSize = slidingWindowSize;
             copy.openStateDurationMs = openStateDurationMs;
+            return copy;
+        }
+    }
+
+    public static class BulkheadProperties {
+        private int maxConcurrentCalls = 8;
+
+        public int getMaxConcurrentCalls() {
+            return maxConcurrentCalls;
+        }
+
+        public void setMaxConcurrentCalls(int maxConcurrentCalls) {
+            this.maxConcurrentCalls = maxConcurrentCalls;
+        }
+
+        private BulkheadProperties copy() {
+            BulkheadProperties copy = new BulkheadProperties();
+            copy.maxConcurrentCalls = maxConcurrentCalls;
+            return copy;
+        }
+    }
+
+    public static class RateLimiterProperties {
+        private int permitsPerMinute = 120;
+
+        public int getPermitsPerMinute() {
+            return permitsPerMinute;
+        }
+
+        public void setPermitsPerMinute(int permitsPerMinute) {
+            this.permitsPerMinute = permitsPerMinute;
+        }
+
+        private RateLimiterProperties copy() {
+            RateLimiterProperties copy = new RateLimiterProperties();
+            copy.permitsPerMinute = permitsPerMinute;
             return copy;
         }
     }

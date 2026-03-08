@@ -14,6 +14,7 @@ public enum ProviderKey {
     PERPLEXITY("perplexity"),
     GROQ("groq"),
     OPENROUTER("openrouter"),
+    COHERE("cohere"),
     TOGETHER("together"),
     FIREWORKS("fireworks"),
     DEEPINFRA("deepinfra"),

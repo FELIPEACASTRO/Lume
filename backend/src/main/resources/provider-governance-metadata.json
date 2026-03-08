@@ -1,0 +1,297 @@
+{
+  "defaults": {
+    "text-runtime": {
+      "businessPriority": "medium_roi",
+      "syncMode": "sync",
+      "pricingSummary": "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+      "rateLimitSummary": "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+      "routingModes": ["cost-first", "latency-first", "quality-first"],
+      "documentationSource": "primary_docs"
+    },
+    "research-search": {
+      "businessPriority": "high_roi",
+      "syncMode": "sync",
+      "pricingSummary": "Custos variam por numero de pesquisas, profundidade e enriquecimento. Consultas amplas devem ser orquestradas com limites por workspace.",
+      "rateLimitSummary": "Rate limits variam por chave e plano. Pesquisas devem respeitar limites de burst e cota diaria do fornecedor.",
+      "routingModes": ["cost-first", "quality-first", "latency-first"],
+      "documentationSource": "primary_docs"
+    },
+    "vector-runtime": {
+      "businessPriority": "high_roi",
+      "syncMode": "sync",
+      "pricingSummary": "Embeddings e rerank devem ser cobrados por item ou token; persistir custo por workspace para FinOps e reconciliacao.",
+      "rateLimitSummary": "Rate limits variam por plano, especialmente em lotes. Preferir batching controlado e filas pequenas.",
+      "routingModes": ["cost-first", "quality-first"],
+      "documentationSource": "primary_docs"
+    },
+    "media-audio": {
+      "businessPriority": "medium_roi",
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified",
+      "syncMode": "both",
+      "pricingSummary": "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+      "rateLimitSummary": "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+      "routingModes": ["quality-first", "cost-first"],
+      "documentationSource": "primary_docs"
+    },
+    "enterprise-gateway": {
+      "businessPriority": "contract_dependent",
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified",
+      "syncMode": "sync",
+      "pricingSummary": "Custos, quotas e modelos dependem do contrato corporativo e da regiao. A governanca deve ficar externa ao core.",
+      "rateLimitSummary": "Limites dependem do tenant enterprise, deployment e regiao. Exigir validacao contratual antes de declarar runtime live.",
+      "routingModes": ["quality-first", "cost-first"],
+      "documentationSource": "primary_docs"
+    },
+    "threat-intel": {
+      "businessPriority": "contract_dependent",
+      "implementationStatus": "blocked",
+      "evidenceLevel": "offline_verified",
+      "syncMode": "manual",
+      "pricingSummary": "Custos de threat-intel dependem de contrato, compliance e janelas de consulta. Nao habilitar por default no workspace comum.",
+      "rateLimitSummary": "Rate limits e contratos variam fortemente. Toda execucao deve passar por compliance, auditoria e justificativa obrigatoria.",
+      "routingModes": ["quality-first"],
+      "documentationSource": "mixed_sources"
+    }
+  },
+  "providers": {
+    "openai": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi"
+    },
+    "anthropic": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi"
+    },
+    "google-gemini": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi"
+    },
+    "deepseek": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi",
+      "notes": "Runtime textual ligado; tratar trialExpirySensitive e oferta promocional como metadata operacional, nunca como garantia do produto."
+    },
+    "xai": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi"
+    },
+    "perplexity": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi",
+      "notes": "Provider valioso para grounded chat, mas citations e search metadata ainda precisam amadurecer na capability especifica."
+    },
+    "groq": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi",
+      "notes": "Alto valor para latencia, mas com cobertura de capability mais estreita que provedores generalistas."
+    },
+    "mistral": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi",
+      "notes": "Chat e OCR ligados; embeddings seguem fora do runtime capability-aware desta fase."
+    },
+    "openrouter": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi",
+      "notes": "Roteador util para custo e experimentacao; fluxo gratuito exige modelos com sufixo :free."
+    },
+    "cohere": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi",
+      "notes": "Runtime de chat, embeddings e rerank ligado; tiers gratuitos e non-commercial devem ser avaliados fora do core."
+    },
+    "cloudflare-workers-ai": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified",
+      "businessPriority": "contract_dependent"
+    },
+    "together": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi"
+    },
+    "fireworks": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi"
+    },
+    "deepinfra": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi"
+    },
+    "cerebras": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "nvidia-nim": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "sambanova": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "siliconflow": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "aws-bedrock": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified",
+      "businessPriority": "contract_dependent"
+    },
+    "hugging-face": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "ai21": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "github-models": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified",
+      "notes": "Depende de PAT com scope adequado e do plano GitHub/Copilot associado ao tenant."
+    },
+    "exa": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi"
+    },
+    "newscatcher": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi",
+      "notes": "Muito util para noticias e monitoramento; escopo permanece focado em news search."
+    },
+    "tavily": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi"
+    },
+    "serpapi": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "medium_roi"
+    },
+    "voyage-ai": {
+      "implementationStatus": "live",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi"
+    },
+    "stability-ai": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "syncMode": "sync",
+      "notes": "Stable Image Core ligado para image generation com retorno em base64; image editing, video e audio seguem fora desta fase."
+    },
+    "fal-ai": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "replicate": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "syncMode": "async",
+      "notes": "Image generation e editing ligados via FLUX predictions assincronas; image-to-video ligado via Grok Imagine Video em submit + polling."
+    },
+    "deepgram": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Speech-to-text ligado via capability API usando audio remoto; TTS e voice agents seguem fora desta tranche."
+    },
+    "assemblyai": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Speech-to-text ligado via submit + polling curto no endpoint de transcript; audio intelligence avancado segue fora desta fase."
+    },
+    "elevenlabs": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Text-to-speech ligado via capability API; selecao de voz pode ser explicita ou descoberta on-demand."
+    },
+    "google-vision": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "google-speech-to-text": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "google-natural-language": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "google-translation": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "google-text-to-speech": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified"
+    },
+    "bfl": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "syncMode": "async",
+      "notes": "FLUX 2 Pro/Klein ligados para image generation e image editing via submit + polling_url; sem fake sync."
+    },
+    "runway": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "syncMode": "async",
+      "notes": "Submit + poll interno ligados para image-to-video; text-to-video puro segue fora desta fase."
+    },
+    "ideogram": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "syncMode": "sync",
+      "notes": "Image generation e edit v3 ligadas; a integracao atual trabalha com assets remotos e edicao via mask obrigatoria."
+    },
+    "azure-openai": {
+      "implementationStatus": "catalog_only",
+      "evidenceLevel": "offline_verified",
+      "businessPriority": "contract_dependent"
+    },
+    "darkowl": {
+      "implementationStatus": "blocked",
+      "evidenceLevel": "offline_verified",
+      "notes": "Requer compliance, contrato e assinatura especifica antes de qualquer declaracao de runtime live."
+    },
+    "onion-search-engine": {
+      "implementationStatus": "blocked",
+      "evidenceLevel": "offline_verified",
+      "notes": "Documentacao publica insuficiente para execucao segura como runtime do produto."
+    },
+    "twingly": {
+      "implementationStatus": "blocked",
+      "evidenceLevel": "offline_verified"
+    },
+    "fullhunt": {
+      "implementationStatus": "blocked",
+      "evidenceLevel": "offline_verified"
+    },
+    "darknetsearch": {
+      "implementationStatus": "blocked",
+      "evidenceLevel": "offline_verified",
+      "notes": "Mantido apenas como referencia catalogada enquanto faltarem docs oficiais fortes e fluxo de compliance."
+    },
+    "flare": {
+      "implementationStatus": "blocked",
+      "evidenceLevel": "offline_verified"
+    }
+  }
+}
