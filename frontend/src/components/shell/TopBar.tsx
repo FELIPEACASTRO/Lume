@@ -14,6 +14,15 @@ function resolveSectionTitle(pathname: string, navigation: ReturnType<typeof use
   if (directMatch) {
     return directMatch.label;
   }
+  if (pathname.startsWith('/agents')) {
+    return 'Tarefas';
+  }
+  if (pathname.startsWith('/inbox')) {
+    return 'Inicio';
+  }
+  if (pathname.startsWith('/usage')) {
+    return 'Configuracoes';
+  }
   if (pathname.startsWith('/tasks')) {
     return 'Tarefas';
   }
@@ -55,7 +64,7 @@ export default function TopBar({ onMenuToggle, onSearchOpen, onLogout }: TopBarP
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
               <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
               <p className="hidden text-sm text-[var(--text-secondary)] xl:block">
-                {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace ativo'}
+                {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace atual'}
               </p>
             </div>
           </div>
@@ -76,7 +85,7 @@ export default function TopBar({ onMenuToggle, onSearchOpen, onLogout }: TopBarP
           </div>
 
           <label className="hidden items-center gap-2 rounded-full border px-3 py-2 text-sm md:flex" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-secondary)' }}>
-            <span>Workspace</span>
+            <span>Espaco</span>
             <select
               className="min-w-[170px] border-none bg-transparent font-semibold text-[var(--text-primary)] outline-none"
               value={activeWorkspaceId}

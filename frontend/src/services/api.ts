@@ -34,7 +34,7 @@ export function toApiClientError(error: unknown): ApiClientError {
   if (!axiosError.response) {
     return {
       code: axiosError.code,
-      message: 'Nao foi possivel conectar ao backend do Lume.',
+      message: 'Nao foi possivel conectar ao servico agora.',
     };
   }
 
@@ -59,7 +59,7 @@ export function toApiClientError(error: unknown): ApiClientError {
     return {
       status,
       code: axiosError.code,
-      message: backendMessage || 'Voce nao possui permissao para acessar este recurso no workspace atual.',
+      message: backendMessage || 'Voce nao possui permissao para acessar este recurso.',
     };
   }
 
@@ -75,7 +75,7 @@ export function toApiClientError(error: unknown): ApiClientError {
     return {
       status,
       code: axiosError.code,
-      message: backendMessage || 'A aplicacao ainda precisa concluir o setup inicial.',
+      message: backendMessage || 'A aplicacao ainda precisa concluir a configuracao inicial.',
     };
   }
 
@@ -83,7 +83,7 @@ export function toApiClientError(error: unknown): ApiClientError {
     return {
       status,
       code: axiosError.code,
-      message: 'O backend do Lume esta indisponivel no momento.',
+      message: 'O servico esta indisponivel no momento.',
     };
   }
 
@@ -91,7 +91,7 @@ export function toApiClientError(error: unknown): ApiClientError {
     return {
       status,
       code: axiosError.code,
-      message: 'O backend do Lume respondeu com erro interno.',
+      message: 'O servico respondeu com erro interno.',
     };
   }
 

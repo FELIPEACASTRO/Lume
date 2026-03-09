@@ -124,7 +124,7 @@ describe('Settings', () => {
       sections: [
         {
           key: 'providers-runtime',
-          title: 'Providers & Runtime',
+          title: 'Providers',
           description: 'Catalogo',
           availability: 'live',
           previewState: 'live',
@@ -281,12 +281,12 @@ describe('Settings', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Providers & Runtime' })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Providers' })).toBeInTheDocument());
     expect(screen.getByText('OpenAI')).toBeInTheDocument();
-    expect(screen.getByText('unsupported')).toBeInTheDocument();
-    expect(screen.getAllByText('live').length).toBeGreaterThan(0);
-    expect(screen.getByText(/Fonte: static/i)).toBeInTheDocument();
-    expect(screen.getByText(/Snapshot: memory/i)).toBeInTheDocument();
+    expect(screen.getAllByText('Indisponivel').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Ativo').length).toBeGreaterThan(0);
+    expect(screen.getByText(/Fonte: Estatico/i)).toBeInTheDocument();
+    expect(screen.getByText(/Snapshot: Memoria/i)).toBeInTheDocument();
   });
 
   it('renders finops section with workspace budget controls', async () => {
@@ -336,7 +336,7 @@ describe('Settings', () => {
       sections: [
         {
           key: 'finops',
-          title: 'FinOps & Budgets',
+          title: 'Uso e budgets',
           description: 'Budgets do workspace',
           availability: 'live',
           previewState: 'live',
@@ -353,10 +353,10 @@ describe('Settings', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'FinOps & Budgets' })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Uso e budgets' })).toBeInTheDocument());
     expect(screen.getByDisplayValue('core_now')).toBeInTheDocument();
-    expect(screen.getByLabelText('Soft limit do workspace')).toHaveValue(300);
-    expect(screen.getByLabelText('Hard limit do workspace')).toHaveValue(450);
+    expect(screen.getByLabelText('Limite de alerta do workspace')).toHaveValue(300);
+    expect(screen.getByLabelText('Limite maximo do workspace')).toHaveValue(450);
   });
 
   it('renders knowledge section with persisted sources and editable form', async () => {
@@ -428,6 +428,6 @@ describe('Settings', () => {
     fireEvent.click(screen.getByRole('button', { name: /editar/i }));
     expect(screen.getByDisplayValue('Playbooks operacionais')).toBeInTheDocument();
     expect(screen.getByLabelText('Projeto da fonte de conhecimento')).toBeInTheDocument();
-    expect(screen.getByLabelText('Disponivel para agents')).toBeChecked();
+    expect(screen.getByLabelText('Disponivel para tarefas')).toBeChecked();
   });
 });

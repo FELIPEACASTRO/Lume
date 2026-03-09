@@ -41,15 +41,15 @@ public class SettingsService {
     public SettingsOverviewResponse getOverview() {
         List<String> permissions = workspaceContextService.getCurrentPermissions();
         List<SettingsSectionResponse> sections = new ArrayList<>(List.of(
-                new SettingsSectionResponse("conta", "Conta", "Identidade do usuario, plano e contexto do workspace.", "live", "live"),
-                new SettingsSectionResponse("configuracoes", "Configuracoes", "Idioma, aparencia e comunicacao da plataforma.", "live", "live"),
-                new SettingsSectionResponse("uso", "Uso", "Resumo operacional, creditos e historico de utilizacao.", "live", "live")
+                new SettingsSectionResponse("conta", "Perfil e preferencias", "Dados do usuario e escolhas basicas do workspace.", "live", "live"),
+                new SettingsSectionResponse("configuracoes", "Workspace", "Idioma, aparencia e avisos da operacao.", "live", "live"),
+                new SettingsSectionResponse("uso", "Uso", "Consumo, limites e acompanhamento do workspace.", "live", "live")
         ));
         if (permissions.contains(WorkspaceContextService.PERMISSION_KNOWLEDGE_READ)) {
             sections.add(new SettingsSectionResponse(
                     "knowledge",
                     "Knowledge",
-                    "Fontes de conhecimento, contexto permissionado e readiness para agents.",
+                    "Fontes, contexto e acesso ao conhecimento do workspace.",
                     "live",
                     "live"
             ));
@@ -57,8 +57,8 @@ public class SettingsService {
         if (permissions.contains(WorkspaceContextService.PERMISSION_BUDGETS_READ)) {
             sections.add(new SettingsSectionResponse(
                     "finops",
-                    "FinOps & Budgets",
-                    "Budget do workspace, chargeback/showback e guardrails operacionais.",
+                    "Uso e budgets",
+                    "Centro de custo, limites e repasse do consumo.",
                     "live",
                     "live"
             ));
@@ -66,8 +66,8 @@ public class SettingsService {
         if (permissions.contains(WorkspaceContextService.PERMISSION_PROVIDERS_READ)) {
             sections.add(new SettingsSectionResponse(
                     "providers-runtime",
-                    "Providers & Runtime",
-                    "Catalogo versionado, credenciais exigidas e runtime real dos agentes.",
+                    "Providers",
+                    "Modelos disponiveis, acesso e estado de cada integracao.",
                     "live",
                     "live"
             ));

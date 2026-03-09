@@ -41,6 +41,7 @@ import {
   ThemeMode,
   UpdateKnowledgeSourceRequest,
 } from '../types';
+import { humanizeChargebackMode, humanizeToken } from '../utils/uiText';
 
 type ProviderCard = {
   provider: ProviderDto;
@@ -78,25 +79,25 @@ function credentialSummary(card: ProviderCard) {
 function providerReadiness(card: ProviderCard) {
   const readiness = card.health?.readinessStatus ?? card.status?.readinessStatus ?? card.provider.catalogState;
   if (!readiness) {
-    return 'Readiness indisponivel.';
+    return 'Situacao indisponivel.';
   }
-  return readiness.replace(/_/g, ' ');
+  return humanizeToken(readiness);
 }
 
 function providerStreamingMode(card: ProviderCard) {
-  return (card.health?.streamingMode ?? card.status?.streamingMode ?? card.provider.streamingMode).replace(/_/g, ' ');
+  return humanizeToken(card.health?.streamingMode ?? card.status?.streamingMode ?? card.provider.streamingMode);
 }
 
 function providerRuntimeMaturity(card: ProviderCard) {
-  return (card.health?.runtimeMaturity ?? card.status?.runtimeMaturity ?? card.credentials?.runtimeMaturity ?? card.provider.runtimeMaturity).replace(/_/g, ' ');
+  return humanizeToken(card.health?.runtimeMaturity ?? card.status?.runtimeMaturity ?? card.credentials?.runtimeMaturity ?? card.provider.runtimeMaturity);
 }
 
 function providerImplementationStatus(card: ProviderCard) {
-  return (card.health?.implementationStatus ?? card.status?.implementationStatus ?? card.credentials?.implementationStatus ?? card.provider.implementationStatus).replace(/_/g, ' ');
+  return humanizeToken(card.health?.implementationStatus ?? card.status?.implementationStatus ?? card.credentials?.implementationStatus ?? card.provider.implementationStatus);
 }
 
 function providerEvidenceLevel(card: ProviderCard) {
-  return (card.health?.evidenceLevel ?? card.status?.evidenceLevel ?? card.credentials?.evidenceLevel ?? card.provider.evidenceLevel).replace(/_/g, ' ');
+  return humanizeToken(card.health?.evidenceLevel ?? card.status?.evidenceLevel ?? card.credentials?.evidenceLevel ?? card.provider.evidenceLevel);
 }
 
 function ExternalLink({ href, label }: { href: string; label: string }) {
@@ -130,11 +131,11 @@ function ProviderCatalogCard({
           <p className="mt-2 text-sm text-[var(--text-secondary)]">{card.provider.notes}</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">
-          <span>{card.provider.category}</span>
+          <span>{humanizeToken(card.provider.category)}</span>
           <span>{card.provider.apiStyle}</span>
           <span>{providerImplementationStatus(card)}</span>
           <span>{providerEvidenceLevel(card)}</span>
-          <span>{card.provider.catalogState}</span>
+          <span>{humanizeToken(card.provider.catalogState)}</span>
           <span>{providerStreamingMode(card)}</span>
           <span>{providerRuntimeMaturity(card)}</span>
         </div>
@@ -146,20 +147,20 @@ function ProviderCatalogCard({
           <p className="mt-2 text-sm text-[var(--text-primary)]">{credentialSummary(card)}</p>
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Readiness</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Situacao</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">{providerReadiness(card)}</p>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">
             {card.health?.message ?? 'Health agregado sem chamadas externas pesadas.'}
           </p>
           {card.health ? (
             <p className="mt-2 text-xs text-[var(--text-tertiary)]">
-              Fonte: {card.health.healthSource.replace(/_/g, ' ')} | Snapshot: {card.health.snapshotPersistence}
+              Fonte: {humanizeToken(card.health.healthSource)} | Snapshot: {humanizeToken(card.health.snapshotPersistence)}
             </p>
           ) : null}
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Headers</p>
-          <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.requiredHeaders.join(', ') || 'Nenhum header especial.'}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Requisitos</p>
+          <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.requiredHeaders.join(', ') || 'Nenhum requisito adicional.'}</p>
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Governanca</p>
@@ -167,21 +168,21 @@ function ProviderCatalogCard({
             {providerImplementationStatus(card)} | {providerEvidenceLevel(card)}
           </p>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">
-            {card.provider.businessPriority.replace(/_/g, ' ')} | {card.provider.syncMode.replace(/_/g, ' ')}
+            {humanizeToken(card.provider.businessPriority)} | {humanizeToken(card.provider.syncMode)}
           </p>
         </div>
       </div>
 
       <div className="mt-3 grid gap-3 xl:grid-cols-2">
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">FinOps</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Custos</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.pricingSummary}</p>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">{card.provider.rateLimitSummary}</p>
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Roteamento</p>
-          <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.routingModes.join(', ')}</p>
-          <p className="mt-2 text-xs text-[var(--text-secondary)]">Fonte documental: {card.provider.documentationSource.replace(/_/g, ' ')}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Prioridade</p>
+          <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.routingModes.map(humanizeToken).join(', ')}</p>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">Fonte documental: {humanizeToken(card.provider.documentationSource)}</p>
         </div>
       </div>
 
@@ -191,14 +192,14 @@ function ProviderCatalogCard({
         {canTest ? (
           <button type="button" className="pill-button" onClick={() => onTest(card.provider.code)} disabled={testing}>
             <FiRefreshCcw size={14} />
-            {testing ? 'Testando...' : 'Connectivity test'}
+            {testing ? 'Testando...' : 'Testar conexao'}
           </button>
         ) : null}
       </div>
 
       {card.connectivity ? (
         <div className="mt-4 rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-sm font-semibold text-[var(--text-primary)]">Connectivity test</p>
+          <p className="text-sm font-semibold text-[var(--text-primary)]">Teste de conexao</p>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">{card.connectivity.message}</p>
           {card.connectivity.latencyMs ? (
             <p className="mt-2 text-xs text-[var(--text-tertiary)]">Latencia: {card.connectivity.latencyMs} ms</p>
@@ -537,17 +538,17 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Settings operacionais do workspace."
-        description="A area de configuracoes expõe apenas preferencias, governanca, providers e controles administrativos que existem de fato no backend."
+        title="Configuracoes do workspace"
+        description="Ajuste preferencias, limites, conhecimento e acesso aos provedores do workspace."
         state="live"
-        detail={preferencesError ?? 'Aparencia, idioma, credenciais exigidas e runtime sao resolvidos por APIs reais.'}
+        detail={preferencesError ?? 'As informacoes desta tela refletem o estado atual do workspace.'}
       />
 
       <AsyncState
         state={state}
-        loadingLabel="Carregando settings do workspace..."
-        errorTitle="As configuracoes nao responderam."
-        errorDescription="O overview do workspace nao foi carregado."
+        loadingLabel="Carregando configuracoes..."
+        errorTitle="Nao foi possivel carregar as configuracoes."
+        errorDescription="Tente novamente em instantes."
         errorDetail={error ?? undefined}
         onRetry={() => window.location.reload()}
         emptyTitle="Nenhuma configuracao encontrada."
@@ -666,7 +667,7 @@ export default function Settings() {
                           <FiMail size={16} className="text-[var(--text-tertiary)]" />
                           <div>
                             <p className="text-sm font-semibold text-[var(--text-primary)]">{preferences.languageCode}</p>
-                            <p className="text-sm text-[var(--text-secondary)]">Campo real vindo de user_preferences.</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Idioma salvo para este usuario.</p>
                           </div>
                         </div>
                       </div>
@@ -675,7 +676,7 @@ export default function Settings() {
                     <div className="shell-panel p-5">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Workspace</p>
                       <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{overview.workspaceName}</p>
-                      <p className="mt-2 text-sm text-[var(--text-secondary)]">Role atual: {overview.roleLabel}</p>
+                      <p className="mt-2 text-sm text-[var(--text-secondary)]">Acesso atual: {overview.roleLabel}</p>
                     </div>
                   </section>
                 ) : null}
@@ -688,7 +689,7 @@ export default function Settings() {
                         <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{knowledgeSources.length}</p>
                       </div>
                       <div className="shell-panel p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Prontas para agents</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Disponiveis para tarefas</p>
                         <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{knowledgeEnabledCount}</p>
                       </div>
                       <div className="shell-panel p-5">
@@ -711,7 +712,7 @@ export default function Settings() {
                           <div className="mt-4 space-y-3">
                             {knowledgeSources.length === 0 ? (
                               <div className="rounded-[12px] border px-4 py-5 text-sm text-[var(--text-secondary)]" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-                                Nenhuma fonte de conhecimento foi registrada neste workspace ainda.
+                                Nenhuma fonte registrada ainda.
                               </div>
                             ) : (
                               knowledgeSources.map((source) => (
@@ -745,8 +746,8 @@ export default function Settings() {
                                       <p className="mt-2 text-sm text-[var(--text-primary)]">{source.documentCount}</p>
                                     </div>
                                     <div>
-                                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Agents</p>
-                                      <p className="mt-2 text-sm text-[var(--text-primary)]">{source.enabledForAgents ? 'Habilitado' : 'Desligado'}</p>
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Uso em tarefas</p>
+                                      <p className="mt-2 text-sm text-[var(--text-primary)]">{source.enabledForAgents ? 'Ativo' : 'Desligado'}</p>
                                     </div>
                                     <div>
                                       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Status</p>
@@ -842,11 +843,11 @@ export default function Settings() {
                             </label>
                             <label className="flex items-center justify-between rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
                               <span>
-                                <p className="text-sm font-semibold text-[var(--text-primary)]">Disponivel para agents</p>
-                                <p className="text-sm text-[var(--text-secondary)]">Permite que o runtime trate a fonte como contexto operacional.</p>
+                                <p className="text-sm font-semibold text-[var(--text-primary)]">Disponivel para tarefas</p>
+                                <p className="text-sm text-[var(--text-secondary)]">Permite usar esta fonte como contexto nas tarefas e conversas.</p>
                               </span>
                               <input
-                                aria-label="Disponivel para agents"
+                                aria-label="Disponivel para tarefas"
                                 type="checkbox"
                                 checked={knowledgeDraft.enabledForAgents ?? true}
                                 onChange={(event) => setKnowledgeDraft((current) => ({ ...current, enabledForAgents: event.target.checked }))}
@@ -889,9 +890,9 @@ export default function Settings() {
                       <div className="flex items-start gap-3">
                         <FiDatabase size={18} className="mt-0.5 text-[var(--accent)]" />
                         <div>
-                          <p className="text-sm font-semibold text-[var(--text-primary)]">Foundation real para knowledge plane</p>
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">Base de conhecimento do workspace</p>
                           <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                            O workspace agora gerencia fontes persistidas com projeto, readiness para agents e trilha de atualizacao, sem prometer retrieval completo antes da camada permissionada de RAG.
+                            Registre fontes por projeto, acompanhe atualizacoes e controle o uso delas nas tarefas.
                           </p>
                         </div>
                       </div>
@@ -903,24 +904,24 @@ export default function Settings() {
                   <section className="space-y-4">
                     <div className="grid gap-4 lg:grid-cols-4">
                       <div className="shell-panel p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Cost center</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Centro de custo</p>
                         <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget?.costCenter ?? '--'}</p>
                       </div>
                       <div className="shell-panel p-5">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Modo</p>
-                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget?.chargebackMode ?? '--'}</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{humanizeChargebackMode(budget?.chargebackMode)}</p>
                       </div>
                       <div className="shell-panel p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Soft limit</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Limite de alerta</p>
                         <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget ? `${budget.consumedCredits}/${budget.softLimitCredits}` : '--'}</p>
                       </div>
                       <div className="shell-panel p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Hard limit</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Limite maximo</p>
                         <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget ? `${budget.consumedCredits}/${budget.hardLimitCredits}` : '--'}</p>
                       </div>
                     </div>
 
-                    {budgetLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando budget do workspace...</div> : null}
+                    {budgetLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando uso do workspace...</div> : null}
                     {budgetError ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">{budgetError}</div> : null}
 
                     {budget ? (
@@ -934,9 +935,9 @@ export default function Settings() {
                               <p className="mt-2 text-xs text-[var(--text-secondary)]">{budget.note}</p>
                             </div>
                             <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Showback/chargeback</p>
-                              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.chargebackMode}</p>
-                              <p className="mt-2 text-xs text-[var(--text-secondary)]">A trilha atual governa o workspace antes do billing comercial final.</p>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Rateio do consumo</p>
+                              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{humanizeChargebackMode(budget.chargebackMode)}</p>
+                              <p className="mt-2 text-xs text-[var(--text-secondary)]">Define como o consumo sera acompanhado e repassado.</p>
                             </div>
                             <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
                               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Utilizacao soft</p>
@@ -955,7 +956,7 @@ export default function Settings() {
                           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Guardrails do workspace</p>
                           <div className="mt-4 space-y-3">
                             <label className="grid gap-2">
-                              <span className="text-sm font-semibold text-[var(--text-primary)]">Cost center</span>
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Centro de custo</span>
                               <input
                                 value={budgetDraft.costCenter}
                                 onChange={(event) => setBudgetDraft((current) => ({ ...current, costCenter: event.target.value }))}
@@ -979,9 +980,9 @@ export default function Settings() {
                               </select>
                             </label>
                             <label className="grid gap-2">
-                              <span className="text-sm font-semibold text-[var(--text-primary)]">Soft limit</span>
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Limite de alerta</span>
                               <input
-                                aria-label="Soft limit do workspace"
+                                aria-label="Limite de alerta do workspace"
                                 type="number"
                                 min={0}
                                 value={budgetDraft.softLimitCredits}
@@ -992,9 +993,9 @@ export default function Settings() {
                               />
                             </label>
                             <label className="grid gap-2">
-                              <span className="text-sm font-semibold text-[var(--text-primary)]">Hard limit</span>
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Limite maximo</span>
                               <input
-                                aria-label="Hard limit do workspace"
+                                aria-label="Limite maximo do workspace"
                                 type="number"
                                 min={0}
                                 value={budgetDraft.hardLimitCredits}
@@ -1005,7 +1006,7 @@ export default function Settings() {
                               />
                             </label>
                             <button type="button" className="pill-button" onClick={() => void handleBudgetSave()} disabled={!canManageBudgets || budgetSaving}>
-                              {budgetSaving ? 'Salvando...' : 'Salvar budget'}
+                              {budgetSaving ? 'Salvando...' : 'Salvar limites'}
                             </button>
                             {!canManageBudgets ? <p className="text-xs text-[var(--text-tertiary)]">Seu perfil ve o budget, mas nao pode alterar os guardrails do workspace.</p> : null}
                           </div>
@@ -1018,12 +1019,12 @@ export default function Settings() {
                 {isProvidersSection ? (
                   <section className="space-y-4">
                     <div className="grid gap-4 lg:grid-cols-3">
-                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Text runtime</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{textRuntimeCards.length}</p></div>
+                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Provedores principais</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{textRuntimeCards.length}</p></div>
                       <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Configurados</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{statuses.filter((item) => item.configured).length}</p></div>
                       <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Categorias</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">4</p></div>
                     </div>
 
-                    {providerLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando catalogo de providers...</div> : null}
+                    {providerLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando provedores...</div> : null}
                     {providerError ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">{providerError}</div> : null}
 
                     {!providerLoading && !providerError ? (
@@ -1045,19 +1046,19 @@ export default function Settings() {
                 {isThreatSection ? (
                   <section className="space-y-4">
                     <div className="grid gap-4 lg:grid-cols-3">
-                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Escopo</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{threatIntelCards.length}</p></div>
+                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Fontes</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{threatIntelCards.length}</p></div>
                       <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Governanca</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Auditado</p></div>
-                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Status</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Manual / Catalog-only</p></div>
+                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Status</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Restrito</p></div>
                     </div>
 
-                    {!canReadThreatIntel ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">A visibilidade desta secao depende da permissao `threat_intel.read`.</div> : null}
+                    {!canReadThreatIntel ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Esta area fica disponivel apenas para perfis autorizados.</div> : null}
                     {canReadThreatIntel ? (
                       <div className="grid gap-4 xl:grid-cols-2">
                         {threatIntelCards.map((card) => (
                           <article key={card.provider.code} className="shell-panel p-5">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-lg font-semibold text-[var(--text-primary)]">{card.provider.name}</p>
-                              <StatusBadge state="disabled-preview" />
+                              <StatusBadge state="restricted" />
                             </div>
                             <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{card.provider.notes}</p>
                             <p className="mt-4 text-sm text-[var(--text-primary)]">{credentialSummary(card)}</p>
@@ -1066,7 +1067,7 @@ export default function Settings() {
                               <ExternalLink href={card.provider.apiKeyPortalUrl} label="Portal" />
                             </div>
                             <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">
-                              {card.provider.implementationStatus.replace(/_/g, ' ')} | {card.provider.evidenceLevel.replace(/_/g, ' ')}
+                              {humanizeToken(card.provider.implementationStatus)} | {humanizeToken(card.provider.evidenceLevel)}
                             </p>
                           </article>
                         ))}
@@ -1077,8 +1078,8 @@ export default function Settings() {
                       <div className="flex items-start gap-3">
                         <FiShield size={18} className="mt-0.5 text-[var(--accent)]" />
                         <div>
-                          <p className="text-sm font-semibold text-[var(--text-primary)]">Preview honesto, admin-only e sem execucao silenciosa</p>
-                          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">A shell so expõe metadados e links oficiais ate que RBAC, adapters e auditoria estejam completos.</p>
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">Acesso restrito e auditado</p>
+                          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">Esta area so aparece para perfis autorizados e mostra apenas o que ja pode ser acompanhado com seguranca.</p>
                         </div>
                       </div>
                     </section>
@@ -1089,8 +1090,8 @@ export default function Settings() {
                   <section className="grid gap-4 lg:grid-cols-2">
                     <div className="shell-panel p-5">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Estado da secao</p>
-                      <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{isLiveSection ? 'Operacional' : 'Preview visivel'}</p>
-                      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{isLiveSection ? 'Esta area ja tem base real no backend.' : 'A superficie aparece para orientar a experiencia, mas seus controles continuam informativos.'}</p>
+                      <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{isLiveSection ? 'Ativo' : 'Indisponivel'}</p>
+                      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{isLiveSection ? 'Esta area ja esta disponivel para uso.' : 'Esta area volta para a navegacao quando estiver pronta.'}</p>
                     </div>
                     <div className="shell-panel p-5">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Uso operacional</p>
@@ -1112,8 +1113,8 @@ export default function Settings() {
                   <div className="flex items-start gap-3">
                     <FiCheckCircle size={18} className="mt-0.5 text-[var(--accent)]" />
                     <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)]">Configuracao guiada por contratos reais</p>
-                      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">Secoes sem API, persistencia e estado operacional nao aparecem mais na shell principal. Quando um modulo voltar, ele volta como feature real.</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">Somente o que esta disponivel aparece aqui</p>
+                      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">Modulos incompletos ficam fora da navegacao principal e voltam apenas quando estiverem prontos para uso.</p>
                     </div>
                   </div>
                 </section>

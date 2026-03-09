@@ -2,6 +2,7 @@ import { FiActivity, FiBell, FiLayers, FiZap } from 'react-icons/fi';
 import MetricCard from '../components/common/MetricCard';
 import WorkspaceNotice from '../components/common/WorkspaceNotice';
 import { useShell } from '../components/shell/ShellContext';
+import { humanizeChargebackMode, humanizeToken } from '../utils/uiText';
 
 export default function Usage() {
   const { session, usage } = useShell();
@@ -11,8 +12,8 @@ export default function Usage() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Uso operacional do workspace agora entra na shell."
-        description="A Lume absorve a ideia de creditos como metering e limite operacional, sem reposicionar o produto para consumo individual freemium."
+        title="Uso e limites"
+        description="Acompanhe consumo, creditos e guardrails do workspace."
         state="live"
         detail={usage?.note}
       />
@@ -29,21 +30,21 @@ export default function Usage() {
           icon={FiActivity}
           label="Consumo"
           value={usage?.consumedCredits ?? '--'}
-          detail="Volume agregado para a shell e a task view."
+          detail="Consumo total registrado neste workspace."
           state="live"
         />
         <MetricCard
           icon={FiLayers}
           label="Tarefas ativas"
           value={usage?.activeTasks ?? '--'}
-          detail="Tarefas persistidas no backend neste workspace."
+          detail="Tarefas em andamento neste workspace."
           state="live"
         />
         <MetricCard
           icon={FiBell}
           label="Notificacoes"
           value={usage?.unreadNotifications ?? '--'}
-          detail="Eventos ainda nao lidos no inbox operacional."
+          detail="Atualizacoes que ainda precisam de leitura."
           state="live"
         />
       </section>
@@ -51,49 +52,49 @@ export default function Usage() {
       <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           icon={FiLayers}
-          label="Soft limit"
+          label="Limite de alerta"
           value={budget ? `${budget.consumedCredits}/${budget.softLimitCredits}` : '--'}
-          detail="Budget operacional para alerta preventivo."
+          detail="Faixa de alerta para acompanhar o consumo."
           state={budget?.softLimitReached ? 'preview' : 'live'}
         />
         <MetricCard
           icon={FiLayers}
-          label="Hard limit"
+          label="Limite maximo"
           value={budget ? `${budget.consumedCredits}/${budget.hardLimitCredits}` : '--'}
-          detail="Guardrail do workspace para operacao controlada."
+          detail="Limite maximo permitido para o workspace."
           state={budget?.hardLimitReached ? 'disabled-preview' : 'live'}
         />
         <MetricCard
           icon={FiActivity}
-          label="Cost center"
+          label="Centro de custo"
           value={budget?.costCenter ?? '--'}
-          detail={`${budget?.chargebackMode ?? 'showback'} | ${budget?.budgetStatus ?? 'healthy'}`}
+          detail={`${budget ? humanizeChargebackMode(budget.chargebackMode) : 'Showback'} | ${budget?.budgetStatus ? humanizeToken(budget.budgetStatus) : 'Saudavel'}`}
           state="live"
         />
         <MetricCard
           icon={FiZap}
-          label="Governanca"
-          value={canManageBudgets ? 'Admin' : 'Read-only'}
-          detail="Budgets agora entram no uso operacional por workspace."
+          label="Gestao"
+          value={canManageBudgets ? 'Pode editar' : 'Somente leitura'}
+          detail="Mostra quem pode ajustar limites e politicas."
           state="live"
         />
       </section>
 
       {budget ? (
         <section className="shell-panel p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">FinOps operacional</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Resumo de uso</p>
           <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{budget.note}</p>
           <div className="mt-4 grid gap-3 lg:grid-cols-3">
             <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Showback/chargeback</p>
-              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.chargebackMode}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Rateio do consumo</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{humanizeChargebackMode(budget.chargebackMode)}</p>
             </div>
             <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Utilizacao soft</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Uso do limite de alerta</p>
               <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.softLimitUtilizationPercent}%</p>
             </div>
             <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Utilizacao hard</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Uso do limite maximo</p>
               <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.hardLimitUtilizationPercent}%</p>
             </div>
           </div>

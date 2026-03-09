@@ -42,7 +42,7 @@ export interface ApiClientError {
   details?: Record<string, string>;
 }
 
-export type PreviewState = 'live' | 'preview' | 'disabled-preview';
+export type PreviewState = 'live' | 'preview' | 'disabled-preview' | 'restricted';
 export type WorkspaceDataState = PreviewState | 'loading' | 'empty' | 'error';
 export type ThemeMode = 'light' | 'dark';
 export type WorkspaceGroup = 'primary' | 'task-history' | 'secondary';
@@ -87,6 +87,37 @@ export interface ShellTaskTypeDto {
   taskType: string;
   label: string;
   description: string;
+}
+
+export interface HomeFocusItemDto {
+  id: string;
+  title: string;
+  summary: string;
+  statusLabel: string;
+  runtimeState: string;
+  ownerName: string;
+  path: string;
+}
+
+export interface HomeAlertDto {
+  id: string;
+  title: string;
+  body: string;
+  kind: string;
+  path: string;
+  createdAt: string;
+  read: boolean;
+}
+
+export interface HomeOverviewDto {
+  workspaceName: string;
+  organizationName: string;
+  headline: string;
+  supportingText: string;
+  inProgress: HomeFocusItemDto[];
+  recentItems: RecentTask[];
+  alerts: HomeAlertDto[];
+  teamAndContext: WorkspaceFacet[];
 }
 
 export interface RecentTask {

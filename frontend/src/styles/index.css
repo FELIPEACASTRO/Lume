@@ -295,6 +295,12 @@ html[data-theme='light'] {
     border-color: color-mix(in srgb, var(--text-disabled) 35%, transparent);
   }
 
+  .status-badge--restricted {
+    background: rgba(200, 138, 29, 0.14);
+    color: var(--accent);
+    border-color: rgba(200, 138, 29, 0.26);
+  }
+
   .status-badge--loading {
     background: var(--fill-tsp-white-main);
     color: var(--text-secondary);

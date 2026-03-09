@@ -12,6 +12,7 @@ import WorkspaceNotice from '../components/common/WorkspaceNotice';
 import { toApiClientError } from '../services/api';
 import { taskService } from '../services/taskService';
 import { TaskDetailDto } from '../types';
+import { humanizeRuntimeState } from '../utils/uiText';
 
 function stepIcon(statusLabel: string) {
   if (statusLabel === 'completed') {
@@ -59,17 +60,17 @@ export default function TaskView() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Task view com estado real."
-        description="A tarefa, os steps e o resumo abaixo refletem apenas o pipeline e os dados persistidos no backend."
+        title="Detalhe da tarefa"
+        description="Veja o status, o historico de execucao e os pontos que pedem decisao."
         state="live"
-        detail="Quando nao houver steps, sugestoes ou compartilhamento, a tela informa essa ausencia em vez de simular recursos."
+        detail="Quando algo ainda nao existir para esta tarefa, a tela mostra a ausencia em vez de inventar conteudo."
       />
 
       <AsyncState
         state={state}
-        loadingLabel="Carregando task view..."
+        loadingLabel="Carregando tarefa..."
         errorTitle="Nao foi possivel abrir a tarefa."
-        errorDescription="O backend do workspace nao retornou a task view solicitada."
+        errorDescription="Tente novamente ou volte para a lista de tarefas."
         errorDetail={error ?? undefined}
         onRetry={() => void loadTask()}
         emptyTitle="A tarefa nao foi encontrada."
@@ -81,7 +82,7 @@ export default function TaskView() {
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">{detail.task.taskType}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">{detail.task.statusLabel}</p>
                     <StatusBadge state={detail.task.availability} />
                   </div>
                   <h1 className="mt-3 text-3xl font-semibold text-[var(--text-primary)]">{detail.task.title}</h1>
@@ -112,13 +113,13 @@ export default function TaskView() {
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5">{stepIcon(step.statusLabel)}</div>
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">{step.stepType}</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">{humanizeRuntimeState(step.stepType)}</p>
                           <p className="mt-2 text-base font-semibold text-[var(--text-primary)]">{step.title}</p>
                           <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{step.detail}</p>
                         </div>
                       </div>
                       <span className="rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ borderColor: 'var(--surface-border-main)', color: 'var(--text-secondary)' }}>
-                        {step.statusLabel}
+                        {humanizeRuntimeState(step.statusLabel)}
                       </span>
                     </div>
                   </div>
@@ -130,8 +131,8 @@ export default function TaskView() {
                       <FiClock size={16} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)]">Mensagem do Lume</p>
-                      <p className="text-sm text-[var(--text-secondary)]">Resumo operacional da tarefa atual.</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">Resumo atual</p>
+                      <p className="text-sm text-[var(--text-secondary)]">Leitura mais recente desta tarefa.</p>
                     </div>
                   </div>
                   <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
@@ -145,19 +146,19 @@ export default function TaskView() {
 
               <aside className="space-y-4">
                 <div className="shell-panel p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Resumo</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Visao geral</p>
                   <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{detail.task.summary}</p>
-                  <p className="mt-4 text-sm font-semibold text-[var(--text-primary)]">Owner: {detail.task.ownerName}</p>
+                  <p className="mt-4 text-sm font-semibold text-[var(--text-primary)]">Responsavel: {detail.task.ownerName}</p>
                   <p className="mt-2 text-sm text-[var(--text-secondary)]">Atualizado em {detail.task.updatedAt}</p>
-                  <p className="mt-2 text-sm text-[var(--text-secondary)]">Runtime: {detail.task.runtimeState}</p>
+                  <p className="mt-2 text-sm text-[var(--text-secondary)]">Estado: {humanizeRuntimeState(detail.task.runtimeState)}</p>
                 </div>
 
                 <div className="shell-panel p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Sugestoes de acompanhamento</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Proximos passos</p>
                   <div className="mt-4 space-y-3">
                     {detail.followUpSuggestions.length === 0 ? (
                       <div className="rounded-[12px] border px-4 py-4 text-sm leading-6 text-[var(--text-secondary)]" style={{ borderColor: 'var(--surface-border-main)' }}>
-                        Nenhuma sugestao derivada foi registrada para esta tarefa.
+                        Nenhum proximo passo foi registrado ainda.
                       </div>
                     ) : detail.followUpSuggestions.map((suggestion) => (
                       <div key={suggestion} className="flex items-start gap-3 rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)' }}>
@@ -169,7 +170,7 @@ export default function TaskView() {
                 </div>
 
                 <Link to="/tasks" className="btn-secondary w-full">
-                  Voltar ao board
+                  Voltar para tarefas
                   <FiArrowUpRight size={16} />
                 </Link>
               </aside>

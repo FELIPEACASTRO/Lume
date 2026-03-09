@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { IconType } from 'react-icons';
 import {
+  FiBell,
   FiBookOpen,
   FiChevronRight,
   FiCpu,
@@ -12,11 +13,10 @@ import {
   FiUsers,
   FiX,
   FiZap,
-  FiBell,
   FiBarChart2,
 } from 'react-icons/fi';
 import { Link, NavLink } from 'react-router-dom';
-import { ShellIconKey, WorkspaceGroup } from '../../types';
+import { ShellIconKey } from '../../types';
 import StatusBadge from '../common/StatusBadge';
 import { useShell } from './ShellContext';
 
@@ -39,11 +39,6 @@ const iconMap: Record<ShellIconKey, IconType> = {
   settings: FiSettings,
 };
 
-const navigationSections: Array<{ key: WorkspaceGroup; title: string }> = [
-  { key: 'primary', title: 'Workspace' },
-  { key: 'secondary', title: 'Administracao' },
-];
-
 const focusableSelector = [
   'button:not([disabled])',
   '[href]',
@@ -64,7 +59,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
             <img src="/lume.svg" alt="Lume" className="h-7 w-7" />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Lume workspace</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Lume</p>
             <p className="truncate text-base font-semibold text-[var(--text-primary)]">
               {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace'}
             </p>
@@ -94,52 +89,40 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
       </div>
 
       <div className="space-y-4">
-        {navigationSections.map((section) => {
-          const items = navigation.filter((item) => item.group === section.key);
+        <div className="space-y-2">
+          <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">
+            Principal
+          </p>
+          <div className="space-y-2">
+            {navigation.map((item) => {
+              const Icon = iconMap[item.icon];
 
-          if (items.length === 0) {
-            return null;
-          }
-
-          return (
-            <div key={section.key} className="space-y-2">
-              <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">
-                {section.title}
-              </p>
-              <div className="space-y-2">
-                {items.map((item) => {
-                  const Icon = iconMap[item.icon];
-
-                  return (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      className={({ isActive }) => [
-                        'group flex items-start gap-3 rounded-[12px] border px-4 py-3 transition-all duration-200',
-                        isActive ? 'translate-x-[2px]' : 'hover:bg-[var(--fill-tsp-white-light)]',
-                      ].join(' ')}
-                      style={({ isActive }) => ({
-                        borderColor: isActive ? 'var(--surface-border-strong)' : 'var(--surface-border-main)',
-                        background: isActive ? 'var(--fill-tsp-white-dark)' : 'var(--fill-tsp-white-main)',
-                      })}
-                      onClick={onClose}
-                    >
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-                        <Icon size={18} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-semibold text-[var(--text-primary)]">{item.label}</span>
-                        </div>
-                        <p className="mt-1 text-sm leading-5 text-[var(--text-secondary)]">{item.description}</p>
-                      </div>
-                    </NavLink>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) => [
+                    'group flex items-start gap-3 rounded-[12px] border px-4 py-3 transition-all duration-200',
+                    isActive ? 'translate-x-[2px]' : 'hover:bg-[var(--fill-tsp-white-light)]',
+                  ].join(' ')}
+                  style={({ isActive }) => ({
+                    borderColor: isActive ? 'var(--surface-border-strong)' : 'var(--surface-border-main)',
+                    background: isActive ? 'var(--fill-tsp-white-dark)' : 'var(--fill-tsp-white-main)',
+                  })}
+                  onClick={onClose}
+                >
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                    <Icon size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">{item.label}</span>
+                    <p className="mt-1 text-sm leading-5 text-[var(--text-secondary)]">{item.description}</p>
+                  </div>
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -148,7 +131,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
             Historico de tarefas
           </p>
           <Link to="/tasks" className="text-xs font-semibold text-link" onClick={onClose}>
-            Ver board
+            Ver lista
           </Link>
         </div>
 
@@ -182,16 +165,16 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
 
       <div className="mt-auto rounded-[16px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
         <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">
-          Resumo do workspace
+          Workspace atual
         </p>
         <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
           {summary?.organizationName ?? session?.organization.name ?? 'Lume'} . {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace'}
         </p>
         <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-          A shell, a busca e o resumo agora refletem apenas estado real do backend e do banco deste workspace.
+          Use este painel para abrir as areas principais e acompanhar o que mudou no workspace.
         </p>
         <Link to="/settings" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-link" onClick={onClose}>
-          Abrir settings
+          Abrir configuracoes
           <FiChevronRight size={16} />
         </Link>
       </div>

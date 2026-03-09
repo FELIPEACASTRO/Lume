@@ -277,7 +277,7 @@ describe('Agents', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(screen.getByText('Runtime real por perfil')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Perfis de trabalho')).toBeInTheDocument());
     await waitFor(() => expect(screen.getByLabelText('Selecionar provider do agent')).toHaveValue('openai'));
 
     fireEvent.change(screen.getByLabelText('Selecionar provider do agent'), { target: { value: 'anthropic' } });
@@ -285,7 +285,7 @@ describe('Agents', () => {
     fireEvent.change(screen.getByLabelText('Selecionar modelo do agent'), { target: { value: 'anthropic:claude-sonnet-4-5' } });
     await waitFor(() => expect(screen.getByLabelText('Selecionar modelo do agent')).toHaveValue('anthropic:claude-sonnet-4-5'));
     fireEvent.change(screen.getByLabelText('Versao do agent'), { target: { value: 'agent-v2-claude' } });
-    fireEvent.click(screen.getByRole('button', { name: /Salvar runtime/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Salvar configuracao/i }));
 
     await waitFor(() => expect(mockUpdateRuntime).toHaveBeenCalledWith('ops', {
       providerCode: 'anthropic',

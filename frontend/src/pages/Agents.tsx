@@ -9,6 +9,7 @@ import { toApiClientError } from '../services/api';
 import { providerService } from '../services/providerService';
 import { promptTemplateService } from '../services/promptTemplateService';
 import { AgentMessage, AgentProfile, AgentThread, ModelDto, PromptTemplateDto, ProviderDto, ProviderStatusDto } from '../types';
+import { humanizeRuntimeState, humanizeToken } from '../utils/uiText';
 
 interface AgentRouteState {
   draftPrompt?: string;
@@ -344,23 +345,23 @@ export default function Agents() {
     <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <WorkspaceNotice
-          title="Agents com runtime real."
-          description="Perfis, threads e mensagens persistem no backend. Cada agente agora expõe provider, modelo, estilo de API, readiness, streaming e estado de credencial de forma explicita."
+          title="Execucao de tarefas"
+          description="Escolha o perfil certo, acompanhe as conversas e veja com clareza quando algo pedir atencao."
           state={selectedAgent?.availability ?? 'preview'}
-          detail="Quando a inferencia falha, a thread registra erro operacional real e a UI nao fabrica resposta de assistant."
+          detail="Quando algo falha, o erro aparece na conversa sem resposta artificial."
         />
 
         <div className="shell-surface p-5">
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Agents</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Execucao</p>
             <StatusBadge state={selectedAgent?.availability ?? 'preview'} />
           </div>
-          <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">Runtime real por perfil</h2>
+          <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">Perfis de trabalho</h2>
               <p className="mt-3 text-sm leading-6 text-[var(--ink-soft)]">
-                O runtime do agente ja informa provider, modelo, apiStyle, credentialState, catalogState, readiness e suporte a streaming. So os providers realmente suportados e configurados entram como `live`.
+                Cada perfil mostra qual provedor esta em uso, qual modelo responde e se o acesso esta pronto.
               </p>
               <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
-                Governanca explicita: live, implemented_with_restrictions, catalog_only, blocked e out_of_scope.
+                Revise o perfil antes de executar uma tarefa.
               </p>
         </div>
 
@@ -384,14 +385,13 @@ export default function Agents() {
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
               <span>{agent.providerCode}</span>
               <span>{agent.apiStyle}</span>
-              <span>{agent.credentialState}</span>
-              <span>{agent.catalogState}</span>
+              <span>{humanizeToken(agent.credentialState)}</span>
               <span>{agent.versionLabel}</span>
             </div>
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">{agent.modelCode}</p>
             {agent.toolset.length > 0 ? (
               <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
-                {agent.toolset.join(' • ')}
+                {agent.toolset.join(' . ')}
               </p>
             ) : null}
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">{agent.note}</p>
@@ -400,13 +400,13 @@ export default function Agents() {
 
         <div className="shell-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Threads</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Conversas</p>
             <span className="text-xs font-semibold text-[var(--ink-soft)]">{threads.length}</span>
           </div>
 
           <div className="mt-4 space-y-2">
             {threads.length === 0 ? (
-              <p className="text-sm leading-6 text-[var(--ink-soft)]">Nenhuma thread criada ainda. Envie um prompt para abrir a primeira conversa persistida.</p>
+              <p className="text-sm leading-6 text-[var(--ink-soft)]">Nenhuma conversa criada ainda. Envie uma instrucao para abrir a primeira.</p>
             ) : (
               threads.map((thread) => (
                 <button
@@ -424,9 +424,9 @@ export default function Agents() {
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
                     {thread.providerCode ? <span>{thread.providerCode}</span> : null}
                     {thread.apiStyle ? <span>{thread.apiStyle}</span> : null}
-                    {thread.credentialState ? <span>{thread.credentialState}</span> : null}
+                    {thread.credentialState ? <span>{humanizeToken(thread.credentialState)}</span> : null}
                     {thread.versionLabel ? <span>{thread.versionLabel}</span> : null}
-                    <span>{thread.runtimeState}</span>
+                    <span>{humanizeRuntimeState(thread.runtimeState)}</span>
                   </div>
                   {thread.lastError ? (
                     <p className="mt-3 text-sm font-medium text-[#df7d77]">{thread.lastError}</p>
@@ -451,18 +451,17 @@ export default function Agents() {
         <div className="border-b px-5 py-5 sm:px-7" style={{ borderColor: 'var(--line-soft)' }}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Agent ativo</p>
-              <h1 className="mt-2 text-2xl font-semibold text-[var(--ink-strong)]">{selectedAgent?.name ?? 'Agents'}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--ink-soft)]">{selectedAgent?.description ?? 'Selecione um perfil para iniciar uma thread.'}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Perfil ativo</p>
+              <h1 className="mt-2 text-2xl font-semibold text-[var(--ink-strong)]">{selectedAgent?.name ?? 'Execucao'}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--ink-soft)]">{selectedAgent?.description ?? 'Selecione um perfil para comecar.'}</p>
               {selectedAgent ? (
               <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
                   <span>{selectedAgent.providerCode}</span>
                   <span>{selectedAgent.modelCode}</span>
                   <span>{selectedAgent.apiStyle}</span>
-                  <span>{selectedAgent.credentialState}</span>
-                  <span>{selectedAgent.catalogState}</span>
-                  {selectedProvider ? <span>{selectedProvider.implementationStatus}</span> : null}
-                  {selectedProvider ? <span>{selectedProvider.evidenceLevel}</span> : null}
+                  <span>{humanizeToken(selectedAgent.credentialState)}</span>
+                  {selectedProvider ? <span>{humanizeToken(selectedProvider.implementationStatus)}</span> : null}
+                  {selectedProvider ? <span>{humanizeToken(selectedProvider.evidenceLevel)}</span> : null}
                   <span>{selectedAgent.versionLabel}</span>
                 </div>
               ) : null}
@@ -482,7 +481,7 @@ export default function Agents() {
           <div className="border-b px-5 py-5 sm:px-7" style={{ borderColor: 'var(--line-soft)' }}>
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px_auto]">
               <label className="space-y-2 text-sm">
-                <span className="font-semibold text-[var(--ink-strong)]">Provider</span>
+                <span className="font-semibold text-[var(--ink-strong)]">Provedor</span>
                 <select
                   aria-label="Selecionar provider do agent"
                   className="shell-input min-h-[48px]"
@@ -529,7 +528,7 @@ export default function Agents() {
               <div className="flex items-end">
                 <button type="button" className="btn-primary w-full lg:w-auto" onClick={() => void handleRuntimeSave()} disabled={runtimeSaving}>
                   <FiCpu size={16} />
-                  {runtimeSaving ? 'Salvando...' : 'Salvar runtime'}
+                  {runtimeSaving ? 'Salvando...' : 'Salvar configuracao'}
                 </button>
               </div>
             </div>
@@ -537,14 +536,14 @@ export default function Agents() {
             {selectedProviderStatus ? (
               <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
                 <FiShield size={12} />
-                <span>{selectedProviderStatus.category}</span>
-                <span>{selectedProviderStatus.readinessStatus}</span>
-                <span>{selectedProviderStatus.configured ? 'configured' : 'missing_credentials'}</span>
-                <span>{selectedProviderStatus.executionSupported ? 'execution_supported' : 'manual_only'}</span>
-                <span>{selectedProviderStatus.implementationStatus}</span>
-                <span>{selectedProviderStatus.evidenceLevel}</span>
-                <span>{selectedProviderStatus.streamingMode}</span>
-                <span>{selectedProviderStatus.runtimeMaturity}</span>
+                <span>{humanizeToken(selectedProviderStatus.category)}</span>
+                <span>{humanizeToken(selectedProviderStatus.readinessStatus)}</span>
+                <span>{selectedProviderStatus.configured ? 'Acesso pronto' : 'Credenciais pendentes'}</span>
+                <span>{selectedProviderStatus.executionSupported ? 'Execucao disponivel' : 'Uso manual'}</span>
+                <span>{humanizeToken(selectedProviderStatus.implementationStatus)}</span>
+                <span>{humanizeToken(selectedProviderStatus.evidenceLevel)}</span>
+                <span>{humanizeToken(selectedProviderStatus.streamingMode)}</span>
+                <span>{humanizeToken(selectedProviderStatus.runtimeMaturity)}</span>
               </div>
             ) : null}
           </div>
@@ -553,7 +552,7 @@ export default function Agents() {
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-6 sm:px-7">
           {loading || conversationLoading ? (
             <div className="rounded-[20px] border border-dashed px-4 py-3 text-sm text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
-              Carregando conversa real do workspace...
+              Carregando conversa...
             </div>
           ) : error ? (
             <div className="rounded-[20px] border border-dashed px-4 py-3 text-sm text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
@@ -561,7 +560,7 @@ export default function Agents() {
             </div>
           ) : messages.length === 0 ? (
             <div className="rounded-[20px] border border-dashed px-4 py-3 text-sm text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
-              Nenhuma thread ativa ainda. Use um atalho abaixo ou envie um prompt para criar a primeira conversa persistida.
+              Nenhuma conversa aberta ainda. Envie uma instrucao para iniciar.
             </div>
           ) : (
             messages.map((message) => {
@@ -615,7 +614,7 @@ export default function Agents() {
 
           {visibleTemplates.length > 0 ? (
             <div className="mb-4 rounded-[22px] border bg-[var(--surface-muted)] px-4 py-4" style={{ borderColor: 'var(--line-soft)' }}>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">Biblioteca de templates</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">Modelos de prompt</p>
               <div className="mt-3 space-y-3">
                 {visibleTemplates.map((template) => (
                   <button
@@ -647,7 +646,7 @@ export default function Agents() {
               aria-label="Enviar prompt"
               autoComplete="off"
               className="shell-input min-h-[120px] resize-none sm:min-h-0 sm:flex-1"
-              placeholder="Envie uma instrucao para o agent selecionado."
+              placeholder="Descreva a tarefa ou a decisao que voce quer tomar."
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
             />
@@ -660,8 +659,8 @@ export default function Agents() {
           {selectedThread ? (
             <div className="mt-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
               <FiMessageSquare size={12} />
-              Thread ativa: {selectedThread.title}
-              <span>{selectedThread.runtimeState}</span>
+              Conversa ativa: {selectedThread.title}
+              <span>{humanizeRuntimeState(selectedThread.runtimeState)}</span>
             </div>
           ) : null}
           {selectedThread?.lastError ? (

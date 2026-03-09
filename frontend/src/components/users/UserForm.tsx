@@ -62,7 +62,7 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing = 
 
       <div className="space-y-2">
         <label htmlFor="roleCode" className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">
-          Role
+          Funcao
         </label>
         <div className="shell-input flex items-center gap-3">
           <FiShield size={16} className="text-[var(--ink-soft)]" />
@@ -72,8 +72,8 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing = 
             value={formData.roleCode}
             onChange={(event) => setFormData({ ...formData, roleCode: event.target.value })}
           >
-            <option value="workspace_member">Workspace Member</option>
-            <option value="workspace_admin">Workspace Admin</option>
+            <option value="workspace_member">Membro</option>
+            <option value="workspace_admin">Administrador</option>
           </select>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing = 
 
       <div className="flex flex-wrap gap-3 pt-2">
         <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Salvando...' : isEditing ? 'Atualizar usuario' : 'Criar usuario'}
+          {loading ? 'Salvando...' : isEditing ? 'Salvar alteracoes' : 'Convidar pessoa'}
         </button>
         <button type="button" className="btn-secondary" onClick={onCancel}>
           Cancelar

@@ -3,57 +3,69 @@ package com.lume.workspace.service;
 import com.lume.workspace.dto.ShellNavigationItemResponse;
 import com.lume.workspace.dto.ShellNavigationResponse;
 import com.lume.workspace.dto.ShellTaskTypeResponse;
+import com.lume.workspace.entity.ShellNavigationItemJpaEntity;
+import com.lume.workspace.entity.ShellTaskTypeJpaEntity;
+import com.lume.workspace.repository.ShellNavigationItemJpaRepository;
+import com.lume.workspace.repository.ShellTaskTypeJpaRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class ShellNavigationService {
 
-    private static final List<ShellTaskTypeResponse> TASK_TYPES = List.of(
-            new ShellTaskTypeResponse("slides", "Criar slides", "Abrir uma trilha para montar narrativas e apresentacoes."),
-            new ShellTaskTypeResponse("sites", "Criar site", "Registrar uma tarefa para estruturar paginas e conteudo."),
-            new ShellTaskTypeResponse("apps", "Desenvolver app", "Planejar backlog, fluxos e modulos da aplicacao."),
-            new ShellTaskTypeResponse("design", "Design", "Estruturar referencias e entregaveis visuais."),
-            new ShellTaskTypeResponse("research", "Research", "Abrir uma trilha de investigacao e consolidacao de fontes."),
-            new ShellTaskTypeResponse("playbook", "Playbook", "Registrar um fluxo operacional reutilizavel.")
-    );
-
     private final WorkspaceContextService workspaceContextService;
+    private final ShellNavigationItemJpaRepository shellNavigationItemRepository;
+    private final ShellTaskTypeJpaRepository shellTaskTypeRepository;
 
-    public ShellNavigationService(WorkspaceContextService workspaceContextService) {
+    public ShellNavigationService(
+            WorkspaceContextService workspaceContextService,
+            ShellNavigationItemJpaRepository shellNavigationItemRepository,
+            ShellTaskTypeJpaRepository shellTaskTypeRepository
+    ) {
         this.workspaceContextService = workspaceContextService;
+        this.shellNavigationItemRepository = shellNavigationItemRepository;
+        this.shellTaskTypeRepository = shellTaskTypeRepository;
     }
 
     public ShellNavigationResponse getNavigation() {
         List<String> permissions = workspaceContextService.getCurrentPermissions();
-        List<ShellNavigationItemResponse> items = new ArrayList<>();
-
-        items.add(item("agents", "Agents", "/agents", "Threads e runtime reais do workspace.", "agents", "live", "primary", List.of("agents", "threads", "runtime")));
-        items.add(item("library", "Biblioteca", "/library", "Artefatos e contexto persistidos do workspace.", "library", "live", "primary", List.of("biblioteca", "artefatos", "contexto")));
-        items.add(item("projects", "Projetos", "/projects", "Ownership, backlog e agrupamento operacional.", "projects", "live", "primary", List.of("projetos", "backlog", "ownership")));
-
-        if (permissions.contains(WorkspaceContextService.PERMISSION_MEMBERS_READ)) {
-            items.add(item("users", "Membros", "/users", "Memberships e RBAC do workspace ativo.", "users", "live", "secondary", List.of("membros", "usuarios", "rbac")));
-        }
-        items.add(item("inbox", "Inbox", "/inbox", "Eventos e notificacoes reais do workspace.", "inbox", "live", "secondary", List.of("inbox", "notificacoes", "eventos")));
-        items.add(item("usage", "Uso", "/usage", "Creditos, metering e budget operacional.", "usage", "live", "secondary", List.of("uso", "budget", "metering")));
-        items.add(item("settings", "Settings", "/settings", "Preferencias, providers e governanca do workspace.", "settings", "live", "secondary", List.of("settings", "preferencias", "providers")));
-
-        return new ShellNavigationResponse(items, TASK_TYPES);
+        List<ShellNavigationItemResponse> items = shellNavigationItemRepository.findByEnabledTrueOrderBySortOrderAsc().stream()
+                .filter(item -> isVisible(item, permissions))
+                .map(this::toResponse)
+                .toList();
+        List<ShellTaskTypeResponse> taskTypes = shellTaskTypeRepository.findByEnabledTrueOrderBySortOrderAsc().stream()
+                .map(this::toResponse)
+                .toList();
+        return new ShellNavigationResponse(items, taskTypes);
     }
 
-    private ShellNavigationItemResponse item(
-            String id,
-            String label,
-            String path,
-            String description,
-            String icon,
-            String availability,
-            String group,
-            List<String> keywords
-    ) {
-        return new ShellNavigationItemResponse(id, label, path, description, icon, availability, group, keywords);
+    private boolean isVisible(ShellNavigationItemJpaEntity item, List<String> permissions) {
+        if ("users".equals(item.getId())) {
+            return permissions.contains(WorkspaceContextService.PERMISSION_MEMBERS_READ);
+        }
+        return true;
+    }
+
+    private ShellNavigationItemResponse toResponse(ShellNavigationItemJpaEntity item) {
+        List<String> keywords = Stream.of(item.getKeywordsRaw().split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .toList();
+        return new ShellNavigationItemResponse(
+                item.getId(),
+                item.getLabel(),
+                item.getPath(),
+                item.getDescription(),
+                item.getIcon(),
+                item.getAvailability(),
+                item.getNavGroup(),
+                keywords
+        );
+    }
+
+    private ShellTaskTypeResponse toResponse(ShellTaskTypeJpaEntity item) {
+        return new ShellTaskTypeResponse(item.getTaskType(), item.getLabel(), item.getDescription());
     }
 }

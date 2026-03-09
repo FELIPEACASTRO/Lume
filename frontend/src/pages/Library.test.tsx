@@ -85,12 +85,12 @@ describe('Library', () => {
     await waitFor(() =>
       expect(screen.getAllByText('Playbook de onboarding').length).toBeGreaterThan(0)
     );
-    expect(screen.getByText('Histórico operacional')).toBeInTheDocument();
+    expect(screen.getByText('Historico')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText('Inclui aprovacao de compliance')).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText('Versao do artefato'), { target: { value: 'v3' } });
     fireEvent.change(screen.getByLabelText('Resumo da mudanca'), { target: { value: 'Rollback e aceite' } });
-    fireEvent.change(screen.getByLabelText('Preview do conteudo'), { target: { value: 'Versao mais recente.' } });
+    fireEvent.change(screen.getByLabelText('Resumo do conteudo'), { target: { value: 'Versao mais recente.' } });
     fireEvent.click(screen.getByRole('button', { name: /Registrar versao/i }));
 
     await waitFor(() => expect(mockCreateVersion).toHaveBeenCalledWith('lib-onboarding', {

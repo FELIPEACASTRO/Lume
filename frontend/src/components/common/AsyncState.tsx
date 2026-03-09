@@ -38,7 +38,7 @@ export default function AsyncState({
     return (
       <WorkspaceNotice
         title={errorTitle ?? 'Nao foi possivel carregar os dados.'}
-        description={errorDescription ?? 'O backend nao respondeu como esperado.'}
+        description={errorDescription ?? 'Tente novamente em instantes.'}
         state="error"
         detail={errorDetail}
         action={

@@ -47,9 +47,9 @@ describe('Usage', () => {
   it('renders budget and finops metrics from shell usage summary', () => {
     render(<Usage />);
 
-    expect(screen.getByText('Cost center')).toBeInTheDocument();
+    expect(screen.getByText('Centro de custo')).toBeInTheDocument();
     expect(screen.getByText('core_now')).toBeInTheDocument();
-    expect(screen.getByText('showback | healthy')).toBeInTheDocument();
+    expect(screen.getByText('Showback | Saudavel')).toBeInTheDocument();
     expect(screen.getByText('40%')).toBeInTheDocument();
     expect(screen.getByText('27%')).toBeInTheDocument();
   });

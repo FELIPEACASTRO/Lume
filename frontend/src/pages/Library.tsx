@@ -55,7 +55,11 @@ export default function Library() {
 
   const selectedEntry = useMemo(() => {
     if (selectedEntryId) {
-      return filteredEntries.find((entry) => entry.id === selectedEntryId) ?? entries.find((entry) => entry.id === selectedEntryId) ?? null;
+      return (
+        filteredEntries.find((entry) => entry.id === selectedEntryId) ??
+        entries.find((entry) => entry.id === selectedEntryId) ??
+        null
+      );
     }
     return filteredEntries[0] ?? entries[0] ?? null;
   }, [entries, filteredEntries, selectedEntryId]);
@@ -65,8 +69,7 @@ export default function Library() {
       try {
         setLoading(true);
         setError(null);
-        const nextEntries = await libraryService.findAll();
-        setEntries(nextEntries);
+        setEntries(await libraryService.findAll());
       } catch (loadError) {
         setError(toApiClientError(loadError).message);
         setEntries([]);
@@ -95,8 +98,7 @@ export default function Library() {
       try {
         setVersionLoading(true);
         setVersionError(null);
-        const nextVersions = await libraryService.findVersions(selectedEntry.id);
-        setVersions(nextVersions);
+        setVersions(await libraryService.findVersions(selectedEntry.id));
       } catch (loadError) {
         setVersionError(toApiClientError(loadError).message);
         setVersions([]);
@@ -145,10 +147,10 @@ export default function Library() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Biblioteca agora opera sobre dados reais do workspace."
-        description="Os filtros e a busca desta superficie ja consultam o backend do Lume, compartilham a mesma fonte da busca global e agora expõem versionamento operacional dos artefatos."
+        title="Biblioteca do workspace"
+        description="Encontre arquivos, entregas e versoes do trabalho ja registrado."
         state="live"
-        detail="A trilha de versões fica persistida por entrada, sem prometer artifact studio completo antes do runtime unificado."
+        detail="Cada item mostra origem, projeto e historico de atualizacao."
       />
 
       <section className="shell-surface p-6 sm:p-7">
@@ -158,9 +160,9 @@ export default function Library() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Biblioteca</p>
               <StatusBadge state="live" />
             </div>
-            <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-strong)]">Repositorio operacional de artefatos</h1>
+            <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-strong)]">Arquivos e entregas</h1>
             <p className="mt-3 text-sm leading-7 text-[var(--ink-soft)]">
-              Artefatos persistidos, contexto por projeto e timeline de versoes sob o mesmo shell do workspace.
+              Consulte o que foi produzido, quem atualizou e em qual projeto cada item se encaixa.
             </p>
           </div>
 
@@ -170,7 +172,7 @@ export default function Library() {
               <input
                 aria-label="Buscar na biblioteca"
                 className="w-full border-none bg-transparent outline-none placeholder:text-[var(--ink-soft)]"
-                placeholder="Buscar por titulo, tag, projeto ou owner"
+                placeholder="Buscar por titulo, tag, projeto ou responsavel"
                 type="search"
                 autoComplete="off"
                 value={query}
@@ -244,7 +246,10 @@ export default function Library() {
                 ))}
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-4 border-t pt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
+              <div
+                className="mt-6 flex flex-wrap items-center gap-4 border-t pt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]"
+                style={{ borderColor: 'var(--line-soft)' }}
+              >
                 <span>{entry.sourceLabel}</span>
                 <span>{entry.status}</span>
                 <span>{entry.entryType}</span>
@@ -261,7 +266,7 @@ export default function Library() {
               <section className="shell-surface p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Ativo selecionado</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Item selecionado</p>
                     <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">{selectedEntry.title}</h2>
                     <p className="mt-2 text-sm leading-7 text-[var(--ink-soft)]">{selectedEntry.summary}</p>
                   </div>
@@ -271,7 +276,7 @@ export default function Library() {
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[20px] bg-[var(--surface-muted)] p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink-soft)]">Projeto</p>
-                    <p className="mt-2 text-sm font-semibold text-[var(--ink-strong)]">{selectedEntry.projectName ?? 'Workspace-wide'}</p>
+                    <p className="mt-2 text-sm font-semibold text-[var(--ink-strong)]">{selectedEntry.projectName ?? 'Sem projeto'}</p>
                   </div>
                   <div className="rounded-[20px] bg-[var(--surface-muted)] p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink-soft)]">Versao atual</p>
@@ -283,8 +288,8 @@ export default function Library() {
               <section className="shell-surface p-6">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Timeline de versoes</p>
-                    <h3 className="mt-2 text-xl font-semibold text-[var(--ink-strong)]">Histórico operacional</h3>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Versoes</p>
+                    <h3 className="mt-2 text-xl font-semibold text-[var(--ink-strong)]">Historico</h3>
                   </div>
                   <div className="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
                     {versions.length} registradas
@@ -297,7 +302,7 @@ export default function Library() {
                   ) : versionError ? (
                     <p className="text-sm text-[var(--ink-soft)]">{versionError}</p>
                   ) : versions.length === 0 ? (
-                    <p className="text-sm text-[var(--ink-soft)]">Nenhuma versao persistida ainda para este artefato.</p>
+                    <p className="text-sm text-[var(--ink-soft)]">Nenhuma versao registrada ainda para este item.</p>
                   ) : (
                     versions.map((version) => (
                       <article key={version.id} className="rounded-[20px] border p-4" style={{ borderColor: 'var(--line-soft)' }}>
@@ -323,9 +328,9 @@ export default function Library() {
               {canManageArtifacts ? (
                 <section className="shell-surface p-6">
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Nova versao</p>
-                  <h3 className="mt-2 text-xl font-semibold text-[var(--ink-strong)]">Publicar incremento do artefato</h3>
+                  <h3 className="mt-2 text-xl font-semibold text-[var(--ink-strong)]">Registrar nova versao</h3>
                   <p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">
-                    Registra o delta operacional sem prometer editor completo antes do artifact studio.
+                    Salve a proxima entrega com um resumo claro da mudanca.
                   </p>
 
                   <form className="mt-5 space-y-4" onSubmit={(event) => void handleCreateVersion(event)}>
@@ -350,9 +355,9 @@ export default function Library() {
                     </label>
 
                     <label className="block space-y-2 text-sm">
-                      <span className="font-semibold text-[var(--ink-strong)]">Preview do conteudo</span>
+                      <span className="font-semibold text-[var(--ink-strong)]">Resumo do conteudo</span>
                       <textarea
-                        aria-label="Preview do conteudo"
+                        aria-label="Resumo do conteudo"
                         className="shell-input min-h-[120px] w-full resize-none"
                         value={versionForm.contentPreview}
                         onChange={(event) => setVersionForm((current) => ({ ...current, contentPreview: event.target.value }))}
@@ -368,8 +373,8 @@ export default function Library() {
             </>
           ) : (
             <section className="shell-surface px-6 py-10 text-center">
-              <p className="text-lg font-semibold text-[var(--ink-strong)]">Selecione um artefato.</p>
-              <p className="mt-2 text-sm text-[var(--ink-soft)]">A timeline de versoes aparece aqui quando houver uma entrada ativa.</p>
+              <p className="text-lg font-semibold text-[var(--ink-strong)]">Selecione um item.</p>
+              <p className="mt-2 text-sm text-[var(--ink-soft)]">O historico aparece aqui quando voce abrir um item.</p>
             </section>
           )}
         </aside>
@@ -378,11 +383,11 @@ export default function Library() {
       {loading ? (
         <section className="shell-surface px-6 py-10 text-center">
           <p className="text-lg font-semibold text-[var(--ink-strong)]">Carregando biblioteca...</p>
-          <p className="mt-2 text-sm text-[var(--ink-soft)]">Buscando artefatos reais do workspace.</p>
+          <p className="mt-2 text-sm text-[var(--ink-soft)]">Buscando arquivos e entregas do workspace.</p>
         </section>
       ) : error ? (
         <section className="shell-surface px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-[var(--ink-strong)]">A biblioteca nao respondeu.</p>
+          <p className="text-lg font-semibold text-[var(--ink-strong)]">Nao foi possivel carregar a biblioteca.</p>
           <p className="mt-2 text-sm text-[var(--ink-soft)]">{error}</p>
         </section>
       ) : filteredEntries.length === 0 ? (

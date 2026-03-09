@@ -11,7 +11,7 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
-const preferredSectionOrder = ['Projetos', 'Tarefas', 'Biblioteca', 'Knowledge', 'Templates', 'Agents', 'Membros', 'Inbox', 'Uso', 'Settings'];
+const preferredSectionOrder = ['Projetos', 'Tarefas', 'Biblioteca', 'Equipe', 'Configuracoes', 'Knowledge', 'Templates', 'Agents', 'Membros', 'Inbox', 'Uso', 'Settings'];
 const focusableSelector = [
   'button:not([disabled])',
   '[href]',
@@ -224,7 +224,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
               ref={inputRef}
               aria-label="Buscar no workspace"
               className="w-full border-none bg-transparent text-base outline-none placeholder:text-[var(--ink-soft)]"
-              placeholder="Busque rotas, contexto ou areas do produto"
+              placeholder="Busque tarefa, projeto, pessoa ou arquivo"
               type="search"
               autoComplete="off"
               value={query}
@@ -237,7 +237,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
           {loading ? (
             <div className="rounded-[24px] border border-dashed px-6 py-10 text-center" style={{ borderColor: 'var(--line-soft)' }}>
               <p className="text-sm font-semibold text-[var(--ink-strong)]">Buscando no workspace...</p>
-              <p className="mt-2 text-sm text-[var(--ink-soft)]">Rotas, projetos, tarefas, usuarios, biblioteca e threads estao sendo consultados agora.</p>
+              <p className="mt-2 text-sm text-[var(--ink-soft)]">Buscando tarefas, projetos, pessoas, arquivos e conversas.</p>
             </div>
           ) : error ? (
             <div className="rounded-[24px] border border-dashed px-6 py-10 text-center" style={{ borderColor: 'var(--line-soft)' }}>
@@ -247,7 +247,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
           ) : filteredTargets.length === 0 ? (
             <div className="rounded-[24px] border border-dashed px-6 py-10 text-center" style={{ borderColor: 'var(--line-soft)' }}>
               <p className="text-sm font-semibold text-[var(--ink-strong)]">Nenhum resultado encontrado.</p>
-              <p className="mt-2 text-sm text-[var(--ink-soft)]">Tente buscar por tarefa, projeto, usuario, biblioteca ou area do produto.</p>
+              <p className="mt-2 text-sm text-[var(--ink-soft)]">Tente buscar por tarefa, projeto, pessoa, arquivo ou configuracao.</p>
             </div>
           ) : (
             <div className="space-y-6">

@@ -45,21 +45,21 @@ export default function Inbox() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Inbox operacional do workspace."
-        description="A shell agora tem notificacoes reais para revisao de tarefas, sincronizacao de biblioteca e eventos do modulo de agents."
+        title="Atividade recente"
+        description="Veja alertas e eventos importantes do workspace."
         state="live"
-        detail="Esta superficie prepara o caminho para activity feed, mentions e alertas mais profundos nas proximas fases."
+        detail="Use esta lista para retomar pontos que pedem atencao."
       />
 
       <AsyncState
         state={state}
-        loadingLabel="Carregando inbox..."
-        errorTitle="O inbox nao respondeu."
-        errorDescription="As notificacoes do workspace nao foram carregadas."
+        loadingLabel="Carregando atividade..."
+        errorTitle="Nao foi possivel carregar a atividade."
+        errorDescription="Tente atualizar para buscar os alertas novamente."
         errorDetail={error ?? undefined}
         onRetry={() => void loadNotifications()}
-        emptyTitle="Nenhuma notificacao encontrada."
-        emptyDescription="Quando o workspace registrar eventos relevantes, eles vao aparecer aqui."
+        emptyTitle="Nenhum alerta no momento."
+        emptyDescription="Quando algo importante acontecer, os eventos vao aparecer aqui."
       >
         <section className="space-y-4">
           {notifications.map((notification) => (
@@ -73,7 +73,7 @@ export default function Inbox() {
                     <p className="text-lg font-semibold text-[var(--ink-strong)]">{notification.title}</p>
                     {!notification.read ? (
                       <span className="rounded-full bg-[rgba(236,147,14,0.16)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#6b4a08]">
-                        Nova
+                        Novo
                       </span>
                     ) : null}
                   </div>

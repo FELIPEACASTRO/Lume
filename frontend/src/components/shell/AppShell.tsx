@@ -49,16 +49,16 @@ function SetupScreen({
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] px-4 py-10 text-[var(--text-primary)]">
       <section className="shell-surface w-full max-w-2xl p-8">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">First-run setup</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">Primeiro acesso</p>
         <h1 className="mt-4 text-4xl leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
-          O Lume precisa do primeiro workspace real para iniciar.
+          Configure a empresa e comece a operar.
         </h1>
         <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
-          Nenhum dado demo sera carregado. Este setup cria a primeira organizacao, o primeiro workspace e o primeiro administrador.
+          Esse passo cria a primeira organizacao, o primeiro workspace e o administrador inicial.
         </p>
         {setupStatus ? (
           <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">
-            Organizations: {setupStatus.organizations} | Workspaces: {setupStatus.workspaces} | Usuarios: {setupStatus.users}
+            Organizacoes: {setupStatus.organizations} | Workspaces: {setupStatus.workspaces} | Usuarios: {setupStatus.users}
           </p>
         ) : null}
 
@@ -114,7 +114,7 @@ function SetupScreen({
           </label>
           {error ? <p className="text-sm font-medium text-[#df7d77]">{error}</p> : null}
           <button type="submit" className="btn-primary mt-2 justify-center" disabled={submitting}>
-            {submitting ? 'Criando workspace...' : 'Concluir setup inicial'}
+            {submitting ? 'Criando ambiente...' : 'Concluir configuracao'}
           </button>
         </form>
       </section>
@@ -144,12 +144,12 @@ function LoginScreen({
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] px-4 py-10 text-[var(--text-primary)]">
       <section className="shell-surface w-full max-w-lg p-8">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">Autenticacao local</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">Acesso</p>
         <h1 className="mt-4 text-4xl leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
-          Entre no workspace para carregar a shell real.
+          Entre para acessar seu workspace.
         </h1>
         <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
-          A sessao agora depende de autenticacao real. Sem fallback para usuario seedado ou header tecnico fora de teste.
+          Use suas credenciais para abrir as tarefas, projetos, arquivos e configuracoes do time.
         </p>
         <form className="mt-8 grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
           <label className="grid gap-2">
@@ -352,9 +352,9 @@ export default function AppShell() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] px-4 text-[var(--text-primary)]">
         <div className="shell-surface w-full max-w-lg p-8 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Inicializando shell</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Carregando</p>
           <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
-            Verificando setup, sessao autenticada e navegacao real do workspace.
+            Preparando seu acesso e carregando os dados do workspace.
           </p>
         </div>
       </div>

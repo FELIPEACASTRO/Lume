@@ -52,7 +52,7 @@ export default function Users() {
   const inactiveUsers = users.length - activeUsers;
   const metricsState = loading ? 'loading' : error ? 'error' : 'live';
   const metricsDetail = loading
-    ? 'Aguardando resposta do backend.'
+    ? 'Aguardando resposta do servico.'
     : error
       ? 'API indisponivel para consolidar os totais.'
       : 'Contagem baseada nas memberships do workspace ativo.';
@@ -62,12 +62,12 @@ export default function Users() {
     <>
       <div className="space-y-6">
         <WorkspaceNotice
-          title="Membros do workspace com tenancy real."
-          description="A listagem agora depende da membership ativa do workspace selecionado. Roles e acesso de gestao respeitam RBAC no backend."
+          title="Equipe"
+          description="Gerencie quem tem acesso ao workspace e o papel de cada pessoa."
           state="live"
           detail={canManageMembers
-            ? 'Voce possui permissao para convidar, editar role e desativar memberships neste workspace.'
-            : 'Seu role atual permite leitura operacional, mas nao gestao de memberships neste workspace.'}
+            ? 'Voce pode convidar pessoas, trocar funcao e desativar acessos.'
+            : 'Seu acesso atual permite consulta, mas nao alteracoes.'}
         />
 
         <section className="shell-surface p-6 sm:p-7">
@@ -77,9 +77,9 @@ export default function Users() {
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Membros</p>
                 <StatusBadge state="live" />
               </div>
-              <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-strong)]">Gestao de memberships no workspace ativo</h1>
+              <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-strong)]">Pessoas do workspace</h1>
               <p className="mt-3 text-sm leading-7 text-[var(--ink-soft)]">
-                O modulo abaixo cruza usuario, membership, role e workspace ativo. A troca de workspace altera imediatamente o escopo da tela.
+                A troca de workspace atualiza imediatamente a lista, as funcoes e as permissoes exibidas aqui.
               </p>
             </div>
 
@@ -122,8 +122,8 @@ export default function Users() {
           <div className="shell-surface p-5 sm:p-6">
             <div className="flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: 'var(--line-soft)' }}>
               <div>
-                <h2 className="text-2xl font-semibold text-[var(--ink-strong)]">Base de membros</h2>
-                <p className="mt-2 text-sm text-[var(--ink-soft)]">Busque, revise roles e acione alteracoes sem sair do shell principal.</p>
+                <h2 className="text-2xl font-semibold text-[var(--ink-strong)]">Lista de pessoas</h2>
+                <p className="mt-2 text-sm text-[var(--ink-soft)]">Busque, revise funcoes e faça alteracoes quando precisar.</p>
               </div>
 
               <label className="shell-input flex min-w-[240px] items-center gap-3">
@@ -143,10 +143,10 @@ export default function Users() {
             <div className="mt-5">
               <AsyncState
                 state={listState}
-                loadingLabel="Carregando membros..."
+                loadingLabel="Carregando equipe..."
                 errorTitle="Nao foi possivel carregar os membros."
                 errorDescription={error ?? undefined}
-                errorDetail="Verifique se o backend esta online, se o workspace foi carregado e se seu role possui acesso."
+                errorDetail="Verifique a conexao e suas permissoes de acesso."
                 onRetry={() => void reloadUsers()}
                 emptyTitle="Nenhum membro encontrado"
                 emptyDescription={
@@ -169,10 +169,10 @@ export default function Users() {
                   {editingUser ? 'Editar membro' : 'Novo membro'}
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">
-                  {editingUser ? 'Atualize a membership selecionada' : 'Convide um novo membro para este workspace'}
+                  {editingUser ? 'Atualize o acesso desta pessoa' : 'Convide alguem para este workspace'}
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-[var(--ink-soft)]">
-                  O form continua enxuto, mas agora carrega role junto com os dados basicos de acesso.
+                  Preencha somente o necessario para conceder acesso e definir a funcao inicial.
                 </p>
                 <div className="mt-6">
                   <UserForm
@@ -192,18 +192,18 @@ export default function Users() {
               <div className="space-y-5">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Painel lateral</p>
-                  <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">Sem ruido visual</h2>
+                  <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">Acesso claro</h2>
                   <p className="mt-3 text-sm leading-6 text-[var(--ink-soft)]">
-                    O formulario so entra em cena quando voce realmente precisa convidar ou ajustar uma membership. O resto da tela fica livre para diagnosticar estado, role e operacao.
+                    O formulario so aparece quando voce precisa convidar ou ajustar o acesso de alguem.
                   </p>
                 </div>
 
                 <div className="rounded-[24px] bg-[var(--surface-muted)] p-5">
-                  <p className="text-sm font-semibold text-[var(--ink-strong)]">Boas praticas rapidas</p>
+                  <p className="text-sm font-semibold text-[var(--ink-strong)]">Boas praticas</p>
                   <ul className="mt-3 space-y-3 text-sm leading-6 text-[var(--ink-soft)]">
                     <li>Use nomes claros para facilitar auditoria e busca.</li>
-                    <li>Roles controlam a capacidade de gerenciar memberships no workspace atual.</li>
-                    <li>Ao editar, senha vazia preserva a senha atual e nao e enviada no payload.</li>
+                    <li>Funcoes definem quem pode alterar o workspace.</li>
+                    <li>Ao editar, senha vazia preserva a senha atual.</li>
                   </ul>
                 </div>
 
@@ -220,13 +220,13 @@ export default function Users() {
       <ConfirmDialog
         open={!!pendingDeletionUser}
         title={pendingDeletionUser ? `Desativar ${pendingDeletionUser.name}?` : 'Desativar membership?'}
-        description="A membership sera marcada como inativa neste workspace, preservando historico operacional e auditoria."
+        description="Esse acesso sera marcado como inativo neste workspace, preservando o historico."
         detail={
           pendingDeletionUser
             ? `${pendingDeletionUser.email} | ID ${pendingDeletionUser.id}`
             : undefined
         }
-        confirmLabel={deletePending ? 'Desativando...' : 'Desativar membership'}
+        confirmLabel={deletePending ? 'Desativando...' : 'Desativar acesso'}
         tone="danger"
         busy={deletePending}
         onConfirm={() => void confirmDelete()}

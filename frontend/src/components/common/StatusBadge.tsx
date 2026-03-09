@@ -6,11 +6,12 @@ interface StatusBadgeProps {
 }
 
 const statusCopy: Record<WorkspaceDataState, string> = {
-  live: 'Live',
-  preview: 'Preview',
-  'disabled-preview': 'Coming Soon',
+  live: 'Ativo',
+  preview: 'Atencao',
+  'disabled-preview': 'Indisponivel',
+  restricted: 'Restrito',
   loading: 'Carregando',
-  empty: 'Vazio',
+  empty: 'Sem dados',
   error: 'Erro',
 };
 

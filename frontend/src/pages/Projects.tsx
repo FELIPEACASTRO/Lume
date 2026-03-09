@@ -46,20 +46,20 @@ export default function Projects() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Projetos entram como modulo real do workspace."
-        description="Ownership, agrupamento e backlog agora tem fonte persistida no backend, sem depender de cards aspiracionais."
+        title="Projetos"
+        description="Organize entregas, responsabilidades e contexto do trabalho."
         state="live"
-        detail="Use projetos para organizar tarefas, ownership e recortes operacionais antes da camada completa de execucao autonoma."
+        detail="Abra um projeto para concentrar tarefas, conhecimento e andamento."
       />
 
       <AsyncState
         state={state}
-        loadingLabel="Carregando projetos do workspace..."
-        errorTitle="Os projetos nao responderam."
-        errorDescription="O backend do workspace nao retornou a estrutura de ownership esperada."
+        loadingLabel="Carregando projetos..."
+        errorTitle="Nao foi possivel carregar os projetos."
+        errorDescription="Tente atualizar a tela para buscar os dados novamente."
         errorDetail={error ?? undefined}
         emptyTitle="Nenhum projeto encontrado."
-        emptyDescription="Crie o primeiro projeto no backend ou use as seeds iniciais do workspace."
+        emptyDescription="Crie o primeiro projeto para organizar as tarefas do time."
       >
         <section className="grid gap-4 xl:grid-cols-2">
           {projects.map((project) => (
@@ -84,7 +84,7 @@ export default function Projects() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">Owner</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">Responsavel</p>
                   <p className="mt-2 text-sm font-semibold text-[var(--ink-strong)]">{project.ownerName}</p>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default function Projects() {
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link to={`/tasks?project=${project.id}`} className="btn-secondary">
-                  Ver tarefas
+                  Abrir tarefas
                   <FiArrowRight size={16} />
                 </Link>
               </div>
