@@ -195,8 +195,7 @@ class IdentityTenancyIT {
                 .andExpect(jsonPath("$.preferences.languageCode").value("en-US"))
                 .andExpect(jsonPath("$.sections[?(@.key=='knowledge')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists())
-                .andExpect(jsonPath("$.sections[?(@.key=='providers-runtime')]").exists())
-                .andExpect(jsonPath("$.sections[?(@.key=='threat-intelligence')]").exists());
+                .andExpect(jsonPath("$.sections[?(@.key=='providers-runtime')]").exists());
 
         mockMvc.perform(get("/api/v1/auth/session"))
                 .andExpect(status().isOk())

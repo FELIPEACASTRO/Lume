@@ -10,5 +10,7 @@ public interface PromptTemplateJpaRepository extends JpaRepository<PromptTemplat
 
     List<PromptTemplateJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
 
+    long countByWorkspaceId(Long workspaceId);
+
     Optional<PromptTemplateJpaEntity> findByIdAndWorkspaceId(String id, Long workspaceId);
 }

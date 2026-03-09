@@ -35,10 +35,10 @@ public class UserJpaEntity {
     private boolean active = true;
 
     @Column(name = "organization_id", nullable = false)
-    private Long organizationId = 1L;
+    private Long organizationId;
 
     @Column(name = "workspace_id", nullable = false)
-    private Long workspaceId = 1L;
+    private Long workspaceId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

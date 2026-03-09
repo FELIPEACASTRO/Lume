@@ -50,6 +50,12 @@ public class TaskJpaEntity {
     @Column(name = "share_slug", length = 120)
     private String shareSlug;
 
+    @Column(name = "runtime_state", nullable = false, length = 32)
+    private String runtimeState;
+
+    @Column(name = "last_error", columnDefinition = "TEXT")
+    private String lastError;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -165,6 +171,22 @@ public class TaskJpaEntity {
 
     public void setShareSlug(String shareSlug) {
         this.shareSlug = shareSlug;
+    }
+
+    public String getRuntimeState() {
+        return runtimeState;
+    }
+
+    public void setRuntimeState(String runtimeState) {
+        this.runtimeState = runtimeState;
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public void setLastError(String lastError) {
+        this.lastError = lastError;
     }
 
     public LocalDateTime getCreatedAt() {

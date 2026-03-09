@@ -10,5 +10,7 @@ public interface AgentThreadJpaRepository extends JpaRepository<AgentThreadJpaEn
 
     List<AgentThreadJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
 
+    long countByWorkspaceId(Long workspaceId);
+
     Optional<AgentThreadJpaEntity> findByIdAndWorkspaceId(String id, Long workspaceId);
 }

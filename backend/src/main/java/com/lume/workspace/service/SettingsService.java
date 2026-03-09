@@ -43,15 +43,7 @@ public class SettingsService {
         List<SettingsSectionResponse> sections = new ArrayList<>(List.of(
                 new SettingsSectionResponse("conta", "Conta", "Identidade do usuario, plano e contexto do workspace.", "live", "live"),
                 new SettingsSectionResponse("configuracoes", "Configuracoes", "Idioma, aparencia e comunicacao da plataforma.", "live", "live"),
-                new SettingsSectionResponse("uso", "Uso", "Resumo operacional, creditos e historico de utilizacao.", "live", "live"),
-                new SettingsSectionResponse("agendadas", "Tarefas agendadas", "Fila de tarefas futuras e estados de execucao.", "preview", "preview"),
-                new SettingsSectionResponse("mail", "Mail", "Entrada por e-mail para disparo e automacao de tarefas.", "preview", "disabled-preview"),
-                new SettingsSectionResponse("dados", "Controles de dados", "Gestao de itens compartilhados e trilha operacional.", "preview", "preview"),
-                new SettingsSectionResponse("navegador", "Navegador em nuvem", "Perfis, cookies e persistencia operacional futura.", "preview", "disabled-preview"),
-                new SettingsSectionResponse("personalizacao", "Personalizacao", "Perfil, bio e instrucoes customizadas por workspace.", "preview", "preview"),
-                new SettingsSectionResponse("habilidades", "Habilidades", "Skills oficiais e extensoes customizadas.", "preview", "disabled-preview"),
-                new SettingsSectionResponse("conectores", "Conectores", "Conexoes nativas com provedores e sistemas externos.", "preview", "disabled-preview"),
-                new SettingsSectionResponse("integracoes", "Integracoes", "APIs, webhooks e automacoes externas.", "preview", "disabled-preview")
+                new SettingsSectionResponse("uso", "Uso", "Resumo operacional, creditos e historico de utilizacao.", "live", "live")
         ));
         if (permissions.contains(WorkspaceContextService.PERMISSION_KNOWLEDGE_READ)) {
             sections.add(new SettingsSectionResponse(
@@ -80,16 +72,6 @@ public class SettingsService {
                     "live"
             ));
         }
-        if (permissions.contains(WorkspaceContextService.PERMISSION_THREAT_INTEL_READ)) {
-            sections.add(new SettingsSectionResponse(
-                    "threat-intelligence",
-                    "Threat Intelligence",
-                    "Superficie administrativa, auditada e desligada por padrao para provedores dark web e threat-intel.",
-                    "preview",
-                    "disabled-preview"
-            ));
-        }
-
         return new SettingsOverviewResponse(
                 workspaceContextService.getOrganizationName(),
                 workspaceContextService.getWorkspaceName(),

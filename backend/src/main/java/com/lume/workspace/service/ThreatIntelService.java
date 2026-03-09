@@ -90,16 +90,7 @@ public class ThreatIntelService {
     }
 
     private ThreatIntelQueryResponse unsupported(ProviderDefinition provider, String query, String error) {
-        List<ThreatIntelExposureDto> previewItems = List.of(
-                new ThreatIntelExposureDto(
-                        "Execucao manual requerida",
-                        provider.name(),
-                        "info",
-                        "O provider esta catalogado, mas segue sem adapter automatico nesta rodada.",
-                        provider.docsUrl()
-                )
-        );
-        return new ThreatIntelQueryResponse(provider.code(), provider.name(), providerCatalogService.isConfigured(provider), provider.executionSupported(), "unsupported", query, previewItems, error);
+        return new ThreatIntelQueryResponse(provider.code(), provider.name(), providerCatalogService.isConfigured(provider), provider.executionSupported(), "unsupported", query, List.of(), error);
     }
 
     private String redactQuery(String query) {

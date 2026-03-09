@@ -24,10 +24,30 @@ public class AuditLogService {
     }
 
     public void record(String entityType, String entityId, String action, Object payload) {
+        recordExplicit(
+                workspaceContextService.getOrganizationId(),
+                workspaceContextService.getWorkspaceId(),
+                workspaceContextService.getActorUserIdOrNull(),
+                entityType,
+                entityId,
+                action,
+                payload
+        );
+    }
+
+    public void recordExplicit(
+            Long organizationId,
+            Long workspaceId,
+            Long actorUserId,
+            String entityType,
+            String entityId,
+            String action,
+            Object payload
+    ) {
         AuditLogJpaEntity entity = new AuditLogJpaEntity();
-        entity.setOrganizationId(workspaceContextService.getOrganizationId());
-        entity.setWorkspaceId(workspaceContextService.getWorkspaceId());
-        entity.setActorUserId(workspaceContextService.getActorUserIdOrNull());
+        entity.setOrganizationId(organizationId);
+        entity.setWorkspaceId(workspaceId);
+        entity.setActorUserId(actorUserId);
         entity.setEntityType(entityType);
         entity.setEntityId(entityId);
         entity.setAction(action);

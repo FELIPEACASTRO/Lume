@@ -11,7 +11,7 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
-const sectionOrder = ['Workspace', 'Areas reais', 'Areas preview', 'Atalhos', 'Contexto'];
+const preferredSectionOrder = ['Projetos', 'Tarefas', 'Biblioteca', 'Knowledge', 'Templates', 'Agents', 'Membros', 'Inbox', 'Uso', 'Settings'];
 const focusableSelector = [
   'button:not([disabled])',
   '[href]',
@@ -44,6 +44,15 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
       return groups;
     }, {});
   }, [filteredTargets]);
+
+  const orderedSections = useMemo(() => {
+    const availableSections = Object.keys(groupedTargets);
+    const preferred = preferredSectionOrder.filter((section) => availableSections.includes(section));
+    const remaining = availableSections
+      .filter((section) => !preferredSectionOrder.includes(section))
+      .sort((left, right) => left.localeCompare(right));
+    return [...preferred, ...remaining];
+  }, [groupedTargets]);
 
   useEffect(() => {
     if (!open) {
@@ -242,9 +251,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
             </div>
           ) : (
             <div className="space-y-6">
-              {sectionOrder
-                .filter((section) => groupedTargets[section]?.length)
-                .map((section) => (
+              {orderedSections.map((section) => (
                   <div key={section} className="space-y-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">
                       {section}

@@ -34,6 +34,7 @@ import com.lume.workspace.repository.UserPreferenceJpaRepository;
 import com.lume.workspace.repository.WorkspaceJpaRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
+@ConditionalOnProperty(prefix = "lume.workspace.bootstrap", name = "enabled", havingValue = "true")
 public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 
     private final OrganizationJpaRepository organizationRepository;
@@ -354,8 +356,10 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         task.setTitle(title);
         task.setPrompt(prompt);
         task.setSummary(summary);
-        task.setStatusLabel("Preview assistido");
-        task.setAvailability("preview");
+        task.setStatusLabel("Registrada");
+        task.setAvailability("live");
+        task.setRuntimeState("queued");
+        task.setLastError(null);
         task.setOwnerName("Operacao");
         task.setScheduledFor(null);
         task.setShareSlug("shared-" + id);

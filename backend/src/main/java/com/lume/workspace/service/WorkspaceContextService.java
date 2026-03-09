@@ -2,6 +2,9 @@ package com.lume.workspace.service;
 
 import com.lume.domain.exception.AccessDeniedException;
 import com.lume.domain.exception.ResourceNotFoundException;
+import com.lume.domain.exception.SetupRequiredException;
+import com.lume.domain.exception.UnauthorizedException;
+import com.lume.infrastructure.config.WorkspaceAuthProperties;
 import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.dto.OrganizationResponse;
@@ -20,6 +23,7 @@ import com.lume.workspace.repository.RoleJpaRepository;
 import com.lume.workspace.repository.UserPreferenceJpaRepository;
 import com.lume.workspace.repository.WorkspaceJpaRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +61,9 @@ public class WorkspaceContextService {
     private final RoleJpaRepository roleRepository;
     private final UserPreferenceJpaRepository userPreferenceRepository;
     private final ObjectProvider<HttpServletRequest> requestProvider;
-
+    private final WorkspaceSessionService workspaceSessionService;
+    private final WorkspaceAuthProperties workspaceAuthProperties;
+    @Autowired
     public WorkspaceContextService(
             OrganizationJpaRepository organizationRepository,
             WorkspaceJpaRepository workspaceRepository,
@@ -65,7 +71,9 @@ public class WorkspaceContextService {
             MembershipJpaRepository membershipRepository,
             RoleJpaRepository roleRepository,
             UserPreferenceJpaRepository userPreferenceRepository,
-            ObjectProvider<HttpServletRequest> requestProvider
+            ObjectProvider<HttpServletRequest> requestProvider,
+            WorkspaceSessionService workspaceSessionService,
+            WorkspaceAuthProperties workspaceAuthProperties
     ) {
         this.organizationRepository = organizationRepository;
         this.workspaceRepository = workspaceRepository;
@@ -74,10 +82,42 @@ public class WorkspaceContextService {
         this.roleRepository = roleRepository;
         this.userPreferenceRepository = userPreferenceRepository;
         this.requestProvider = requestProvider;
+        this.workspaceSessionService = workspaceSessionService;
+        this.workspaceAuthProperties = workspaceAuthProperties;
+    }
+
+    protected WorkspaceContextService(
+            OrganizationJpaRepository organizationRepository,
+            WorkspaceJpaRepository workspaceRepository,
+            JpaUserRepository userRepository,
+            MembershipJpaRepository membershipRepository,
+            RoleJpaRepository roleRepository,
+            UserPreferenceJpaRepository userPreferenceRepository,
+            ObjectProvider<HttpServletRequest> requestProvider
+    ) {
+        this(
+                organizationRepository,
+                workspaceRepository,
+                userRepository,
+                membershipRepository,
+                roleRepository,
+                userPreferenceRepository,
+                requestProvider,
+                null,
+                null
+        );
     }
 
     public SessionContextResponse getSession() {
-        CurrentContext context = resolveContext();
+        CurrentContext context = resolveContext(resolveCurrentUser());
+        return toSession(context);
+    }
+
+    public SessionContextResponse getSessionForUser(UserJpaEntity actor) {
+        return toSession(resolveContext(actor));
+    }
+
+    private SessionContextResponse toSession(CurrentContext context) {
         return new SessionContextResponse(
                 new SessionUserResponse(
                         context.user().getId(),
@@ -104,19 +144,19 @@ public class WorkspaceContextService {
     }
 
     public Long getOrganizationId() {
-        return resolveContext().organization().getId();
+        return resolveContext(resolveCurrentUser()).organization().getId();
     }
 
     public Long getWorkspaceId() {
-        return resolveContext().workspace().getId();
+        return resolveContext(resolveCurrentUser()).workspace().getId();
     }
 
     public String getWorkspaceName() {
-        return resolveContext().workspace().getName();
+        return resolveContext(resolveCurrentUser()).workspace().getName();
     }
 
     public String getOrganizationName() {
-        return resolveContext().organization().getName();
+        return resolveContext(resolveCurrentUser()).organization().getName();
     }
 
     public String getActorName() {
@@ -128,7 +168,7 @@ public class WorkspaceContextService {
     }
 
     public String getCurrentRoleCode() {
-        return resolveContext().role().getCode();
+        return resolveContext(resolveCurrentUser()).role().getCode();
     }
 
     public List<String> getCurrentPermissions() {
@@ -146,8 +186,7 @@ public class WorkspaceContextService {
         return membershipRepository.findByUserIdAndWorkspaceIdAndActiveTrue(user.getId(), workspaceId).isPresent();
     }
 
-    private CurrentContext resolveContext() {
-        UserJpaEntity actor = resolveCurrentUser();
+    private CurrentContext resolveContext(UserJpaEntity actor) {
         List<MembershipJpaEntity> memberships = membershipRepository.findByUserIdAndActiveTrueOrderByCreatedAtAsc(actor.getId());
         if (memberships.isEmpty()) {
             throw new AccessDeniedException("O usuario atual nao possui membership ativa em nenhum workspace.");
@@ -174,8 +213,12 @@ public class WorkspaceContextService {
     }
 
     private UserJpaEntity resolveCurrentUser() {
+        if (organizationRepository.count() == 0L && workspaceRepository.count() == 0L && userRepository.count() == 0L) {
+            throw new SetupRequiredException("A aplicacao ainda nao concluiu o setup inicial.");
+        }
+
         HttpServletRequest request = requestProvider.getIfAvailable();
-        if (request != null) {
+        if (request != null && workspaceAuthProperties != null && workspaceAuthProperties.isAllowTestHeader()) {
             String actorUserId = request.getHeader(HEADER_ACTOR_USER_ID);
             if (actorUserId != null && !actorUserId.isBlank()) {
                 try {
@@ -186,10 +229,19 @@ public class WorkspaceContextService {
                     throw new AccessDeniedException("O header de usuario atual e invalido.");
                 }
             }
+
+            if (workspaceAuthProperties.isAllowTestAutoLogin()) {
+                return userRepository.findTopByActiveTrueOrderByCreatedAtAsc()
+                        .orElseThrow(() -> new UnauthorizedException("Nenhum usuario ativo esta disponivel para auto-login em teste."));
+            }
         }
 
-        return userRepository.findFirstByActiveTrueOrderByCreatedAtAsc()
-                .orElseThrow(() -> new AccessDeniedException("Nenhum usuario ativo foi encontrado para resolver a sessao atual."));
+        if (workspaceSessionService == null) {
+            throw new UnauthorizedException("A sessao atual nao esta autenticada.");
+        }
+
+        return workspaceSessionService.resolveAuthenticatedUser(request)
+                .orElseThrow(() -> new UnauthorizedException("A sessao atual nao esta autenticada."));
     }
 
     private List<String> permissionsFor(String roleCode) {

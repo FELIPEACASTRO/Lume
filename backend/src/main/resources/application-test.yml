@@ -19,3 +19,11 @@ spring:
 logging:
   level:
     com.lume: DEBUG
+
+lume:
+  auth:
+    allow-test-header: true
+    allow-test-auto-login: true
+  workspace:
+    bootstrap:
+      enabled: true

@@ -10,5 +10,7 @@ public interface LibraryEntryJpaRepository extends JpaRepository<LibraryEntryJpa
 
     List<LibraryEntryJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
 
+    long countByWorkspaceId(Long workspaceId);
+
     Optional<LibraryEntryJpaEntity> findByIdAndWorkspaceId(String id, Long workspaceId);
 }

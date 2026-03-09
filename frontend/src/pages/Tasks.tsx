@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiArrowRight, FiCalendar, FiFolder, FiShare2, FiZap } from 'react-icons/fi';
+import { FiArrowRight, FiCalendar, FiFolder, FiShare2 } from 'react-icons/fi';
 import { Link, useSearchParams } from 'react-router-dom';
 import AsyncState from '../components/common/AsyncState';
 import StatusBadge from '../components/common/StatusBadge';
@@ -48,10 +48,10 @@ export default function Tasks() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Task board inspirado no Manus, mas preso aos contratos reais."
-        description="A visualizacao agora trata cada task como uma trilha de execucao assistida. O que ainda nao tem backend, como follow-up ou refresh de plano, aparece como preview rotulado."
-        state="preview"
-        detail="Cada tarefa continua nascendo no backend e entrando na busca global, no historico do shell e no backlog do workspace."
+        title="Task board operacional."
+        description="Cada tarefa exibida aqui foi criada no backend e reflete estado real de execucao, ownership e atualizacao."
+        state="live"
+        detail="Nao ha steps narrativos ou botoes promocionais fabricados nesta listagem."
       />
 
       <AsyncState
@@ -82,6 +82,9 @@ export default function Tasks() {
                       {task.projectName ? ` . ${task.projectName}` : ''}
                     </p>
                     <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{task.summary}</p>
+                    {task.lastError ? (
+                      <p className="mt-2 text-sm font-medium text-[#df7d77]">{task.lastError}</p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -103,15 +106,8 @@ export default function Tasks() {
                   <p className="mt-2 text-sm text-[var(--text-primary)]">{task.ownerName}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">Acoes</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <span className="rounded-full border px-2 py-1 text-[11px] font-semibold" style={{ borderColor: 'var(--surface-border-main)', color: 'var(--text-secondary)' }}>
-                      <FiZap className="inline-block" size={12} /> Refresh plan
-                    </span>
-                    <span className="rounded-full border px-2 py-1 text-[11px] font-semibold" style={{ borderColor: 'var(--surface-border-main)', color: 'var(--text-disabled)' }}>
-                      <FiShare2 className="inline-block" size={12} /> Preview
-                    </span>
-                  </div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">Runtime</p>
+                  <p className="mt-2 text-sm text-[var(--text-primary)]">{task.runtimeState}</p>
                 </div>
               </div>
 
@@ -126,7 +122,7 @@ export default function Tasks() {
                     Compartilhar
                   </button>
                 ) : (
-                  <button type="button" className="btn-secondary" disabled title="Aparece como preview ate ganhar contrato real">
+                  <button type="button" className="btn-secondary" disabled title="Esta tarefa ainda nao possui link publico associado">
                     <FiShare2 size={16} />
                     Compartilhar
                   </button>

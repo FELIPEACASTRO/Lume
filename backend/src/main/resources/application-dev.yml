@@ -4,6 +4,13 @@ spring:
     hibernate:
       ddl-auto: validate
 
+lume:
+  auth:
+    allow-test-header: false
+  workspace:
+    bootstrap:
+      enabled: false
+
 logging:
   level:
     com.lume: DEBUG

@@ -20,11 +20,13 @@ public interface JpaUserRepository extends JpaRepository<UserJpaEntity, Long> {
 
     Optional<UserJpaEntity> findByEmail(String email);
 
+    Optional<UserJpaEntity> findByEmailAndActiveTrue(String email);
+
     boolean existsByEmail(String email);
 
-    Optional<UserJpaEntity> findFirstByActiveTrueOrderByCreatedAtAsc();
-
     Optional<UserJpaEntity> findByIdAndActiveTrue(Long id);
+
+    Optional<UserJpaEntity> findTopByActiveTrueOrderByCreatedAtAsc();
 
     List<UserJpaEntity> findByIdInOrderByNameAsc(Collection<Long> ids);
 

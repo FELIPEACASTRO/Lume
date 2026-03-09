@@ -59,6 +59,13 @@ security:
     dark-web-enabled: false
 
 lume:
+  auth:
+    allow-test-header: false
+    session-cookie-name: LUME_SESSION
+    session-duration-hours: 12
+  workspace:
+    bootstrap:
+      enabled: false
   ai:
     defaults:
       connect-timeout-ms: 4000

@@ -35,6 +35,12 @@ public class AgentThreadJpaEntity {
     @Column(name = "last_message_preview", columnDefinition = "TEXT")
     private String lastMessagePreview;
 
+    @Column(name = "runtime_state", nullable = false, length = 32)
+    private String runtimeState;
+
+    @Column(name = "last_error", columnDefinition = "TEXT")
+    private String lastError;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -110,6 +116,22 @@ public class AgentThreadJpaEntity {
 
     public void setLastMessagePreview(String lastMessagePreview) {
         this.lastMessagePreview = lastMessagePreview;
+    }
+
+    public String getRuntimeState() {
+        return runtimeState;
+    }
+
+    public void setRuntimeState(String runtimeState) {
+        this.runtimeState = runtimeState;
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public void setLastError(String lastError) {
+        this.lastError = lastError;
     }
 
     public LocalDateTime getUpdatedAt() {

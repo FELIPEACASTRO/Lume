@@ -120,7 +120,7 @@ class WorkspaceShellIT {
 
     @Test
     @Order(5)
-    @DisplayName("POST /agents/threads - should create a persisted assisted thread")
+    @DisplayName("POST /agents/threads - should return an operational provider error when runtime is unavailable")
     void shouldCreateAgentThread() throws Exception {
         CreateAgentThreadRequest request = new CreateAgentThreadRequest(
                 "ops",
@@ -131,12 +131,8 @@ class WorkspaceShellIT {
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.thread.id").exists())
-                .andExpect(jsonPath("$.thread.agentProfileId").value("ops"))
-                .andExpect(jsonPath("$.messages.length()").value(2))
-                .andExpect(jsonPath("$.messages[0].role").value("user"))
-                .andExpect(jsonPath("$.messages[1].role").value("assistant"));
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.error").exists());
     }
 
     @Test
@@ -151,7 +147,7 @@ class WorkspaceShellIT {
 
     @Test
     @Order(7)
-    @DisplayName("POST /tasks - should create a persisted task with steps")
+    @DisplayName("POST /tasks - should create a persisted task with truthful initial state")
     void shouldCreateTask() throws Exception {
         CreateTaskRequest request = new CreateTaskRequest(
                 "Crie um playbook operacional para onboarding e aprovacao.",
@@ -166,7 +162,8 @@ class WorkspaceShellIT {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.task.id").exists())
                 .andExpect(jsonPath("$.task.taskType").value("playbook"))
-                .andExpect(jsonPath("$.steps.length()").value(3));
+                .andExpect(jsonPath("$.task.runtimeState").value("queued"))
+                .andExpect(jsonPath("$.steps.length()").value(1));
     }
 
     @Test

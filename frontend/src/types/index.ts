@@ -73,6 +73,7 @@ export type ShellIconKey =
   | 'settings';
 
 export interface ShellNavItem {
+  id: string;
   label: string;
   path: string;
   description: string;
@@ -80,15 +81,12 @@ export interface ShellNavItem {
   availability: WorkspaceDataState;
   group: WorkspaceGroup;
   keywords: string[];
-  badge?: string;
 }
 
-export interface QuickAction {
-  id: string;
-  title: string;
-  description: string;
-  prompt: string;
+export interface ShellTaskTypeDto {
   taskType: string;
+  label: string;
+  description: string;
 }
 
 export interface RecentTask {
@@ -289,6 +287,31 @@ export interface SessionContext {
   };
 }
 
+export interface SetupStatusDto {
+  setupRequired: boolean;
+  organizations: number;
+  workspaces: number;
+  users: number;
+}
+
+export interface BootstrapSetupRequest {
+  organizationName: string;
+  workspaceName: string;
+  adminName: string;
+  adminEmail: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface ShellNavigationDto {
+  items: ShellNavItem[];
+  taskTypes: ShellTaskTypeDto[];
+}
+
 export interface WorkspaceOptionDto {
   id: number;
   name: string;
@@ -322,6 +345,8 @@ export interface AgentThread {
   title: string;
   status: string;
   availability: WorkspaceDataState;
+  runtimeState: string;
+  lastError?: string | null;
   lastMessagePreview: string;
   updatedAt: string;
   providerCode?: string | null;
@@ -358,6 +383,8 @@ export interface TaskSummaryDto {
   summary: string;
   statusLabel: string;
   availability: WorkspaceDataState;
+  runtimeState: string;
+  lastError?: string | null;
   ownerName: string;
   updatedAt: string;
   scheduledFor: string | null;

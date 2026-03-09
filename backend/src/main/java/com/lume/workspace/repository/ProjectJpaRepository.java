@@ -10,5 +10,7 @@ public interface ProjectJpaRepository extends JpaRepository<ProjectJpaEntity, St
 
     List<ProjectJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
 
+    long countByWorkspaceId(Long workspaceId);
+
     Optional<ProjectJpaEntity> findByIdAndWorkspaceId(String id, Long workspaceId);
 }

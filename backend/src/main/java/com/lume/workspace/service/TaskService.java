@@ -66,16 +66,23 @@ public class TaskService {
         task.setTitle(titleFromPrompt(request.prompt(), request.taskType()));
         task.setPrompt(request.prompt());
         task.setSummary(summaryFromType(request.taskType()));
-        task.setStatusLabel("Preview assistido");
-        task.setAvailability("preview");
-        task.setOwnerName("Operacao");
+        task.setStatusLabel("Registrada");
+        task.setAvailability("live");
+        task.setRuntimeState("queued");
+        task.setLastError(null);
+        task.setOwnerName(resolveOwnerName(task.getProjectId()));
         task.setScheduledFor(null);
         task.setShareSlug(null);
         TaskJpaEntity savedTask = taskRepository.save(task);
 
-        createStep(savedTask.getId(), 1, "plan", "Entender o objetivo", "A tarefa foi registrada e o plano inicial foi estruturado para este workspace.", "completed");
-        createStep(savedTask.getId(), 2, "context", "Recuperar contexto", "O sistema reuniu projetos, biblioteca e historico relacionados ao pedido atual.", "completed");
-        createStep(savedTask.getId(), 3, "execution", "Executar em modo assistido", "A execucao autonoma completa ainda entra na proxima fase. Nesta etapa, o fluxo e persistido e preparado para inferencia real.", "running");
+        createStep(
+                savedTask.getId(),
+                1,
+                "registration",
+                "Tarefa registrada",
+                "A tarefa foi persistida neste workspace e esta pronta para seguir no pipeline operacional real.",
+                "completed"
+        );
 
         auditLogService.record(
                 "task",
@@ -113,6 +120,8 @@ public class TaskService {
                 task.getSummary(),
                 task.getStatusLabel(),
                 task.getAvailability(),
+                task.getRuntimeState(),
+                task.getLastError(),
                 task.getOwnerName(),
                 task.getUpdatedAt().format(DATE_TIME_FORMATTER),
                 task.getScheduledFor() == null ? null : task.getScheduledFor().format(DATE_TIME_FORMATTER),
@@ -135,11 +144,7 @@ public class TaskService {
         return new TaskDetailResponse(
                 toSummaryResponse(task),
                 steps,
-                List.of(
-                        "Transformar esta tarefa em um playbook reutilizavel.",
-                        "Compartilhar o contexto com o time responsavel.",
-                        "Converter os proximos passos em um projeto."
-                )
+                buildFollowUpSuggestions(task)
         );
     }
 
@@ -168,7 +173,25 @@ public class TaskService {
             case "design" -> "Consolidando referencias, direcao visual e entregaveis.";
             case "research" -> "Mapeando fontes, perguntas e trilha de investigacao.";
             case "playbook" -> "Traduzindo o pedido em rotina operacional reutilizavel.";
-            default -> "Registrando a tarefa no workspace e preparando o modo assistido.";
+            default -> "Registrando a tarefa no workspace e preparando o fluxo operacional.";
         };
+    }
+
+    private String resolveOwnerName(String projectId) {
+        if (projectId == null || projectId.isBlank()) {
+            return workspaceContextService.getActorName();
+        }
+        return projectRepository.findByIdAndWorkspaceId(projectId, workspaceContextService.getWorkspaceId())
+                .map(project -> project.getOwnerName() == null || project.getOwnerName().isBlank()
+                        ? workspaceContextService.getActorName()
+                        : project.getOwnerName())
+                .orElse(workspaceContextService.getActorName());
+    }
+
+    private List<String> buildFollowUpSuggestions(TaskJpaEntity task) {
+        if (task.getProjectId() != null && !task.getProjectId().isBlank()) {
+            return List.of("Abrir o projeto relacionado para continuar a execucao.");
+        }
+        return List.of();
     }
 }

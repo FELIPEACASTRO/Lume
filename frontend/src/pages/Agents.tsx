@@ -344,10 +344,10 @@ export default function Agents() {
     <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <WorkspaceNotice
-          title="Agents com runtime versionado."
+          title="Agents com runtime real."
           description="Perfis, threads e mensagens persistem no backend. Cada agente agora expõe provider, modelo, estilo de API, readiness, streaming e estado de credencial de forma explicita."
           state={selectedAgent?.availability ?? 'preview'}
-          detail="Quando a credencial existe, a thread usa inferencia real. Fallback continua opt-in por chamada, e providers fora do runtime real ficam bloqueados no seletor."
+          detail="Quando a inferencia falha, a thread registra erro operacional real e a UI nao fabrica resposta de assistant."
         />
 
         <div className="shell-surface p-5">
@@ -426,7 +426,11 @@ export default function Agents() {
                     {thread.apiStyle ? <span>{thread.apiStyle}</span> : null}
                     {thread.credentialState ? <span>{thread.credentialState}</span> : null}
                     {thread.versionLabel ? <span>{thread.versionLabel}</span> : null}
+                    <span>{thread.runtimeState}</span>
                   </div>
+                  {thread.lastError ? (
+                    <p className="mt-3 text-sm font-medium text-[#df7d77]">{thread.lastError}</p>
+                  ) : null}
                   <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">{thread.updatedAt}</p>
                 </button>
               ))
@@ -657,7 +661,11 @@ export default function Agents() {
             <div className="mt-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
               <FiMessageSquare size={12} />
               Thread ativa: {selectedThread.title}
+              <span>{selectedThread.runtimeState}</span>
             </div>
+          ) : null}
+          {selectedThread?.lastError ? (
+            <p className="mt-3 text-sm font-medium text-[#df7d77]">{selectedThread.lastError}</p>
           ) : null}
         </div>
       </section>

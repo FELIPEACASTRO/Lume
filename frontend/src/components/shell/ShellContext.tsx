@@ -1,14 +1,28 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import { ReactNode, createContext, useContext } from 'react';
-import { SessionContext, UsageSummaryDto, WorkspaceOptionDto, WorkspaceSummary } from '../../types';
+import {
+  SessionContext,
+  SetupStatusDto,
+  ShellNavItem,
+  ShellTaskTypeDto,
+  UsageSummaryDto,
+  WorkspaceOptionDto,
+  WorkspaceSummary,
+} from '../../types';
+
+export type ShellAccessState = 'setup_required' | 'unauthenticated' | 'authenticated';
 
 interface ShellContextValue {
   openSearch: () => void;
   closeSearch: () => void;
+  accessState: ShellAccessState;
+  setupStatus: SetupStatusDto | null;
   session: SessionContext | null;
   summary: WorkspaceSummary | null;
   usage: UsageSummaryDto | null;
+  navigation: ShellNavItem[];
+  taskTypes: ShellTaskTypeDto[];
   availableWorkspaces: WorkspaceOptionDto[];
   shellLoading: boolean;
   shellError: string | null;

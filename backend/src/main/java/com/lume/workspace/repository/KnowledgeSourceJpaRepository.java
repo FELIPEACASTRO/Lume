@@ -10,6 +10,8 @@ public interface KnowledgeSourceJpaRepository extends JpaRepository<KnowledgeSou
 
     List<KnowledgeSourceJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
 
+    List<KnowledgeSourceJpaEntity> findTop5ByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
+
     List<KnowledgeSourceJpaEntity> findByWorkspaceIdAndProjectIdOrderByUpdatedAtDesc(Long workspaceId, String projectId);
 
     Optional<KnowledgeSourceJpaEntity> findByIdAndWorkspaceId(String id, Long workspaceId);

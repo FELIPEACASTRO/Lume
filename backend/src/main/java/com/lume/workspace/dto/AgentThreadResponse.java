@@ -7,6 +7,8 @@ public record AgentThreadResponse(
         String title,
         String status,
         String availability,
+        String runtimeState,
+        String lastError,
         String lastMessagePreview,
         String updatedAt,
         String providerCode,

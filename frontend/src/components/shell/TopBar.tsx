@@ -1,119 +1,40 @@
 import { ChangeEvent } from 'react';
-import { FiBell, FiMenu, FiSearch, FiSettings } from 'react-icons/fi';
+import { FiBell, FiLogOut, FiMenu, FiSearch, FiSettings } from 'react-icons/fi';
 import { Link, useLocation } from 'react-router-dom';
-import StatusBadge from '../common/StatusBadge';
-import { WorkspaceDataState } from '../../types';
 import { useShell } from './ShellContext';
 
 interface TopBarProps {
   onMenuToggle: () => void;
   onSearchOpen: () => void;
+  onLogout: () => void;
 }
 
-function getRouteMeta(pathname: string) {
-  if (pathname.startsWith('/users')) {
-    return {
-      eyebrow: 'Membros',
-      title: 'Membros',
-      subtitle: 'Memberships reais conectadas ao workspace ativo.',
-      availability: 'live' as WorkspaceDataState,
-      statusLabel: 'RBAC ativo',
-    };
+function resolveSectionTitle(pathname: string, navigation: ReturnType<typeof useShell>['navigation']) {
+  const directMatch = navigation.find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`));
+  if (directMatch) {
+    return directMatch.label;
   }
-
-  if (pathname.startsWith('/agents')) {
-    return {
-      eyebrow: 'Agents',
-      title: 'Agents',
-      subtitle: 'Threads reais com linguagem assistida e controles preview.',
-      availability: 'preview' as WorkspaceDataState,
-      statusLabel: 'Preview assistido',
-    };
-  }
-
-  if (pathname.startsWith('/library')) {
-    return {
-      eyebrow: 'Biblioteca',
-      title: 'Biblioteca',
-      subtitle: 'Artefatos reais do workspace em grade densa.',
-      availability: 'live' as WorkspaceDataState,
-      statusLabel: 'Modulo real',
-    };
-  }
-
-  if (pathname.startsWith('/projects')) {
-    return {
-      eyebrow: 'Projetos',
-      title: 'Projetos',
-      subtitle: 'Ownership, backlog e grupos de execucao.',
-      availability: 'live' as WorkspaceDataState,
-      statusLabel: 'Modulo real',
-    };
-  }
-
   if (pathname.startsWith('/tasks')) {
-    return {
-      eyebrow: 'Task view',
-      title: 'Tarefas',
-      subtitle: 'Execucao assistida com steps, contexto e proximos passos.',
-      availability: 'preview' as WorkspaceDataState,
-      statusLabel: 'Preview assistido',
-    };
+    return 'Tarefas';
   }
-
-  if (pathname.startsWith('/usage')) {
-    return {
-      eyebrow: 'Uso',
-      title: 'Uso',
-      subtitle: 'Creditos, metering e volume operacional.',
-      availability: 'live' as WorkspaceDataState,
-      statusLabel: 'Metering',
-    };
-  }
-
-  if (pathname.startsWith('/inbox')) {
-    return {
-      eyebrow: 'Inbox',
-      title: 'Inbox',
-      subtitle: 'Eventos e alertas do workspace.',
-      availability: 'live' as WorkspaceDataState,
-      statusLabel: 'Modulo real',
-    };
-  }
-
-  if (pathname.startsWith('/settings')) {
-    return {
-      eyebrow: 'Settings',
-      title: 'Settings',
-      subtitle: 'Preferencias reais e superficies preview honestas.',
-      availability: 'preview' as WorkspaceDataState,
-      statusLabel: 'Modal-page',
-    };
-  }
-
-  return {
-    eyebrow: 'Workspace',
-    title: 'Lume OS',
-    subtitle: 'Motor de tarefas e contexto com linguagem inspirada no Manus.',
-    availability: 'live' as WorkspaceDataState,
-    statusLabel: 'Shell ativa',
-  };
+  return 'Workspace';
 }
 
-export default function TopBar({ onMenuToggle, onSearchOpen }: TopBarProps) {
+export default function TopBar({ onMenuToggle, onSearchOpen, onLogout }: TopBarProps) {
   const { pathname } = useLocation();
   const {
     session,
     summary,
     usage,
+    navigation,
     availableWorkspaces,
     switchWorkspace,
     switchingWorkspace,
   } = useShell();
-  const meta = getRouteMeta(pathname);
   const unreadNotifications = usage?.unreadNotifications ?? 0;
   const usageLabel = usage ? `${usage.remainingCredits}/${usage.dailyCredits}` : '--/--';
   const activeWorkspaceId = session?.workspace.id ?? availableWorkspaces.find((workspace) => workspace.active)?.id ?? 0;
+  const title = resolveSectionTitle(pathname, navigation);
 
   const handleWorkspaceChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     await switchWorkspace(Number(event.target.value));
@@ -128,15 +49,14 @@ export default function TopBar({ onMenuToggle, onSearchOpen }: TopBarProps) {
           </button>
 
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
-                {meta.eyebrow}
-              </p>
-              <StatusBadge state={meta.availability} />
-            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
+              {summary?.organizationName ?? session?.organization.name ?? 'Workspace'}
+            </p>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <h1 className="text-lg font-semibold text-[var(--text-primary)]">{meta.title}</h1>
-              <p className="hidden text-sm text-[var(--text-secondary)] xl:block">{meta.subtitle}</p>
+              <h1 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h1>
+              <p className="hidden text-sm text-[var(--text-secondary)] xl:block">
+                {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace ativo'}
+              </p>
             </div>
           </div>
         </div>
@@ -185,26 +105,16 @@ export default function TopBar({ onMenuToggle, onSearchOpen }: TopBarProps) {
             <FiSettings size={16} />
           </Link>
 
-          <Link
-            to="/settings"
+          <button
+            type="button"
             className="flex h-11 min-w-[44px] items-center justify-center rounded-full border px-3 text-sm font-semibold"
             style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
-            aria-label="Abrir perfil e configuracoes"
+            aria-label="Encerrar sessao"
+            onClick={onLogout}
+            title={`Sair de ${session?.user.email ?? 'sessao atual'}`}
           >
-            {session?.user.initials ?? 'LD'}
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-4 hidden items-center justify-between rounded-[12px] border px-4 py-3 lg:flex" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-        <p className="text-sm text-[var(--text-secondary)]">
-          {summary?.organizationName ?? session?.organization.name ?? 'Lume'} . {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace'}
-        </p>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-[var(--text-secondary)]">Status da area</span>
-          <span className="rounded-full border px-3 py-1 font-semibold" style={{ borderColor: 'var(--surface-border-main)', color: 'var(--text-primary)' }}>
-            {meta.statusLabel}
-          </span>
+            {session?.user.initials ?? <FiLogOut size={16} />}
+          </button>
         </div>
       </div>
     </header>

@@ -10,6 +10,8 @@ public record TaskSummaryResponse(
         String summary,
         String statusLabel,
         String availability,
+        String runtimeState,
+        String lastError,
         String ownerName,
         String updatedAt,
         String scheduledFor,

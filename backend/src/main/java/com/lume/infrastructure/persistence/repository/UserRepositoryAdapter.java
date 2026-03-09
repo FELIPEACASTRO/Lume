@@ -3,6 +3,7 @@ package com.lume.infrastructure.persistence.repository;
 import com.lume.application.port.output.UserRepositoryPort;
 import com.lume.domain.model.User;
 import com.lume.infrastructure.persistence.mapper.UserPersistenceMapper;
+import com.lume.workspace.service.WorkspaceContextService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -27,9 +28,11 @@ import java.util.Optional;
 public class UserRepositoryAdapter implements UserRepositoryPort {
 
     private final JpaUserRepository jpaRepository;
+    private final WorkspaceContextService workspaceContextService;
 
-    public UserRepositoryAdapter(JpaUserRepository jpaRepository) {
+    public UserRepositoryAdapter(JpaUserRepository jpaRepository, WorkspaceContextService workspaceContextService) {
         this.jpaRepository = jpaRepository;
+        this.workspaceContextService = workspaceContextService;
     }
 
     /**
@@ -39,6 +42,12 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public User save(User user) {
         var entity = UserPersistenceMapper.toJpaEntity(user);
+        if (entity.getOrganizationId() == null) {
+            entity.setOrganizationId(workspaceContextService.getOrganizationId());
+        }
+        if (entity.getWorkspaceId() == null) {
+            entity.setWorkspaceId(workspaceContextService.getWorkspaceId());
+        }
         var saved = jpaRepository.save(entity);
         return UserPersistenceMapper.toDomain(saved);
     }

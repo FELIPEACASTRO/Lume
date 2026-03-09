@@ -9,6 +9,7 @@ import com.lume.workspace.repository.AgentMessageJpaRepository;
 import com.lume.workspace.repository.AgentProfileJpaRepository;
 import com.lume.workspace.repository.AgentThreadJpaRepository;
 import com.lume.workspace.inference.ProviderDefinition;
+import com.lume.workspace.inference.error.AiProviderException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,8 +130,10 @@ public class AgentService {
         thread.setWorkspaceId(workspaceContextService.getWorkspaceId());
         thread.setAgentProfileId(profile.getId());
         thread.setTitle(buildThreadTitle(initialMessage, profile));
-        thread.setStatusLabel("Preview assistido");
-        thread.setAvailability("preview");
+        thread.setStatusLabel("Executando");
+        thread.setAvailability("live");
+        thread.setRuntimeState("running");
+        thread.setLastError(null);
         thread.setLastMessagePreview(initialMessage);
         agentThreadRepository.save(thread);
 
@@ -144,15 +147,25 @@ public class AgentService {
                 0.3,
                 700
         ));
-        boolean usedFallback = !isSuccessfulInference(inference);
-        AgentMessageJpaEntity assistantMessage = saveMessage(
-                threadId,
-                "assistant",
-                usedFallback
-                        ? buildFallbackReply(initialMessage, profile, inference.error())
-                        : inference.content()
-        );
-        applyThreadRuntimeState(thread, usedFallback);
+        if (!isSuccessfulInference(inference)) {
+            applyThreadFailure(thread, inference.error());
+            agentThreadRepository.save(thread);
+            auditLogService.record(
+                    "agent_thread",
+                    threadId,
+                    "failed",
+                    Map.of(
+                            "agentProfileId", profile.getId(),
+                            "providerCode", profile.getProviderCode(),
+                            "modelCode", profile.getModelCode(),
+                            "error", thread.getLastError()
+                    )
+            );
+            throw new AiProviderException(thread.getLastError(), false);
+        }
+
+        AgentMessageJpaEntity assistantMessage = saveMessage(threadId, "assistant", inference.content());
+        applyThreadSuccess(thread);
         thread.setLastMessagePreview(assistantMessage.getBody());
         agentThreadRepository.save(thread);
 
@@ -165,7 +178,7 @@ public class AgentService {
                         "title", thread.getTitle(),
                         "providerCode", profile.getProviderCode(),
                         "modelCode", profile.getModelCode(),
-                        "fallbackUsed", usedFallback
+                        "runtimeState", thread.getRuntimeState()
                 )
         );
 
@@ -195,19 +208,30 @@ public class AgentService {
                 0.3,
                 700
         ));
-        boolean usedFallback = !isSuccessfulInference(inference);
-        saveMessage(
-                threadId,
-                "assistant",
-                usedFallback
-                        ? buildFallbackReply(prompt, profile, inference.error())
-                        : inference.content()
-        );
+        if (!isSuccessfulInference(inference)) {
+            applyThreadFailure(thread, inference.error());
+            thread.setLastMessagePreview(prompt);
+            agentThreadRepository.save(thread);
+            auditLogService.record(
+                    "agent_thread",
+                    threadId,
+                    "failed",
+                    Map.of(
+                            "agentProfileId", profile.getId(),
+                            "providerCode", profile.getProviderCode(),
+                            "modelCode", profile.getModelCode(),
+                            "error", thread.getLastError()
+                    )
+            );
+            throw new AiProviderException(thread.getLastError(), false);
+        }
+
+        saveMessage(threadId, "assistant", inference.content());
         List<AgentMessageResponse> messages = agentMessageRepository.findByThreadIdOrderByCreatedAtAsc(threadId)
                 .stream()
                 .map(this::toMessageResponse)
                 .toList();
-        applyThreadRuntimeState(thread, usedFallback);
+        applyThreadSuccess(thread);
         thread.setLastMessagePreview(messages.get(messages.size() - 1).body());
         agentThreadRepository.save(thread);
 
@@ -220,7 +244,7 @@ public class AgentService {
                         "messageLength", prompt.length(),
                         "providerCode", profile.getProviderCode(),
                         "modelCode", profile.getModelCode(),
-                        "fallbackUsed", usedFallback
+                        "runtimeState", thread.getRuntimeState()
                 )
         );
 
@@ -254,21 +278,6 @@ public class AgentService {
         return profile.getName() + ": " + normalized.substring(0, 39) + "...";
     }
 
-    private String buildFallbackReply(String prompt, AgentProfileJpaEntity profile, String error) {
-        String detail = error == null || error.isBlank()
-                ? "A credencial ou o provider real ainda nao estavam disponiveis no momento da execucao."
-                : error;
-
-        return "%s recebeu o pedido \"%s\" em modo preview. O agente esta versionado para %s (%s), mas a chamada real nao foi concluida. %s"
-                .formatted(
-                        profile.getName(),
-                        prompt,
-                        profile.getProviderCode(),
-                        profile.getModelCode(),
-                        detail
-                );
-    }
-
     private boolean isSuccessfulInference(UnifiedInferenceResponse inference) {
         return inference != null
                 && "completed".equalsIgnoreCase(inference.status())
@@ -276,14 +285,20 @@ public class AgentService {
                 && !inference.content().isBlank();
     }
 
-    private void applyThreadRuntimeState(AgentThreadJpaEntity thread, boolean usedFallback) {
-        if (usedFallback) {
-            thread.setStatusLabel("Preview assistido");
-            thread.setAvailability("preview");
-            return;
-        }
-        thread.setStatusLabel("Inferencia ativa");
+    private void applyThreadSuccess(AgentThreadJpaEntity thread) {
+        thread.setStatusLabel("Inferencia concluida");
         thread.setAvailability("live");
+        thread.setRuntimeState("completed");
+        thread.setLastError(null);
+    }
+
+    private void applyThreadFailure(AgentThreadJpaEntity thread, String error) {
+        thread.setStatusLabel("Falhou");
+        thread.setAvailability("live");
+        thread.setRuntimeState("failed");
+        thread.setLastError(error == null || error.isBlank()
+                ? "A inferencia real nao foi concluida para este agent."
+                : error);
     }
 
     private AgentProfileResponse toProfileResponse(AgentProfileJpaEntity profile) {
@@ -333,6 +348,8 @@ public class AgentService {
                 thread.getTitle(),
                 thread.getStatusLabel(),
                 thread.getAvailability(),
+                thread.getRuntimeState(),
+                thread.getLastError(),
                 thread.getLastMessagePreview(),
                 formatTimestamp(thread.getUpdatedAt()),
                 profile != null ? profile.getProviderCode() : null,

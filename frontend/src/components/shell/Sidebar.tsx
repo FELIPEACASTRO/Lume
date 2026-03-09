@@ -16,7 +16,6 @@ import {
   FiBarChart2,
 } from 'react-icons/fi';
 import { Link, NavLink } from 'react-router-dom';
-import { shellNavigation } from '../../data/shell';
 import { ShellIconKey, WorkspaceGroup } from '../../types';
 import StatusBadge from '../common/StatusBadge';
 import { useShell } from './ShellContext';
@@ -54,7 +53,7 @@ const focusableSelector = [
 ].join(', ');
 
 function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpen'>) {
-  const { session, summary } = useShell();
+  const { session, summary, navigation } = useShell();
   const recentItems = summary?.recentItems ?? [];
 
   return (
@@ -65,7 +64,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
             <img src="/lume.svg" alt="Lume" className="h-7 w-7" />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Lume inspired shell</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">Lume workspace</p>
             <p className="truncate text-base font-semibold text-[var(--text-primary)]">
               {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace'}
             </p>
@@ -96,7 +95,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
 
       <div className="space-y-4">
         {navigationSections.map((section) => {
-          const items = shellNavigation.filter((item) => item.group === section.key);
+          const items = navigation.filter((item) => item.group === section.key);
 
           if (items.length === 0) {
             return null;
@@ -131,12 +130,6 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm font-semibold text-[var(--text-primary)]">{item.label}</span>
-                          {item.badge ? (
-                            <span className="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em]" style={{ borderColor: 'var(--surface-border-main)', color: 'var(--accent)' }}>
-                              {item.badge}
-                            </span>
-                          ) : null}
-                          <StatusBadge state={item.availability} />
                         </div>
                         <p className="mt-1 text-sm leading-5 text-[var(--text-secondary)]">{item.description}</p>
                       </div>
@@ -195,7 +188,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
           {summary?.organizationName ?? session?.organization.name ?? 'Lume'} . {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace'}
         </p>
         <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-          Biblioteca, projetos, inbox, uso e membros continuam reais. Recursos inspirados no Manus sem backend pronto ficam visiveis como preview honesto.
+          A shell, a busca e o resumo agora refletem apenas estado real do backend e do banco deste workspace.
         </p>
         <Link to="/settings" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-link" onClick={onClose}>
           Abrir settings

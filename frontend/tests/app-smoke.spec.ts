@@ -7,6 +7,13 @@ const basePreferences = {
   productUpdates: true,
 };
 
+const baseSetupStatus = {
+  setupRequired: false,
+  organizations: 1,
+  workspaces: 2,
+  users: 1,
+};
+
 const baseSession = {
   user: { id: 1, name: 'Lume Operator', email: 'operator@lume.local', initials: 'LO' },
   organization: { id: 1, name: 'Lume', slug: 'lume' },
@@ -65,6 +72,89 @@ const baseUsage = {
   note: 'Metadados operacionais de uso.',
 };
 
+const baseShellNavigation = {
+  items: [
+    {
+      id: 'agents',
+      label: 'Agents',
+      path: '/agents',
+      description: 'Threads e runtime reais do workspace.',
+      icon: 'agents',
+      availability: 'live',
+      group: 'primary',
+      keywords: ['agents', 'threads', 'runtime'],
+    },
+    {
+      id: 'library',
+      label: 'Biblioteca',
+      path: '/library',
+      description: 'Artefatos e contexto persistidos do workspace.',
+      icon: 'library',
+      availability: 'live',
+      group: 'primary',
+      keywords: ['biblioteca', 'artefatos'],
+    },
+    {
+      id: 'projects',
+      label: 'Projetos',
+      path: '/projects',
+      description: 'Ownership, backlog e agrupamento operacional.',
+      icon: 'projects',
+      availability: 'live',
+      group: 'primary',
+      keywords: ['projetos', 'backlog'],
+    },
+    {
+      id: 'users',
+      label: 'Membros',
+      path: '/users',
+      description: 'Memberships e RBAC do workspace ativo.',
+      icon: 'users',
+      availability: 'live',
+      group: 'secondary',
+      keywords: ['membros', 'usuarios'],
+    },
+    {
+      id: 'inbox',
+      label: 'Inbox',
+      path: '/inbox',
+      description: 'Eventos e notificacoes reais do workspace.',
+      icon: 'inbox',
+      availability: 'live',
+      group: 'secondary',
+      keywords: ['inbox', 'notificacoes'],
+    },
+    {
+      id: 'usage',
+      label: 'Uso',
+      path: '/usage',
+      description: 'Creditos, metering e budget operacional.',
+      icon: 'usage',
+      availability: 'live',
+      group: 'secondary',
+      keywords: ['uso', 'budget'],
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      path: '/settings',
+      description: 'Preferencias, providers e governanca do workspace.',
+      icon: 'settings',
+      availability: 'live',
+      group: 'secondary',
+      keywords: ['settings', 'providers'],
+    },
+  ],
+  taskTypes: [
+    { taskType: 'slides', label: 'Criar slides', description: 'Abrir uma trilha para montar narrativas e apresentacoes.' },
+    { taskType: 'sites', label: 'Criar site', description: 'Registrar uma tarefa para estruturar paginas e conteudo.' },
+    { taskType: 'apps', label: 'Desenvolver app', description: 'Planejar backlog, fluxos e modulos da aplicacao.' },
+    { taskType: 'design', label: 'Design', description: 'Estruturar referencias e entregaveis visuais.' },
+    { taskType: 'research', label: 'Research', description: 'Abrir uma trilha de investigacao e consolidacao de fontes.' },
+    { taskType: 'playbook', label: 'Playbook', description: 'Registrar um fluxo operacional reutilizavel.' },
+  ],
+};
+
 const baseTasks = [
   {
     id: 'task-onboarding',
@@ -73,9 +163,11 @@ const baseTasks = [
     taskType: 'playbook',
     title: 'Estruturar onboarding operacional',
     prompt: 'Mapeie o fluxo de onboarding.',
-    summary: 'Task assistida com steps e follow-up.',
-    statusLabel: 'Preview assistido',
-    availability: 'preview',
+    summary: 'Task registrada com steps reais do workspace.',
+    statusLabel: 'Registrada',
+    availability: 'live',
+    runtimeState: 'queued',
+    lastError: null,
     ownerName: 'Operacao',
     updatedAt: '2026-03-08 00:00',
     scheduledFor: null,
@@ -567,8 +659,10 @@ const baseAgentThreads = [
     agentProfileId: 'ops',
     agentName: 'Ops Strategist',
     title: 'Fluxo de onboarding operacional',
-    status: 'Preview assistido',
-    availability: 'preview',
+    status: 'Inferencia concluida',
+    availability: 'live',
+    runtimeState: 'completed',
+    lastError: null,
     lastMessagePreview: 'Mapeie um fluxo de onboarding com checkpoints claros.',
     updatedAt: '08/03/2026 00:00',
     providerCode: 'openai',
@@ -591,7 +685,7 @@ const baseAgentMessages = {
     {
       id: 'msg-assistant',
       role: 'assistant',
-      body: 'Runtime em preview: configure as credenciais para ativar a inferencia real.',
+      body: 'Fluxo registrado com checkpoints, ownership e criterio de aceite.',
       timestamp: '08/03/2026 00:01',
     },
   ],
@@ -621,10 +715,10 @@ function buildSummary(workspaceName: string, userCount: number) {
       {
         id: 'task-onboarding',
         title: 'Estruturar onboarding operacional',
-        summary: 'Task assistida com steps e contexto.',
+        summary: 'Task registrada com steps e contexto reais.',
         detail: 'Atualizada agora',
         path: '/tasks/task-onboarding',
-        availability: 'preview',
+        availability: 'live',
       },
     ],
     workspaceFacets: [
@@ -683,11 +777,18 @@ function buildSettingsOverview(preferences: typeof basePreferences, workspaceNam
         previewState: 'live',
       },
       {
-        key: 'mail',
-        title: 'Mail',
-        description: 'Preview de mail.',
-        availability: 'preview',
-        previewState: 'disabled-preview',
+        key: 'knowledge',
+        title: 'Knowledge',
+        description: 'Fontes de conhecimento persistidas.',
+        availability: 'live',
+        previewState: 'live',
+      },
+      {
+        key: 'finops',
+        title: 'FinOps',
+        description: 'Budget e governanca do workspace.',
+        availability: 'live',
+        previewState: 'live',
       },
       {
         key: 'providers-runtime',
@@ -700,7 +801,7 @@ function buildSettingsOverview(preferences: typeof basePreferences, workspaceNam
         key: 'threat-intelligence',
         title: 'Threat Intelligence',
         description: 'Secao administrativa e auditada.',
-        availability: 'preview',
+        availability: 'live',
         previewState: 'disabled-preview',
       },
     ],
@@ -755,8 +856,16 @@ test.beforeEach(async ({ page }) => {
     const request = route.request();
     const { pathname } = new URL(request.url());
 
+    if (pathname.endsWith('/api/v1/setup/status')) {
+      return route.fulfill({ json: baseSetupStatus });
+    }
+
     if (pathname.endsWith('/api/v1/auth/session')) {
       return route.fulfill({ json: sessionData });
+    }
+
+    if (pathname.endsWith('/api/v1/shell/navigation')) {
+      return route.fulfill({ json: baseShellNavigation });
     }
 
     if (pathname.endsWith('/api/v1/workspaces')) {
@@ -1078,10 +1187,10 @@ test.beforeEach(async ({ page }) => {
           {
             id: 'task-onboarding',
             title: 'Estruturar onboarding operacional',
-            description: 'Task assistida com contexto real.',
+            description: 'Task registrada com contexto real.',
             path: '/tasks/task-onboarding',
-            section: 'Workspace',
-            availability: 'preview',
+            section: 'Tarefas',
+            availability: 'live',
             keywords: ['onboarding'],
           },
         ],
@@ -1101,7 +1210,7 @@ test.beforeEach(async ({ page }) => {
 
 test('home renders and the search modal opens with keyboard', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('Um motor de tarefas com shell honesta, contexto real e visual de control room.')).toBeVisible();
+  await expect(page.getByText('Uma camada operacional de IA com tarefas, contexto e governanca reais.')).toBeVisible();
   await page.keyboard.press('Control+K');
   await expect(page.getByText('Busca global do workspace')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -1117,10 +1226,10 @@ test('settings toggles the theme and persists the resolved theme on the root ele
 
 test('workspace switch updates the topbar context without breaking layout', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('banner').getByText('Lume . Workspace Principal')).toBeVisible();
+  await expect(page.locator('header').locator('p').filter({ hasText: 'Workspace Principal' }).first()).toBeVisible();
   await page.getByLabel('Selecionar workspace ativo').selectOption('2');
   await expect(page.getByLabel('Selecionar workspace ativo')).toHaveValue('2');
-  await expect(page.getByRole('banner').getByText('Lume . Workspace Secundario')).toBeVisible();
+  await expect(page.locator('header').locator('p').filter({ hasText: 'Workspace Secundario' }).first()).toBeVisible();
 });
 
 test('home creates a task and opens the generated task view', async ({ page }) => {
@@ -1133,11 +1242,11 @@ test('home creates a task and opens the generated task view', async ({ page }) =
 
 test('library filters entries with the local search field', async ({ page }) => {
   await page.goto('/library');
-  await expect(page.getByText('Playbook de onboarding')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Playbook de onboarding' })).toBeVisible();
   await page.getByLabel('Buscar na biblioteca').fill('inexistente');
   await expect(page.getByText('Nada encontrado.')).toBeVisible();
   await page.getByLabel('Buscar na biblioteca').fill('onboarding');
-  await expect(page.getByText('Playbook de onboarding')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Playbook de onboarding' })).toBeVisible();
 });
 
 test('members CRUD continues functional on the workspace shell', async ({ page }) => {
@@ -1167,7 +1276,7 @@ test('members CRUD continues functional on the workspace shell', async ({ page }
   await expect(updatedCard.getByText('Inativo')).toBeVisible();
 });
 
-test('preview sections stay visible but do not fire invalid preference updates', async ({ page }) => {
+test('settings sections switch without firing invalid preference updates', async ({ page }) => {
   let preferencePatchCount = 0;
 
   page.on('request', (request) => {
@@ -1177,9 +1286,8 @@ test('preview sections stay visible but do not fire invalid preference updates',
   });
 
   await page.goto('/settings');
-  await page.getByRole('button', { name: /Mail/ }).click();
-  await expect(page.getByText('Preview visivel')).toBeVisible();
-  await expect(page.getByText('Preview honesto e sem side effects')).toBeVisible();
+  await page.getByRole('button', { name: /Knowledge/ }).click();
+  await expect(page.getByText('Foundation real para knowledge plane')).toBeVisible();
   await page.waitForTimeout(300);
   expect(preferencePatchCount).toBe(0);
 });
@@ -1191,7 +1299,6 @@ test('settings renders providers runtime and threat intelligence sections with r
   await expect(page.getByText('Responses API como caminho principal.')).toBeVisible();
 
   await page.getByRole('button', { name: /Threat Intelligence/ }).click();
-  await expect(page.getByText('Preview honesto, admin-only e sem execucao silenciosa')).toBeVisible();
   await expect(page.getByText('DarkOwl', { exact: true })).toBeVisible();
 });
 
@@ -1209,12 +1316,12 @@ test('agents page exposes runtime metadata and allows admin runtime updates', as
 test('core routes render with mocked backend contracts', async ({ page }) => {
   const routes = [
     ['/agents', 'Runtime real por perfil'],
-    ['/tasks', 'Task board inspirado no Manus'],
-    ['/tasks/task-onboarding', 'Task view em linguagem de execucao.'],
+    ['/tasks', 'Task board operacional.'],
+    ['/tasks/task-onboarding', 'Task view com estado real.'],
     ['/library', 'Biblioteca agora opera sobre dados reais do workspace.'],
     ['/projects', 'Projetos entram como modulo real do workspace.'],
     ['/users', 'Membros do workspace com tenancy real.'],
-    ['/settings', 'Settings em formato modal-page.'],
+    ['/settings', 'Settings operacionais do workspace.'],
   ] as const;
 
   for (const [route, heading] of routes) {

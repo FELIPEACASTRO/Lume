@@ -98,6 +98,6 @@ describe('Library', () => {
       changeSummary: 'Rollback e aceite',
       contentPreview: 'Versao mais recente.',
     }));
-    await waitFor(() => expect(screen.getAllByText('v3').length).toBeGreaterThan(0));
+    await waitFor(() => expect(screen.getAllByText('v3').length).toBeGreaterThan(1));
   });
 });

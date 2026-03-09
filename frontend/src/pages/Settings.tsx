@@ -537,9 +537,9 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <WorkspaceNotice
-        title="Settings em formato modal-page."
-        description="A area de configuracoes agora mistura preferencias reais, catalogo de providers e controles administrativos sem fingir que todo provider ja esta live."
-        state="preview"
+        title="Settings operacionais do workspace."
+        description="A area de configuracoes expõe apenas preferencias, governanca, providers e controles administrativos que existem de fato no backend."
+        state="live"
         detail={preferencesError ?? 'Aparencia, idioma, credenciais exigidas e runtime sao resolvidos por APIs reais.'}
       />
 
@@ -1112,8 +1112,8 @@ export default function Settings() {
                   <div className="flex items-start gap-3">
                     <FiCheckCircle size={18} className="mt-0.5 text-[var(--accent)]" />
                     <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)]">Preview honesto e sem side effects</p>
-                      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">As secoes `mail`, `browser`, `skills`, `connectors` e `integrations` seguem visiveis, mas continuam marcadas como preview ate ganharem API, persistencia e testes proprios.</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">Configuracao guiada por contratos reais</p>
+                      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">Secoes sem API, persistencia e estado operacional nao aparecem mais na shell principal. Quando um modulo voltar, ele volta como feature real.</p>
                     </div>
                   </div>
                 </section>

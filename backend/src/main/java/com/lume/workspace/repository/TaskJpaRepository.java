@@ -10,6 +10,8 @@ public interface TaskJpaRepository extends JpaRepository<TaskJpaEntity, String> 
 
     List<TaskJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
 
+    long countByWorkspaceId(Long workspaceId);
+
     List<TaskJpaEntity> findByWorkspaceIdAndProjectIdOrderByUpdatedAtDesc(Long workspaceId, String projectId);
 
     Optional<TaskJpaEntity> findByIdAndWorkspaceId(String id, Long workspaceId);

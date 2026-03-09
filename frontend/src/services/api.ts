@@ -3,6 +3,7 @@ import { ApiClientError, ApiError } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -59,6 +60,22 @@ export function toApiClientError(error: unknown): ApiClientError {
       status,
       code: axiosError.code,
       message: backendMessage || 'Voce nao possui permissao para acessar este recurso no workspace atual.',
+    };
+  }
+
+  if (status === 401) {
+    return {
+      status,
+      code: axiosError.code,
+      message: backendMessage || 'Sua sessao nao esta autenticada.',
+    };
+  }
+
+  if (status === 409) {
+    return {
+      status,
+      code: axiosError.code,
+      message: backendMessage || 'A aplicacao ainda precisa concluir o setup inicial.',
     };
   }
 
