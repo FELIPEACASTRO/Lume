@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   FiCheckCircle,
   FiChevronRight,
+  FiDatabase,
+  FiEdit3,
   FiExternalLink,
   FiMail,
   FiMoon,
@@ -9,6 +11,7 @@ import {
   FiSettings,
   FiShield,
   FiSun,
+  FiTrash2,
 } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
 import AsyncState from '../components/common/AsyncState';
@@ -17,10 +20,18 @@ import WorkspaceNotice from '../components/common/WorkspaceNotice';
 import { useShell } from '../components/shell/ShellContext';
 import { useTheme } from '../components/theme/ThemeProvider';
 import { toApiClientError } from '../services/api';
+import { budgetService } from '../services/budgetService';
+import { knowledgeSourceService } from '../services/knowledgeSourceService';
 import { providerService } from '../services/providerService';
+import { projectService } from '../services/projectService';
 import { settingsService } from '../services/settingsService';
 import {
+  BudgetSummaryDto,
+  ChargebackMode,
+  CreateKnowledgeSourceRequest,
+  KnowledgeSourceDto,
   PreviewState,
+  ProjectDto,
   ProviderConnectivityDto,
   ProviderCredentialDto,
   ProviderDto,
@@ -28,6 +39,7 @@ import {
   ProviderStatusDto,
   SettingsOverviewDto,
   ThemeMode,
+  UpdateKnowledgeSourceRequest,
 } from '../types';
 
 type ProviderCard = {
@@ -36,6 +48,16 @@ type ProviderCard = {
   credentials?: ProviderCredentialDto;
   health?: ProviderHealthDto;
   connectivity?: ProviderConnectivityDto;
+};
+
+const emptyKnowledgeDraft: CreateKnowledgeSourceRequest = {
+  title: '',
+  sourceType: 'library',
+  projectId: '',
+  sourceUri: '',
+  documentCount: 0,
+  enabledForAgents: true,
+  note: '',
 };
 
 function providerState(card: ProviderCard): PreviewState {
@@ -197,6 +219,23 @@ export default function Settings() {
   const [health, setHealth] = useState<ProviderHealthDto[]>([]);
   const [credentials, setCredentials] = useState<ProviderCredentialDto[]>([]);
   const [connectivity, setConnectivity] = useState<Record<string, ProviderConnectivityDto>>({});
+  const [budget, setBudget] = useState<BudgetSummaryDto | null>(null);
+  const [budgetLoading, setBudgetLoading] = useState(false);
+  const [budgetError, setBudgetError] = useState<string | null>(null);
+  const [budgetSaving, setBudgetSaving] = useState(false);
+  const [budgetDraft, setBudgetDraft] = useState({
+    costCenter: '',
+    chargebackMode: 'showback' as ChargebackMode,
+    softLimitCredits: '300',
+    hardLimitCredits: '450',
+  });
+  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSourceDto[]>([]);
+  const [knowledgeProjects, setKnowledgeProjects] = useState<ProjectDto[]>([]);
+  const [knowledgeLoading, setKnowledgeLoading] = useState(false);
+  const [knowledgeError, setKnowledgeError] = useState<string | null>(null);
+  const [knowledgeSaving, setKnowledgeSaving] = useState(false);
+  const [editingKnowledgeId, setEditingKnowledgeId] = useState<string | null>(null);
+  const [knowledgeDraft, setKnowledgeDraft] = useState<CreateKnowledgeSourceRequest>(emptyKnowledgeDraft);
   const [loading, setLoading] = useState(true);
   const [providerLoading, setProviderLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -209,6 +248,10 @@ export default function Settings() {
   const canReadProviders = permissions.includes('providers.read');
   const canTestProviders = permissions.includes('providers.test');
   const canReadThreatIntel = permissions.includes('threat_intel.read');
+  const canReadKnowledge = permissions.includes('knowledge.read');
+  const canManageKnowledge = permissions.includes('knowledge.manage');
+  const canReadBudgets = permissions.includes('budgets.read');
+  const canManageBudgets = permissions.includes('budgets.manage');
 
   useEffect(() => {
     void (async () => {
@@ -258,6 +301,69 @@ export default function Settings() {
     })();
   }, [canReadProviders]);
 
+  useEffect(() => {
+    if (!canReadBudgets) {
+      setBudget(null);
+      setBudgetError(null);
+      setBudgetLoading(false);
+      return;
+    }
+
+    void (async () => {
+      try {
+        setBudgetLoading(true);
+        setBudgetError(null);
+        setBudget(await budgetService.getCurrent());
+      } catch (loadError) {
+        setBudget(null);
+        setBudgetError(toApiClientError(loadError).message);
+      } finally {
+        setBudgetLoading(false);
+      }
+    })();
+  }, [canReadBudgets]);
+
+  useEffect(() => {
+    if (!canReadKnowledge) {
+      setKnowledgeSources([]);
+      setKnowledgeProjects([]);
+      setKnowledgeError(null);
+      setKnowledgeLoading(false);
+      return;
+    }
+
+    void (async () => {
+      try {
+        setKnowledgeLoading(true);
+        setKnowledgeError(null);
+        const [nextKnowledgeSources, nextProjects] = await Promise.all([
+          knowledgeSourceService.findAll(),
+          projectService.findAll(),
+        ]);
+        setKnowledgeSources(nextKnowledgeSources);
+        setKnowledgeProjects(nextProjects);
+      } catch (loadError) {
+        setKnowledgeSources([]);
+        setKnowledgeProjects([]);
+        setKnowledgeError(toApiClientError(loadError).message);
+      } finally {
+        setKnowledgeLoading(false);
+      }
+    })();
+  }, [canReadKnowledge]);
+
+  useEffect(() => {
+    if (!budget) {
+      return;
+    }
+    setBudgetDraft({
+      costCenter: budget.costCenter,
+      chargebackMode: budget.chargebackMode,
+      softLimitCredits: String(budget.softLimitCredits),
+      hardLimitCredits: String(budget.hardLimitCredits),
+    });
+  }, [budget]);
+
   const state = useMemo(() => {
     if (loading) return 'loading';
     if (error) return 'error';
@@ -278,8 +384,12 @@ export default function Settings() {
   const researchCards = cards.filter((card) => card.provider.category === 'research-search');
   const mediaCards = cards.filter((card) => card.provider.category === 'media-audio');
   const threatIntelCards = cards.filter((card) => card.provider.category === 'threat-intel');
+  const knowledgeEnabledCount = knowledgeSources.filter((source) => source.enabledForAgents).length;
+  const knowledgeProjectLinkedCount = knowledgeSources.filter((source) => source.projectId).length;
 
   const isConfigSection = activeSection?.key === 'configuracoes';
+  const isKnowledgeSection = activeSection?.key === 'knowledge';
+  const isFinopsSection = activeSection?.key === 'finops';
   const isProvidersSection = activeSection?.key === 'providers-runtime';
   const isThreatSection = activeSection?.key === 'threat-intelligence';
   const isLiveSection = activeSection?.previewState === 'live';
@@ -331,6 +441,96 @@ export default function Settings() {
         }));
     } finally {
       setTestingProviderCode(null);
+    }
+  };
+
+  const handleBudgetSave = async () => {
+    try {
+      setBudgetSaving(true);
+      setBudgetError(null);
+      const updatedBudget = await budgetService.updateCurrent({
+        costCenter: budgetDraft.costCenter.trim(),
+        chargebackMode: budgetDraft.chargebackMode,
+        softLimitCredits: Number.parseInt(budgetDraft.softLimitCredits, 10),
+        hardLimitCredits: Number.parseInt(budgetDraft.hardLimitCredits, 10),
+      });
+      setBudget(updatedBudget);
+      setOverview(await settingsService.getOverview());
+    } catch (saveError) {
+      setBudgetError(toApiClientError(saveError).message);
+    } finally {
+      setBudgetSaving(false);
+    }
+  };
+
+  const resetKnowledgeDraft = () => {
+    setEditingKnowledgeId(null);
+    setKnowledgeDraft(emptyKnowledgeDraft);
+  };
+
+  const handleEditKnowledge = (source: KnowledgeSourceDto) => {
+    setEditingKnowledgeId(source.id);
+    setKnowledgeDraft({
+      title: source.title,
+      sourceType: source.sourceType,
+      projectId: source.projectId ?? '',
+      sourceUri: source.sourceUri ?? '',
+      documentCount: source.documentCount,
+      enabledForAgents: source.enabledForAgents,
+      note: source.note,
+      statusLabel: source.statusLabel,
+      availability: source.availability,
+    });
+  };
+
+  const handleKnowledgeSave = async () => {
+    try {
+      setKnowledgeSaving(true);
+      setKnowledgeError(null);
+
+      const payload: UpdateKnowledgeSourceRequest = {
+        title: knowledgeDraft.title.trim(),
+        sourceType: knowledgeDraft.sourceType?.trim(),
+        projectId: knowledgeDraft.projectId?.trim() || undefined,
+        sourceUri: knowledgeDraft.sourceUri?.trim() || undefined,
+        documentCount: Number(knowledgeDraft.documentCount ?? 0),
+        enabledForAgents: knowledgeDraft.enabledForAgents ?? true,
+        statusLabel: knowledgeDraft.statusLabel?.trim() || undefined,
+        availability: knowledgeDraft.availability,
+        note: knowledgeDraft.note.trim(),
+      };
+
+      const nextKnowledgeSource = editingKnowledgeId
+        ? await knowledgeSourceService.update(editingKnowledgeId, payload)
+        : await knowledgeSourceService.create(payload as CreateKnowledgeSourceRequest);
+
+      setKnowledgeSources((current) => {
+        const withoutCurrent = current.filter((source) => source.id !== nextKnowledgeSource.id);
+        return [nextKnowledgeSource, ...withoutCurrent];
+      });
+      resetKnowledgeDraft();
+      setOverview(await settingsService.getOverview());
+    } catch (saveError) {
+      setKnowledgeError(toApiClientError(saveError).message);
+    } finally {
+      setKnowledgeSaving(false);
+    }
+  };
+
+  const handleKnowledgeDelete = async (sourceId: string) => {
+    try {
+      setKnowledgeSaving(true);
+      setKnowledgeError(null);
+      await knowledgeSourceService.remove(sourceId);
+      setKnowledgeSources((current) => current.filter((source) => source.id !== sourceId));
+      if (editingKnowledgeId === sourceId) {
+        resetKnowledgeDraft();
+      }
+      setOverview(await settingsService.getOverview());
+    } catch (deleteError) {
+      setKnowledgeError(toApiClientError(deleteError).message);
+    } finally {
+      setKnowledgeSaving(false);
     }
   };
 
@@ -480,6 +680,341 @@ export default function Settings() {
                   </section>
                 ) : null}
 
+                {isKnowledgeSection ? (
+                  <section className="space-y-4">
+                    <div className="grid gap-4 lg:grid-cols-4">
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Fontes</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{knowledgeSources.length}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Prontas para agents</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{knowledgeEnabledCount}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Ligadas a projetos</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{knowledgeProjectLinkedCount}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Workspace</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{overview.knowledgeSources}</p>
+                      </div>
+                    </div>
+
+                    {knowledgeLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando fontes de conhecimento...</div> : null}
+                    {knowledgeError ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">{knowledgeError}</div> : null}
+
+                    {!knowledgeLoading ? (
+                      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                        <article className="shell-panel p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Catalogo do workspace</p>
+                          <div className="mt-4 space-y-3">
+                            {knowledgeSources.length === 0 ? (
+                              <div className="rounded-[12px] border px-4 py-5 text-sm text-[var(--text-secondary)]" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                                Nenhuma fonte de conhecimento foi registrada neste workspace ainda.
+                              </div>
+                            ) : (
+                              knowledgeSources.map((source) => (
+                                <div key={source.id} className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                                  <div className="flex flex-wrap items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <p className="text-sm font-semibold text-[var(--text-primary)]">{source.title}</p>
+                                        <StatusBadge state={source.availability} />
+                                      </div>
+                                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                                        {source.sourceType} {source.projectName ? `. ${source.projectName}` : '. Sem projeto'}
+                                      </p>
+                                    </div>
+                                    {canManageKnowledge ? (
+                                      <div className="flex gap-2">
+                                        <button type="button" className="pill-button" onClick={() => handleEditKnowledge(source)} disabled={knowledgeSaving}>
+                                          <FiEdit3 size={14} />
+                                          Editar
+                                        </button>
+                                        <button type="button" className="pill-button" onClick={() => void handleKnowledgeDelete(source.id)} disabled={knowledgeSaving}>
+                                          <FiTrash2 size={14} />
+                                          Remover
+                                        </button>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                  <div className="mt-4 grid gap-3 lg:grid-cols-4">
+                                    <div>
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Documentos</p>
+                                      <p className="mt-2 text-sm text-[var(--text-primary)]">{source.documentCount}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Agents</p>
+                                      <p className="mt-2 text-sm text-[var(--text-primary)]">{source.enabledForAgents ? 'Habilitado' : 'Desligado'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Status</p>
+                                      <p className="mt-2 text-sm text-[var(--text-primary)]">{source.statusLabel}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Ultima indexacao</p>
+                                      <p className="mt-2 text-sm text-[var(--text-primary)]">{source.lastIndexedAt ?? source.updatedAt}</p>
+                                    </div>
+                                  </div>
+                                  <p className="mt-4 text-sm leading-6 text-[var(--text-secondary)]">{source.note}</p>
+                                  {source.sourceUri ? (
+                                    <p className="mt-3 text-xs text-[var(--text-tertiary)]">
+                                      URI: <span className="font-semibold text-[var(--text-secondary)]">{source.sourceUri}</span>
+                                    </p>
+                                  ) : null}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </article>
+
+                        <article className="shell-panel p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">
+                            {editingKnowledgeId ? 'Editar fonte' : 'Nova fonte'}
+                          </p>
+                          <div className="mt-4 space-y-3">
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Titulo</span>
+                              <input
+                                aria-label="Titulo da fonte de conhecimento"
+                                value={knowledgeDraft.title}
+                                onChange={(event) => setKnowledgeDraft((current) => ({ ...current, title: event.target.value }))}
+                                disabled={!canManageKnowledge || knowledgeSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Tipo</span>
+                              <select
+                                aria-label="Tipo da fonte de conhecimento"
+                                value={knowledgeDraft.sourceType}
+                                onChange={(event) => setKnowledgeDraft((current) => ({ ...current, sourceType: event.target.value }))}
+                                disabled={!canManageKnowledge || knowledgeSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              >
+                                {['library', 'repository', 'document-store', 'agent-thread', 'search-grounding', 'upload'].map((sourceType) => (
+                                  <option key={sourceType} value={sourceType}>{sourceType}</option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Projeto</span>
+                              <select
+                                aria-label="Projeto da fonte de conhecimento"
+                                value={knowledgeDraft.projectId ?? ''}
+                                onChange={(event) => setKnowledgeDraft((current) => ({ ...current, projectId: event.target.value }))}
+                                disabled={!canManageKnowledge || knowledgeSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              >
+                                <option value="">Sem projeto</option>
+                                {knowledgeProjects.map((project) => (
+                                  <option key={project.id} value={project.id}>{project.name}</option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">URI de origem</span>
+                              <input
+                                aria-label="URI da fonte de conhecimento"
+                                value={knowledgeDraft.sourceUri ?? ''}
+                                onChange={(event) => setKnowledgeDraft((current) => ({ ...current, sourceUri: event.target.value }))}
+                                disabled={!canManageKnowledge || knowledgeSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Documentos indexados</span>
+                              <input
+                                aria-label="Documentos indexados da fonte de conhecimento"
+                                type="number"
+                                min={0}
+                                value={knowledgeDraft.documentCount ?? 0}
+                                onChange={(event) => setKnowledgeDraft((current) => ({ ...current, documentCount: Number.parseInt(event.target.value || '0', 10) }))}
+                                disabled={!canManageKnowledge || knowledgeSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <label className="flex items-center justify-between rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                              <span>
+                                <p className="text-sm font-semibold text-[var(--text-primary)]">Disponivel para agents</p>
+                                <p className="text-sm text-[var(--text-secondary)]">Permite que o runtime trate a fonte como contexto operacional.</p>
+                              </span>
+                              <input
+                                aria-label="Disponivel para agents"
+                                type="checkbox"
+                                checked={knowledgeDraft.enabledForAgents ?? true}
+                                onChange={(event) => setKnowledgeDraft((current) => ({ ...current, enabledForAgents: event.target.checked }))}
+                                disabled={!canManageKnowledge || knowledgeSaving}
+                              />
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Nota operacional</span>
+                              <textarea
+                                aria-label="Nota operacional da fonte de conhecimento"
+                                rows={4}
+                                value={knowledgeDraft.note}
+                                onChange={(event) => setKnowledgeDraft((current) => ({ ...current, note: event.target.value }))}
+                                disabled={!canManageKnowledge || knowledgeSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <div className="flex flex-wrap gap-3">
+                              <button type="button" className="pill-button" onClick={() => void handleKnowledgeSave()} disabled={!canManageKnowledge || knowledgeSaving}>
+                                {knowledgeSaving ? 'Salvando...' : editingKnowledgeId ? 'Atualizar fonte' : 'Criar fonte'}
+                              </button>
+                              {editingKnowledgeId ? (
+                                <button type="button" className="pill-button" onClick={resetKnowledgeDraft} disabled={knowledgeSaving}>
+                                  Cancelar
+                                </button>
+                              ) : null}
+                            </div>
+                            {!canManageKnowledge ? (
+                              <p className="text-xs text-[var(--text-tertiary)]">
+                                Seu perfil ve as fontes do workspace, mas nao pode alterar o catalogo de conhecimento.
+                              </p>
+                            ) : null}
+                          </div>
+                        </article>
+                      </div>
+                    ) : null}
+
+                    <section className="manus-banner">
+                      <div className="flex items-start gap-3">
+                        <FiDatabase size={18} className="mt-0.5 text-[var(--accent)]" />
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">Foundation real para knowledge plane</p>
+                          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                            O workspace agora gerencia fontes persistidas com projeto, readiness para agents e trilha de atualizacao, sem prometer retrieval completo antes da camada permissionada de RAG.
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                  </section>
+                ) : null}
+
+                {isFinopsSection ? (
+                  <section className="space-y-4">
+                    <div className="grid gap-4 lg:grid-cols-4">
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Cost center</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget?.costCenter ?? '--'}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Modo</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget?.chargebackMode ?? '--'}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Soft limit</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget ? `${budget.consumedCredits}/${budget.softLimitCredits}` : '--'}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Hard limit</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{budget ? `${budget.consumedCredits}/${budget.hardLimitCredits}` : '--'}</p>
+                      </div>
+                    </div>
+
+                    {budgetLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando budget do workspace...</div> : null}
+                    {budgetError ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">{budgetError}</div> : null}
+
+                    {budget ? (
+                      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                        <article className="shell-panel p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Resumo operacional</p>
+                          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                            <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Status</p>
+                              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.budgetStatus.replace(/_/g, ' ')}</p>
+                              <p className="mt-2 text-xs text-[var(--text-secondary)]">{budget.note}</p>
+                            </div>
+                            <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Showback/chargeback</p>
+                              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.chargebackMode}</p>
+                              <p className="mt-2 text-xs text-[var(--text-secondary)]">A trilha atual governa o workspace antes do billing comercial final.</p>
+                            </div>
+                            <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Utilizacao soft</p>
+                              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.softLimitUtilizationPercent}%</p>
+                              <p className="mt-2 text-xs text-[var(--text-secondary)]">Restantes: {budget.remainingSoftCredits}</p>
+                            </div>
+                            <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Utilizacao hard</p>
+                              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{budget.hardLimitUtilizationPercent}%</p>
+                              <p className="mt-2 text-xs text-[var(--text-secondary)]">Restantes: {budget.remainingHardCredits}</p>
+                            </div>
+                          </div>
+                        </article>
+
+                        <article className="shell-panel p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Guardrails do workspace</p>
+                          <div className="mt-4 space-y-3">
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Cost center</span>
+                              <input
+                                value={budgetDraft.costCenter}
+                                onChange={(event) => setBudgetDraft((current) => ({ ...current, costCenter: event.target.value }))}
+                                disabled={!canManageBudgets || budgetSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Modo de alocacao</span>
+                              <select
+                                aria-label="Modo de alocacao do workspace"
+                                value={budgetDraft.chargebackMode}
+                                onChange={(event) => setBudgetDraft((current) => ({ ...current, chargebackMode: event.target.value as ChargebackMode }))}
+                                disabled={!canManageBudgets || budgetSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              >
+                                <option value="showback">showback</option>
+                                <option value="chargeback">chargeback</option>
+                              </select>
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Soft limit</span>
+                              <input
+                                aria-label="Soft limit do workspace"
+                                type="number"
+                                min={0}
+                                value={budgetDraft.softLimitCredits}
+                                onChange={(event) => setBudgetDraft((current) => ({ ...current, softLimitCredits: event.target.value }))}
+                                disabled={!canManageBudgets || budgetSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Hard limit</span>
+                              <input
+                                aria-label="Hard limit do workspace"
+                                type="number"
+                                min={0}
+                                value={budgetDraft.hardLimitCredits}
+                                onChange={(event) => setBudgetDraft((current) => ({ ...current, hardLimitCredits: event.target.value }))}
+                                disabled={!canManageBudgets || budgetSaving}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <button type="button" className="pill-button" onClick={() => void handleBudgetSave()} disabled={!canManageBudgets || budgetSaving}>
+                              {budgetSaving ? 'Salvando...' : 'Salvar budget'}
+                            </button>
+                            {!canManageBudgets ? <p className="text-xs text-[var(--text-tertiary)]">Seu perfil ve o budget, mas nao pode alterar os guardrails do workspace.</p> : null}
+                          </div>
+                        </article>
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
+
                 {isProvidersSection ? (
                   <section className="space-y-4">
                     <div className="grid gap-4 lg:grid-cols-3">
@@ -550,7 +1085,7 @@ export default function Settings() {
                   </section>
                 ) : null}
 
-                {!isConfigSection && !isProvidersSection && !isThreatSection ? (
+                {!isConfigSection && !isKnowledgeSection && !isFinopsSection && !isProvidersSection && !isThreatSection ? (
                   <section className="grid gap-4 lg:grid-cols-2">
                     <div className="shell-panel p-5">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Estado da secao</p>

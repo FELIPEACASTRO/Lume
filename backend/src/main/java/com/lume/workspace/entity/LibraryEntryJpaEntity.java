@@ -23,6 +23,9 @@ public class LibraryEntryJpaEntity {
     @Column(nullable = false, length = 120)
     private String category;
 
+    @Column(name = "entry_type", nullable = false, length = 64)
+    private String entryType;
+
     @Column(name = "status_label", nullable = false, length = 80)
     private String statusLabel;
 
@@ -34,6 +37,15 @@ public class LibraryEntryJpaEntity {
 
     @Column(name = "source_label", nullable = false, length = 120)
     private String sourceLabel;
+
+    @Column(name = "project_id", length = 64)
+    private String projectId;
+
+    @Column(nullable = false)
+    private boolean favorited;
+
+    @Column(nullable = false)
+    private boolean archived;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String summary;
@@ -51,6 +63,9 @@ public class LibraryEntryJpaEntity {
 
     @PrePersist
     void onCreate() {
+        if (entryType == null || entryType.isBlank()) {
+            entryType = "artifact";
+        }
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
@@ -96,6 +111,14 @@ public class LibraryEntryJpaEntity {
         this.category = category;
     }
 
+    public String getEntryType() {
+        return entryType;
+    }
+
+    public void setEntryType(String entryType) {
+        this.entryType = entryType;
+    }
+
     public String getStatusLabel() {
         return statusLabel;
     }
@@ -128,6 +151,30 @@ public class LibraryEntryJpaEntity {
         this.sourceLabel = sourceLabel;
     }
 
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
+
+    public boolean isFavorited() {
+        return favorited;
+    }
+
+    public void setFavorited(boolean favorited) {
+        this.favorited = favorited;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
     public String getSummary() {
         return summary;
     }
@@ -146,5 +193,9 @@ public class LibraryEntryJpaEntity {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 }

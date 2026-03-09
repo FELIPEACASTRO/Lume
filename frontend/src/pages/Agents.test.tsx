@@ -11,6 +11,8 @@ const mockUpdateRuntime = vi.fn();
 const mockFindProviders = vi.fn();
 const mockFindModels = vi.fn();
 const mockFindProviderStatuses = vi.fn();
+const mockFindPromptTemplates = vi.fn();
+const mockMarkPromptTemplateUsed = vi.fn();
 
 vi.mock('../components/shell/ShellContext', () => ({
   useShell: () => mockUseShell(),
@@ -35,6 +37,13 @@ vi.mock('../services/providerService', () => ({
   },
 }));
 
+vi.mock('../services/promptTemplateService', () => ({
+  promptTemplateService: {
+    findAll: () => mockFindPromptTemplates(),
+    markUsed: (...args: unknown[]) => mockMarkPromptTemplateUsed(...args),
+  },
+}));
+
 describe('Agents', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,7 +51,7 @@ describe('Agents', () => {
       refreshSummary: vi.fn().mockResolvedValue(undefined),
       session: {
         role: {
-          permissions: ['agents.runtime.manage'],
+          permissions: ['agents.runtime.manage', 'templates.read'],
         },
       },
     });
@@ -221,6 +230,44 @@ describe('Agents', () => {
       executionSupported: true,
       toolset: ['chat'],
     });
+    mockFindPromptTemplates.mockResolvedValue([
+      {
+        id: 'tpl-ops',
+        title: 'Playbook de onboarding',
+        summary: 'Template operacional.',
+        promptBody: 'Mapeie {{workspace}} com owners.',
+        variables: ['workspace'],
+        templateScope: 'workspace',
+        statusLabel: 'Template operacional',
+        availability: 'live',
+        ownerName: 'Lume Operator',
+        projectId: 'proj-ops',
+        projectName: 'Operacao',
+        agentProfileId: 'ops',
+        agentProfileName: 'Ops Strategist',
+        favorited: true,
+        lastUsedAt: null,
+        updatedAt: '2026-03-08 00:00',
+      },
+    ]);
+    mockMarkPromptTemplateUsed.mockResolvedValue({
+      id: 'tpl-ops',
+      title: 'Playbook de onboarding',
+      summary: 'Template operacional.',
+      promptBody: 'Mapeie {{workspace}} com owners.',
+      variables: ['workspace'],
+      templateScope: 'workspace',
+      statusLabel: 'Template operacional',
+      availability: 'live',
+      ownerName: 'Lume Operator',
+      projectId: 'proj-ops',
+      projectName: 'Operacao',
+      agentProfileId: 'ops',
+      agentProfileName: 'Ops Strategist',
+      favorited: true,
+      lastUsedAt: '2026-03-08 00:10',
+      updatedAt: '2026-03-08 00:10',
+    });
   });
 
   it('saves runtime updates with the selected provider, model and version', async () => {
@@ -245,5 +292,21 @@ describe('Agents', () => {
       modelCode: 'anthropic:claude-sonnet-4-5',
       versionLabel: 'agent-v2-claude',
     }));
+  });
+
+  it('applies persisted prompt templates to the draft composer', async () => {
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Agents />
+      </MemoryRouter>
+    );
+
+    await waitFor(() =>
+      expect(screen.getAllByText('Playbook de onboarding').length).toBeGreaterThan(0)
+    );
+    fireEvent.click(screen.getAllByRole('button', { name: /Playbook de onboarding/i })[0]);
+
+    await waitFor(() => expect(screen.getByLabelText('Enviar prompt')).toHaveValue('Mapeie {{workspace}} com owners.'));
+    expect(mockMarkPromptTemplateUsed).toHaveBeenCalledWith('tpl-ops');
   });
 });

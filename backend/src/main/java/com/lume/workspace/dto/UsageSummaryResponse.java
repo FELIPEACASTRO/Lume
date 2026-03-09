@@ -7,6 +7,7 @@ public record UsageSummaryResponse(
         int activeTasks,
         int scheduledTasks,
         int unreadNotifications,
-        String note
+        String note,
+        BudgetSummaryResponse budget
 ) {
 }

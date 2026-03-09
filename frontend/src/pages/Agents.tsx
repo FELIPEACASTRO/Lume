@@ -7,7 +7,8 @@ import { useShell } from '../components/shell/ShellContext';
 import { agentService } from '../services/agentService';
 import { toApiClientError } from '../services/api';
 import { providerService } from '../services/providerService';
-import { AgentMessage, AgentProfile, AgentThread, ModelDto, ProviderDto, ProviderStatusDto } from '../types';
+import { promptTemplateService } from '../services/promptTemplateService';
+import { AgentMessage, AgentProfile, AgentThread, ModelDto, PromptTemplateDto, ProviderDto, ProviderStatusDto } from '../types';
 
 interface AgentRouteState {
   draftPrompt?: string;
@@ -25,6 +26,7 @@ export default function Agents() {
   const [providers, setProviders] = useState<ProviderDto[]>([]);
   const [models, setModels] = useState<ModelDto[]>([]);
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatusDto[]>([]);
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplateDto[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState('');
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(searchParams.get('thread'));
   const [messages, setMessages] = useState<AgentMessage[]>([]);
@@ -72,6 +74,15 @@ export default function Agents() {
     return providers.find((item) => item.code === selectedAgent.providerCode) ?? null;
   }, [providers, selectedAgent]);
 
+  const visibleTemplates = useMemo(() => {
+    if (!selectedAgent) {
+      return promptTemplates.slice(0, 3);
+    }
+
+    const scoped = promptTemplates.filter((template) => !template.agentProfileId || template.agentProfileId === selectedAgent.id);
+    return scoped.slice(0, 4);
+  }, [promptTemplates, selectedAgent]);
+
   const loadShellData = useCallback(async () => {
     try {
       setLoading(true);
@@ -92,10 +103,11 @@ export default function Agents() {
             Promise.resolve([]),
           ];
 
-      const [nextProfiles, nextThreads, nextProviders, nextModels, nextProviderStatuses] = await Promise.all([
+      const [nextProfiles, nextThreads, nextProviders, nextModels, nextProviderStatuses, nextPromptTemplates] = await Promise.all([
         agentService.findProfiles(),
         agentService.findThreads(),
         ...catalogRequests,
+        promptTemplateService.findAll(),
       ] as const);
 
       setProfiles(nextProfiles);
@@ -103,6 +115,7 @@ export default function Agents() {
       setProviders(nextProviders);
       setModels(nextModels);
       setProviderStatuses(nextProviderStatuses);
+      setPromptTemplates(nextPromptTemplates);
 
       const routeThreadId = searchParams.get('thread');
       const effectiveThreadId = routeThreadId || nextThreads[0]?.id || null;
@@ -313,6 +326,17 @@ export default function Agents() {
       setError(toApiClientError(runtimeError).message);
     } finally {
       setRuntimeSaving(false);
+    }
+  };
+
+  const handleApplyTemplate = async (template: PromptTemplateDto) => {
+    setDraft(template.promptBody);
+
+    try {
+      const touched = await promptTemplateService.markUsed(template.id);
+      setPromptTemplates((current) => current.map((item) => (item.id === touched.id ? touched : item)));
+    } catch {
+      // Mantem a interacao local mesmo se a marcacao de uso falhar.
     }
   };
 
@@ -570,19 +594,49 @@ export default function Agents() {
 
         <div className="border-t px-5 py-5 sm:px-7" style={{ borderColor: 'var(--line-soft)' }}>
           <div className="mb-4 flex flex-wrap gap-3">
-            <button type="button" className="pill-button" onClick={() => setDraft('Mapeie um fluxo de onboarding com checkpoints de aprovacao.')}>
-              <FiZap size={16} />
-              Onboarding
-            </button>
-            <button type="button" className="pill-button" onClick={() => setDraft('Compare risco, custo e velocidade para publicar este fluxo.')}>
-              <FiZap size={16} />
-              Trade-offs
-            </button>
-            <button type="button" className="pill-button" onClick={() => setDraft('Resuma tudo o que preciso saber antes de executar esta tarefa.')}>
-              <FiZap size={16} />
-              Resumo
-            </button>
+            {visibleTemplates.length > 0 ? (
+              visibleTemplates.map((template) => (
+                <button type="button" key={template.id} className="pill-button" onClick={() => void handleApplyTemplate(template)}>
+                  <FiZap size={16} />
+                  {template.title}
+                </button>
+              ))
+            ) : (
+              <button type="button" className="pill-button" onClick={() => setDraft('Mapeie um fluxo operacional com objetivos, riscos e criterio de aceite.')}>
+                <FiZap size={16} />
+                Template rapido
+              </button>
+            )}
           </div>
+
+          {visibleTemplates.length > 0 ? (
+            <div className="mb-4 rounded-[22px] border bg-[var(--surface-muted)] px-4 py-4" style={{ borderColor: 'var(--line-soft)' }}>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">Biblioteca de templates</p>
+              <div className="mt-3 space-y-3">
+                {visibleTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    type="button"
+                    className="w-full rounded-[18px] border bg-white px-4 py-3 text-left transition-colors hover:bg-[var(--surface-muted)]"
+                    style={{ borderColor: 'var(--line-soft)' }}
+                    onClick={() => void handleApplyTemplate(template)}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-[var(--ink-strong)]">{template.title}</p>
+                      <StatusBadge state={template.availability} />
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">{template.summary}</p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+                      <span>{template.templateScope}</span>
+                      {template.projectName ? <span>{template.projectName}</span> : null}
+                      {template.agentProfileName ? <span>{template.agentProfileName}</span> : null}
+                      {template.lastUsedAt ? <span>ultimo uso {template.lastUsedAt}</span> : null}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(event) => void handleSubmit(event)}>
             <textarea

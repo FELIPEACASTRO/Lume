@@ -4,8 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.dto.CreateMemberRequest;
+import com.lume.workspace.dto.CreateArtifactVersionRequest;
+import com.lume.workspace.dto.CreateKnowledgeSourceRequest;
+import com.lume.workspace.dto.CreatePromptTemplateRequest;
 import com.lume.workspace.dto.UpdateAgentRuntimeRequest;
+import com.lume.workspace.dto.UpdateWorkspaceBudgetRequest;
+import com.lume.workspace.dto.UpdateKnowledgeSourceRequest;
 import com.lume.workspace.dto.UpdateMemberRequest;
+import com.lume.workspace.dto.UpdatePromptTemplateRequest;
 import com.lume.workspace.dto.UpdateSettingsPreferencesRequest;
 import com.lume.workspace.entity.MembershipJpaEntity;
 import com.lume.workspace.entity.WorkspaceJpaEntity;
@@ -23,6 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -186,8 +193,57 @@ class IdentityTenancyIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.preferences.appearance").value("dark"))
                 .andExpect(jsonPath("$.preferences.languageCode").value("en-US"))
+                .andExpect(jsonPath("$.sections[?(@.key=='knowledge')]").exists())
+                .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='providers-runtime')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='threat-intelligence')]").exists());
+
+        mockMvc.perform(get("/api/v1/auth/session"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role.permissions", hasItems("artifacts.read", "templates.read")));
+    }
+
+    @Test
+    @DisplayName("GET/PATCH /api/v1/budgets/current - Admin deve ler e atualizar budget do workspace")
+    void shouldReadAndUpdateWorkspaceBudget() throws Exception {
+        mockMvc.perform(get("/api/v1/budgets/current"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.costCenter").value("core_now"))
+                .andExpect(jsonPath("$.chargebackMode").value("showback"));
+
+        UpdateWorkspaceBudgetRequest request = new UpdateWorkspaceBudgetRequest(
+                "finops-brasil",
+                "chargeback",
+                280,
+                420
+        );
+
+        mockMvc.perform(patch("/api/v1/budgets/current")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.costCenter").value("finops-brasil"))
+                .andExpect(jsonPath("$.chargebackMode").value("chargeback"))
+                .andExpect(jsonPath("$.softLimitCredits").value(280))
+                .andExpect(jsonPath("$.hardLimitCredits").value(420));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/budgets/current - Membro comum nao deve alterar budget")
+    void shouldDenyBudgetUpdateForWorkspaceMember() throws Exception {
+        UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
+        UpdateWorkspaceBudgetRequest request = new UpdateWorkspaceBudgetRequest(
+                "member-scope",
+                "showback",
+                250,
+                400
+        );
+
+        mockMvc.perform(patch("/api/v1/budgets/current")
+                        .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -218,6 +274,200 @@ class IdentityTenancyIT {
 
         mockMvc.perform(get("/api/v1/threat-intel/providers")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET/POST/PATCH/DELETE /api/v1/knowledge-sources - Admin deve gerenciar fontes de conhecimento")
+    void shouldManageKnowledgeSourcesForAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/knowledge-sources"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists());
+
+        CreateKnowledgeSourceRequest createRequest = new CreateKnowledgeSourceRequest(
+                "Repositorio de playbooks",
+                "repository",
+                "proj-ops",
+                "https://github.com/lume/playbooks",
+                8,
+                true,
+                "Indexado",
+                "live",
+                "Repositorio governado pelo time de operacao."
+        );
+
+        String createdId = mockMvc.perform(post("/api/v1/knowledge-sources")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Repositorio de playbooks"))
+                .andExpect(jsonPath("$.projectId").value("proj-ops"))
+                .andExpect(jsonPath("$.documentCount").value(8))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String sourceId = objectMapper.readTree(createdId).path("id").asText();
+
+        UpdateKnowledgeSourceRequest updateRequest = new UpdateKnowledgeSourceRequest(
+                "Repositorio de playbooks atualizado",
+                null,
+                "proj-ops",
+                "https://github.com/lume/playbooks-v2",
+                11,
+                false,
+                "Reindexado",
+                "live",
+                "Repositorio governado e pronto para retrieval."
+        );
+
+        mockMvc.perform(patch("/api/v1/knowledge-sources/{id}", sourceId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Repositorio de playbooks atualizado"))
+                .andExpect(jsonPath("$.enabledForAgents").value(false))
+                .andExpect(jsonPath("$.documentCount").value(11));
+
+        mockMvc.perform(delete("/api/v1/knowledge-sources/{id}", sourceId))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Workspace member - deve ler knowledge, mas nao criar ou alterar")
+    void shouldDenyKnowledgeManagementForWorkspaceMember() throws Exception {
+        UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
+
+        mockMvc.perform(get("/api/v1/knowledge-sources")
+                        .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
+                .andExpect(status().isOk());
+
+        CreateKnowledgeSourceRequest createRequest = new CreateKnowledgeSourceRequest(
+                "Fonte bloqueada",
+                "library",
+                null,
+                "lume://library/bloqueada",
+                1,
+                true,
+                "Indexado",
+                "live",
+                "Tentativa sem permissao."
+        );
+
+        mockMvc.perform(post("/api/v1/knowledge-sources")
+                        .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET/POST /api/v1/library/entries/{id}/versions - admin cria versoes e membro so le")
+    void shouldManageArtifactVersionsWithRbac() throws Exception {
+        mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].versionLabel").exists());
+
+        CreateArtifactVersionRequest request = new CreateArtifactVersionRequest(
+                "v3",
+                "Checklist de rollout incorporado",
+                "Inclui handoff para growth, etapa de validacao e criterio de rollback."
+        );
+
+        mockMvc.perform(post("/api/v1/library/entries/{id}/versions", "lib-onboarding")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.versionLabel").value("v3"));
+
+        CreateMemberRequest createMemberRequest = new CreateMemberRequest(
+                "Artifact Reader",
+                "artifact.reader@lume.local",
+                "secret123",
+                "workspace_member"
+        );
+
+        mockMvc.perform(post("/api/v1/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createMemberRequest)))
+                .andExpect(status().isCreated());
+
+        UserJpaEntity analyst = userRepository.findByEmail("artifact.reader@lume.local").orElseThrow();
+        mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding")
+                        .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/library/entries/{id}/versions", "lib-onboarding")
+                        .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET/POST/PATCH/DELETE /api/v1/prompt-templates - admin gerencia templates e membro nao cria")
+    void shouldManagePromptTemplatesWithRbac() throws Exception {
+        mockMvc.perform(get("/api/v1/prompt-templates"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].promptBody").exists());
+
+        CreatePromptTemplateRequest createRequest = new CreatePromptTemplateRequest(
+                "Brief de rollout",
+                "Template para preparar tese, risco e owner.",
+                "Prepare o rollout de {{produto}} com dono, risco, aprovacao e rollback.",
+                "project",
+                "proj-ops",
+                "ops",
+                java.util.List.of("produto", "owner", "rollback"),
+                true,
+                null,
+                null
+        );
+
+        String createdResponse = mockMvc.perform(post("/api/v1/prompt-templates")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Brief de rollout"))
+                .andExpect(jsonPath("$.variables[0]").value("produto"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String templateId = objectMapper.readTree(createdResponse).path("id").asText();
+
+        UpdatePromptTemplateRequest updateRequest = new UpdatePromptTemplateRequest(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                java.util.List.of("produto", "owner", "rollback", "aceite"),
+                false,
+                null,
+                null
+        );
+
+        mockMvc.perform(patch("/api/v1/prompt-templates/{id}", templateId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.favorited").value(false))
+                .andExpect(jsonPath("$.variables[3]").value("aceite"));
+
+        mockMvc.perform(post("/api/v1/prompt-templates/{id}/touch", templateId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lastUsedAt").isNotEmpty());
+
+        mockMvc.perform(delete("/api/v1/prompt-templates/{id}", templateId))
+                .andExpect(status().isNoContent());
+
+        UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
+        mockMvc.perform(post("/api/v1/prompt-templates")
+                        .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isForbidden());
     }
 }

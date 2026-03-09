@@ -53,6 +53,24 @@ public class SettingsService {
                 new SettingsSectionResponse("conectores", "Conectores", "Conexoes nativas com provedores e sistemas externos.", "preview", "disabled-preview"),
                 new SettingsSectionResponse("integracoes", "Integracoes", "APIs, webhooks e automacoes externas.", "preview", "disabled-preview")
         ));
+        if (permissions.contains(WorkspaceContextService.PERMISSION_KNOWLEDGE_READ)) {
+            sections.add(new SettingsSectionResponse(
+                    "knowledge",
+                    "Knowledge",
+                    "Fontes de conhecimento, contexto permissionado e readiness para agents.",
+                    "live",
+                    "live"
+            ));
+        }
+        if (permissions.contains(WorkspaceContextService.PERMISSION_BUDGETS_READ)) {
+            sections.add(new SettingsSectionResponse(
+                    "finops",
+                    "FinOps & Budgets",
+                    "Budget do workspace, chargeback/showback e guardrails operacionais.",
+                    "live",
+                    "live"
+            ));
+        }
         if (permissions.contains(WorkspaceContextService.PERMISSION_PROVIDERS_READ)) {
             sections.add(new SettingsSectionResponse(
                     "providers-runtime",

@@ -38,6 +38,14 @@ public class WorkspaceContextService {
     public static final String PERMISSION_PROVIDERS_TEST = "providers.test";
     public static final String PERMISSION_AGENTS_RUNTIME_MANAGE = "agents.runtime.manage";
     public static final String PERMISSION_RESEARCH_RUN = "research.run";
+    public static final String PERMISSION_KNOWLEDGE_READ = "knowledge.read";
+    public static final String PERMISSION_KNOWLEDGE_MANAGE = "knowledge.manage";
+    public static final String PERMISSION_ARTIFACTS_READ = "artifacts.read";
+    public static final String PERMISSION_ARTIFACTS_MANAGE = "artifacts.manage";
+    public static final String PERMISSION_TEMPLATES_READ = "templates.read";
+    public static final String PERMISSION_TEMPLATES_MANAGE = "templates.manage";
+    public static final String PERMISSION_BUDGETS_READ = "budgets.read";
+    public static final String PERMISSION_BUDGETS_MANAGE = "budgets.manage";
     public static final String PERMISSION_THREAT_INTEL_READ = "threat_intel.read";
     public static final String PERMISSION_THREAT_INTEL_RUN = "threat_intel.run";
     public static final String PERMISSION_THREAT_INTEL_MANAGE = "threat_intel.manage";
@@ -109,6 +117,10 @@ public class WorkspaceContextService {
 
     public String getOrganizationName() {
         return resolveContext().organization().getName();
+    }
+
+    public String getActorName() {
+        return resolveCurrentUser().getName();
     }
 
     public Long getActorUserIdOrNull() {
@@ -190,6 +202,14 @@ public class WorkspaceContextService {
                     PERMISSION_PROVIDERS_READ,
                     PERMISSION_PROVIDERS_MANAGE,
                     PERMISSION_PROVIDERS_TEST,
+                    PERMISSION_KNOWLEDGE_READ,
+                    PERMISSION_KNOWLEDGE_MANAGE,
+                    PERMISSION_ARTIFACTS_READ,
+                    PERMISSION_ARTIFACTS_MANAGE,
+                    PERMISSION_TEMPLATES_READ,
+                    PERMISSION_TEMPLATES_MANAGE,
+                    PERMISSION_BUDGETS_READ,
+                    PERMISSION_BUDGETS_MANAGE,
                     PERMISSION_AGENTS_RUNTIME_MANAGE,
                     PERMISSION_RESEARCH_RUN,
                     PERMISSION_THREAT_INTEL_READ,
@@ -199,6 +219,10 @@ public class WorkspaceContextService {
             case "workspace_member" -> List.of(
                     PERMISSION_WORKSPACE_READ,
                     PERMISSION_WORKSPACE_SWITCH,
+                    PERMISSION_KNOWLEDGE_READ,
+                    PERMISSION_ARTIFACTS_READ,
+                    PERMISSION_TEMPLATES_READ,
+                    PERMISSION_BUDGETS_READ,
                     PERMISSION_RESEARCH_RUN
             );
             default -> List.of(PERMISSION_WORKSPACE_READ);

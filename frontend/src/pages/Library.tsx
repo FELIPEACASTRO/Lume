@@ -1,24 +1,34 @@
-import { useEffect, useMemo, useState } from 'react';
-import { FiDatabase, FiFileText, FiSearch } from 'react-icons/fi';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FiClock, FiDatabase, FiFileText, FiGitCommit, FiSearch, FiStar } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
 import StatusBadge from '../components/common/StatusBadge';
 import WorkspaceNotice from '../components/common/WorkspaceNotice';
+import { useShell } from '../components/shell/ShellContext';
 import { toApiClientError } from '../services/api';
 import { libraryService } from '../services/libraryService';
-import { LibraryEntry } from '../types';
+import { ArtifactVersionDto, LibraryEntry } from '../types';
 
 export default function Library() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { session } = useShell();
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [entries, setEntries] = useState<LibraryEntry[]>([]);
+  const [versions, setVersions] = useState<ArtifactVersionDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [versionLoading, setVersionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [versionError, setVersionError] = useState<string | null>(null);
+  const [savingVersion, setSavingVersion] = useState(false);
+  const [versionForm, setVersionForm] = useState({
+    versionLabel: 'v-next',
+    changeSummary: '',
+    contentPreview: '',
+  });
   const selectedEntryId = searchParams.get('entry');
+  const canManageArtifacts = session?.role.permissions.includes('artifacts.manage') ?? false;
 
-  const categories = useMemo(() => {
-    return ['Todos', ...new Set(entries.map((entry) => entry.category))];
-  }, [entries]);
+  const categories = useMemo(() => ['Todos', ...new Set(entries.map((entry) => entry.category))], [entries]);
 
   const filteredEntries = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -27,11 +37,28 @@ export default function Library() {
       const matchesCategory = selectedCategory === 'Todos' || entry.category === selectedCategory;
       const matchesQuery =
         !normalizedQuery ||
-        [entry.title, entry.summary, entry.owner, ...entry.tags].join(' ').toLowerCase().includes(normalizedQuery);
+        [
+          entry.title,
+          entry.summary,
+          entry.owner,
+          entry.projectName ?? '',
+          entry.entryType,
+          ...entry.tags,
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(normalizedQuery);
 
       return matchesCategory && matchesQuery;
     });
   }, [entries, query, selectedCategory]);
+
+  const selectedEntry = useMemo(() => {
+    if (selectedEntryId) {
+      return filteredEntries.find((entry) => entry.id === selectedEntryId) ?? entries.find((entry) => entry.id === selectedEntryId) ?? null;
+    }
+    return filteredEntries[0] ?? entries[0] ?? null;
+  }, [entries, filteredEntries, selectedEntryId]);
 
   useEffect(() => {
     void (async () => {
@@ -49,13 +76,79 @@ export default function Library() {
     })();
   }, []);
 
+  useEffect(() => {
+    if (!selectedEntry) {
+      setVersions([]);
+      return;
+    }
+
+    if (selectedEntry.id !== selectedEntryId) {
+      setSearchParams({ entry: selectedEntry.id });
+    }
+
+    setVersionForm((current) => ({
+      ...current,
+      versionLabel: selectedEntry.currentVersionLabel ? `${selectedEntry.currentVersionLabel}-next` : 'v-next',
+    }));
+
+    void (async () => {
+      try {
+        setVersionLoading(true);
+        setVersionError(null);
+        const nextVersions = await libraryService.findVersions(selectedEntry.id);
+        setVersions(nextVersions);
+      } catch (loadError) {
+        setVersionError(toApiClientError(loadError).message);
+        setVersions([]);
+      } finally {
+        setVersionLoading(false);
+      }
+    })();
+  }, [selectedEntry, selectedEntryId, setSearchParams]);
+
+  const handleCreateVersion = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedEntry) {
+      return;
+    }
+
+    try {
+      setSavingVersion(true);
+      setVersionError(null);
+      const created = await libraryService.createVersion(selectedEntry.id, versionForm);
+      setVersions((current) => [created, ...current]);
+      setEntries((current) =>
+        current.map((entry) =>
+          entry.id === selectedEntry.id
+            ? {
+                ...entry,
+                versionCount: entry.versionCount + 1,
+                currentVersionLabel: created.versionLabel,
+                status: 'Versionado',
+              }
+            : entry
+        )
+      );
+      setVersionForm({
+        versionLabel: `${created.versionLabel}-next`,
+        changeSummary: '',
+        contentPreview: '',
+      });
+    } catch (saveError) {
+      setVersionError(toApiClientError(saveError).message);
+    } finally {
+      setSavingVersion(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <WorkspaceNotice
         title="Biblioteca agora opera sobre dados reais do workspace."
-        description="Os filtros e a busca desta superficie ja consultam o backend do Lume e compartilham a mesma fonte da busca global."
+        description="Os filtros e a busca desta superficie ja consultam o backend do Lume, compartilham a mesma fonte da busca global e agora expõem versionamento operacional dos artefatos."
         state="live"
-        detail="Os documentos abaixo sairam das fixtures locais e agora sao persistidos no banco."
+        detail="A trilha de versões fica persistida por entrada, sem prometer artifact studio completo antes do runtime unificado."
       />
 
       <section className="shell-surface p-6 sm:p-7">
@@ -65,9 +158,9 @@ export default function Library() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Biblioteca</p>
               <StatusBadge state="live" />
             </div>
-            <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-strong)]">Contexto operacional centralizado</h1>
+            <h1 className="mt-3 text-3xl font-semibold text-[var(--ink-strong)]">Repositorio operacional de artefatos</h1>
             <p className="mt-3 text-sm leading-7 text-[var(--ink-soft)]">
-              Playbooks, memoria e documentos em uma grade enxuta, agora sustentada pelo backend sem trocar o shell.
+              Artefatos persistidos, contexto por projeto e timeline de versoes sob o mesmo shell do workspace.
             </p>
           </div>
 
@@ -77,7 +170,7 @@ export default function Library() {
               <input
                 aria-label="Buscar na biblioteca"
                 className="w-full border-none bg-transparent outline-none placeholder:text-[var(--ink-soft)]"
-                placeholder="Buscar por titulo, tag ou owner"
+                placeholder="Buscar por titulo, tag, projeto ou owner"
                 type="search"
                 autoComplete="off"
                 value={query}
@@ -105,56 +198,187 @@ export default function Library() {
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2">
-        {filteredEntries.map((entry) => (
-          <article key={entry.id} className="shell-surface p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[var(--ink-strong)]">
-                  {entry.category === 'Agent' ? <FiDatabase size={18} /> : <FiFileText size={18} />}
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.8fr)]">
+        <div className="space-y-4">
+          {filteredEntries.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              className={[
+                'shell-surface w-full p-6 text-left transition-all duration-200',
+                selectedEntry?.id === entry.id ? 'ring-2 ring-[var(--action-dark)]' : 'hover:-translate-y-0.5',
+              ].join(' ')}
+              onClick={() => setSearchParams({ entry: entry.id })}
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[var(--ink-strong)]">
+                    {entry.entryType === 'template' ? <FiDatabase size={18} /> : <FiFileText size={18} />}
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-lg font-semibold text-[var(--ink-strong)]">{entry.title}</p>
+                      {entry.favorited ? <FiStar size={14} className="text-[var(--accent-gold)]" /> : null}
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-[var(--ink-soft)]">
+                      {entry.category} . {entry.owner}
+                      {entry.projectName ? ` . ${entry.projectName}` : ''}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-lg font-semibold text-[var(--ink-strong)]">{entry.title}</p>
-                  <p className="mt-1 text-sm font-medium text-[var(--ink-soft)]">
-                    {entry.category} . {entry.owner}
-                  </p>
-                </div>
+
+                <StatusBadge state={entry.availability} />
               </div>
 
-              <StatusBadge state={entry.availability} />
-            </div>
+              <p className="mt-5 text-sm leading-7 text-[var(--ink-soft)]">{entry.summary}</p>
 
-            <p className="mt-5 text-sm leading-7 text-[var(--ink-soft)]">{entry.summary}</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {entry.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border px-3 py-1 text-xs font-semibold text-[var(--ink-strong)]"
+                    style={{ borderColor: 'var(--line-soft)' }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {entry.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border px-3 py-1 text-xs font-semibold text-[var(--ink-strong)]"
-                  style={{ borderColor: 'var(--line-soft)' }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+              <div className="mt-6 flex flex-wrap items-center gap-4 border-t pt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
+                <span>{entry.sourceLabel}</span>
+                <span>{entry.status}</span>
+                <span>{entry.entryType}</span>
+                <span>{entry.versionCount} versoes</span>
+                {entry.currentVersionLabel ? <span>{entry.currentVersionLabel}</span> : null}
+              </div>
+            </button>
+          ))}
+        </div>
 
-            <div
-              className={[
-                'mt-6 border-t pt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]',
-                selectedEntryId === entry.id ? 'rounded-[18px] bg-[var(--surface-muted)] px-3 py-3' : '',
-              ].join(' ')}
-              style={{ borderColor: 'var(--line-soft)' }}
-            >
-              {entry.sourceLabel} . {entry.status}
-            </div>
-          </article>
-        ))}
+        <aside className="space-y-4">
+          {selectedEntry ? (
+            <>
+              <section className="shell-surface p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Ativo selecionado</p>
+                    <h2 className="mt-3 text-2xl font-semibold text-[var(--ink-strong)]">{selectedEntry.title}</h2>
+                    <p className="mt-2 text-sm leading-7 text-[var(--ink-soft)]">{selectedEntry.summary}</p>
+                  </div>
+                  <StatusBadge state={selectedEntry.availability} />
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[20px] bg-[var(--surface-muted)] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink-soft)]">Projeto</p>
+                    <p className="mt-2 text-sm font-semibold text-[var(--ink-strong)]">{selectedEntry.projectName ?? 'Workspace-wide'}</p>
+                  </div>
+                  <div className="rounded-[20px] bg-[var(--surface-muted)] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink-soft)]">Versao atual</p>
+                    <p className="mt-2 text-sm font-semibold text-[var(--ink-strong)]">{selectedEntry.currentVersionLabel ?? 'Sem versoes'}</p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="shell-surface p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Timeline de versoes</p>
+                    <h3 className="mt-2 text-xl font-semibold text-[var(--ink-strong)]">Histórico operacional</h3>
+                  </div>
+                  <div className="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]" style={{ borderColor: 'var(--line-soft)' }}>
+                    {versions.length} registradas
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {versionLoading ? (
+                    <p className="text-sm text-[var(--ink-soft)]">Carregando versoes...</p>
+                  ) : versionError ? (
+                    <p className="text-sm text-[var(--ink-soft)]">{versionError}</p>
+                  ) : versions.length === 0 ? (
+                    <p className="text-sm text-[var(--ink-soft)]">Nenhuma versao persistida ainda para este artefato.</p>
+                  ) : (
+                    versions.map((version) => (
+                      <article key={version.id} className="rounded-[20px] border p-4" style={{ borderColor: 'var(--line-soft)' }}>
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <FiGitCommit size={14} className="text-[var(--ink-soft)]" />
+                            <p className="text-sm font-semibold text-[var(--ink-strong)]">{version.versionLabel}</p>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+                            <FiClock size={12} />
+                            {version.createdAt}
+                          </div>
+                        </div>
+                        <p className="mt-3 text-sm font-medium text-[var(--ink-strong)]">{version.changeSummary}</p>
+                        <p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">{version.contentPreview}</p>
+                        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">{version.createdByName}</p>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </section>
+
+              {canManageArtifacts ? (
+                <section className="shell-surface p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--ink-soft)]">Nova versao</p>
+                  <h3 className="mt-2 text-xl font-semibold text-[var(--ink-strong)]">Publicar incremento do artefato</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">
+                    Registra o delta operacional sem prometer editor completo antes do artifact studio.
+                  </p>
+
+                  <form className="mt-5 space-y-4" onSubmit={(event) => void handleCreateVersion(event)}>
+                    <label className="block space-y-2 text-sm">
+                      <span className="font-semibold text-[var(--ink-strong)]">Versao</span>
+                      <input
+                        aria-label="Versao do artefato"
+                        className="shell-input min-h-[48px] w-full"
+                        value={versionForm.versionLabel}
+                        onChange={(event) => setVersionForm((current) => ({ ...current, versionLabel: event.target.value }))}
+                      />
+                    </label>
+
+                    <label className="block space-y-2 text-sm">
+                      <span className="font-semibold text-[var(--ink-strong)]">Resumo da mudanca</span>
+                      <input
+                        aria-label="Resumo da mudanca"
+                        className="shell-input min-h-[48px] w-full"
+                        value={versionForm.changeSummary}
+                        onChange={(event) => setVersionForm((current) => ({ ...current, changeSummary: event.target.value }))}
+                      />
+                    </label>
+
+                    <label className="block space-y-2 text-sm">
+                      <span className="font-semibold text-[var(--ink-strong)]">Preview do conteudo</span>
+                      <textarea
+                        aria-label="Preview do conteudo"
+                        className="shell-input min-h-[120px] w-full resize-none"
+                        value={versionForm.contentPreview}
+                        onChange={(event) => setVersionForm((current) => ({ ...current, contentPreview: event.target.value }))}
+                      />
+                    </label>
+
+                    <button type="submit" className="btn-primary" disabled={savingVersion}>
+                      {savingVersion ? 'Publicando...' : 'Registrar versao'}
+                    </button>
+                  </form>
+                </section>
+              ) : null}
+            </>
+          ) : (
+            <section className="shell-surface px-6 py-10 text-center">
+              <p className="text-lg font-semibold text-[var(--ink-strong)]">Selecione um artefato.</p>
+              <p className="mt-2 text-sm text-[var(--ink-soft)]">A timeline de versoes aparece aqui quando houver uma entrada ativa.</p>
+            </section>
+          )}
+        </aside>
       </section>
 
       {loading ? (
         <section className="shell-surface px-6 py-10 text-center">
           <p className="text-lg font-semibold text-[var(--ink-strong)]">Carregando biblioteca...</p>
-          <p className="mt-2 text-sm text-[var(--ink-soft)]">Buscando documentos reais do workspace.</p>
+          <p className="mt-2 text-sm text-[var(--ink-soft)]">Buscando artefatos reais do workspace.</p>
         </section>
       ) : error ? (
         <section className="shell-surface px-6 py-10 text-center">

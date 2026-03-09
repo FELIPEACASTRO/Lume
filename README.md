@@ -280,6 +280,8 @@ Governanca por provider:
 | Metodo | Endpoint |
 |---|---|
 | `GET` | `/api/settings/overview` |
+| `GET` | `/api/v1/budgets/current` |
+| `PATCH` | `/api/v1/budgets/current` |
 | `GET` | `/api/v1/settings/preferences` |
 | `PATCH` | `/api/v1/settings/preferences` |
 | `GET` | `/api/v1/providers` |
@@ -456,6 +458,32 @@ Os testes reais:
 - usam prompts minimos e baratos
 - podem exercitar `cohere`, `voyage-ai`, `tavily`, `serpapi`, `deepgram`, `assemblyai`, `elevenlabs`, `mistral`, `stability-ai`, `ideogram`, `bfl` e `runway` quando as credenciais e URLs auxiliares estiverem presentes
 
+## Auditoria read-only das integracoes
+
+Existe uma ferramenta separada do runtime do produto para auditar cobertura real de providers, drift entre catalogos/docs/codigo e readiness de teste integrado.
+
+### Rodar a auditoria
+
+```bash
+python tools/integration_audit/run_audit.py
+```
+
+### Rodar com checks seguros
+
+```bash
+python tools/integration_audit/run_audit.py --run-safe-checks
+```
+
+### Saidas geradas
+
+Os relatorios derivados sao gerados em `reports/integration-audit/`:
+
+- `auditoria_integracoes_ia.md`
+- `matriz_integracoes_ia.csv`
+- `gaps_priorizados_integracoes_ia.md`
+
+Esses artefatos nao sao versionados e podem ser regenerados a qualquer momento.
+
 ## Analise Big O honesta
 
 As operacoes do runtime de IA sao dominadas por I/O de rede. Ainda assim, a complexidade local relevante e:
@@ -496,6 +524,8 @@ Pontos importantes:
 - [Test Strategy](docs/test-strategy.md)
 - [Test Evidence](docs/test-evidence.md)
 - [Live Validation Matrix](docs/live-validation-matrix.md)
+- [Audit Playbook](docs/audit-playbook.md)
+- [Audit Schema](docs/audit-schema.md)
 - [FinOps](docs/finops.md)
 - [500 TPS Report](docs/performance/500tps-report.md)
 - [Provider-by-provider](docs/provider-by-provider/README.md)

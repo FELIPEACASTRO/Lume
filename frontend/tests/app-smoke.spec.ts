@@ -20,7 +20,10 @@ const baseSession = {
       'members.manage',
       'providers.read',
       'providers.test',
+      'artifacts.read',
+      'artifacts.manage',
       'agents.runtime.manage',
+      'templates.read',
       'research.run',
       'threat_intel.read',
       'threat_intel.run',
@@ -85,25 +88,73 @@ const baseLibraryEntries = [
     id: 'lib-1',
     title: 'Playbook de onboarding',
     category: 'Playbook',
+    entryType: 'artifact',
     status: 'API real',
     availability: 'live',
     owner: 'Operacao',
     sourceLabel: 'Backend do workspace',
     summary: 'Fluxo mestre para onboarding.',
     tags: ['onboarding', 'ops'],
+    projectId: 'proj-ops',
+    projectName: 'Operacao do workspace',
+    favorited: true,
+    archived: false,
+    versionCount: 2,
+    currentVersionLabel: 'v2',
   },
   {
     id: 'lib-2',
     title: 'Checklist de rollout',
     category: 'Checklist',
+    entryType: 'artifact',
     status: 'API real',
     availability: 'live',
     owner: 'Produto',
     sourceLabel: 'Backend do workspace',
     summary: 'Checklist para rollout gradual.',
     tags: ['rollout', 'produto'],
+    projectId: 'proj-ops',
+    projectName: 'Operacao do workspace',
+    favorited: false,
+    archived: false,
+    versionCount: 1,
+    currentVersionLabel: 'v1',
   },
 ];
+
+const baseArtifactVersions = {
+  'lib-1': [
+    {
+      id: 'ver-lib-1-v2',
+      entryId: 'lib-1',
+      versionLabel: 'v2',
+      changeSummary: 'Inclui checkpoint de compliance',
+      contentPreview: 'Nova versao com aprovacao final e criterio de rollback.',
+      createdByName: 'Lume Operator',
+      createdAt: '2026-03-08 00:10',
+    },
+    {
+      id: 'ver-lib-1-v1',
+      entryId: 'lib-1',
+      versionLabel: 'v1',
+      changeSummary: 'Versao inicial',
+      contentPreview: 'Primeira estrutura do playbook operacional.',
+      createdByName: 'Lume Operator',
+      createdAt: '2026-03-08 00:00',
+    },
+  ],
+  'lib-2': [
+    {
+      id: 'ver-lib-2-v1',
+      entryId: 'lib-2',
+      versionLabel: 'v1',
+      changeSummary: 'Checklist inicial',
+      contentPreview: 'Versao base para rollout gradual.',
+      createdByName: 'Lume Operator',
+      createdAt: '2026-03-08 00:00',
+    },
+  ],
+};
 
 const baseProjects = [
   {
@@ -471,6 +522,45 @@ const baseAgentProfiles = [
   },
 ];
 
+const basePromptTemplates = [
+  {
+    id: 'tpl-ops',
+    title: 'Playbook de onboarding',
+    summary: 'Template operacional para abrir onboarding com owners e riscos.',
+    promptBody: 'Mapeie um onboarding para {{workspace}} com owners, risco residual e criterio de aceite.',
+    variables: ['workspace'],
+    templateScope: 'workspace',
+    statusLabel: 'Template operacional',
+    availability: 'live',
+    ownerName: 'Lume Operator',
+    projectId: 'proj-ops',
+    projectName: 'Operacao do workspace',
+    agentProfileId: 'ops',
+    agentProfileName: 'Ops Strategist',
+    favorited: true,
+    lastUsedAt: null,
+    updatedAt: '2026-03-08 00:00',
+  },
+  {
+    id: 'tpl-compliance',
+    title: 'Checklist de compliance',
+    summary: 'Template para revisao conservadora antes da execucao.',
+    promptBody: 'Revise o fluxo {{fluxo}} com riscos, evidencias faltantes e aprovacoes.',
+    variables: ['fluxo'],
+    templateScope: 'agent',
+    statusLabel: 'Template operacional',
+    availability: 'live',
+    ownerName: 'Lume Operator',
+    projectId: 'proj-ops',
+    projectName: 'Operacao do workspace',
+    agentProfileId: 'ops',
+    agentProfileName: 'Ops Strategist',
+    favorited: false,
+    lastUsedAt: null,
+    updatedAt: '2026-03-08 00:00',
+  },
+];
+
 const baseAgentThreads = [
   {
     id: 'thread-ops',
@@ -624,6 +714,7 @@ test.beforeEach(async ({ page }) => {
   const usageData = deepClone(baseUsage);
   let tasksData = deepClone(baseTasks);
   const libraryEntriesData = deepClone(baseLibraryEntries);
+  const artifactVersionsData = deepClone(baseArtifactVersions);
   const projectsData = deepClone(baseProjects);
   let membersData = deepClone(baseMembers);
   const providersData = deepClone(baseProviders);
@@ -634,6 +725,7 @@ test.beforeEach(async ({ page }) => {
   let agentProfilesData = deepClone(baseAgentProfiles);
   let agentThreadsData = deepClone(baseAgentThreads);
   const agentMessagesData = deepClone(baseAgentMessages);
+  let promptTemplatesData = deepClone(basePromptTemplates);
   const notificationsData = deepClone(baseNotifications);
   let summaryData = buildSummary(sessionData.workspace.name, membersData.length);
   let taskDetailsData = Object.fromEntries(tasksData.map((task) => [task.id, buildTaskDetail(task)]));
@@ -790,6 +882,39 @@ test.beforeEach(async ({ page }) => {
       return route.fulfill({ json: libraryEntriesData });
     }
 
+    if (pathname.includes('/api/v1/library/entries/') && pathname.endsWith('/versions') && request.method() === 'GET') {
+      const segments = pathname.split('/');
+      const entryId = segments[segments.length - 2];
+      return route.fulfill({ json: artifactVersionsData[entryId] ?? [] });
+    }
+
+    if (pathname.includes('/api/v1/library/entries/') && pathname.endsWith('/versions') && request.method() === 'POST') {
+      const segments = pathname.split('/');
+      const entryId = segments[segments.length - 2];
+      const payload = request.postDataJSON() as {
+        versionLabel: string;
+        changeSummary: string;
+        contentPreview: string;
+      };
+      const created = {
+        id: `ver-${entryId}-${payload.versionLabel}`,
+        entryId,
+        versionLabel: payload.versionLabel,
+        changeSummary: payload.changeSummary,
+        contentPreview: payload.contentPreview,
+        createdByName: 'Lume Operator',
+        createdAt: '2026-03-08 00:30',
+      };
+      artifactVersionsData[entryId] = [created, ...(artifactVersionsData[entryId] ?? [])];
+      const targetEntry = libraryEntriesData.find((entry) => entry.id === entryId);
+      if (targetEntry) {
+        targetEntry.versionCount += 1;
+        targetEntry.currentVersionLabel = payload.versionLabel;
+        targetEntry.status = 'Versionado';
+      }
+      return route.fulfill({ json: created });
+    }
+
     if (pathname.endsWith('/api/projects')) {
       return route.fulfill({ json: projectsData });
     }
@@ -858,6 +983,28 @@ test.beforeEach(async ({ page }) => {
 
     if (pathname.endsWith('/agents/profiles') && request.method() === 'GET') {
       return route.fulfill({ json: agentProfilesData });
+    }
+
+    if (pathname.endsWith('/api/v1/prompt-templates') && request.method() === 'GET') {
+      const url = new URL(request.url());
+      const agentProfileId = url.searchParams.get('agentProfileId');
+      const favorited = url.searchParams.get('favorited');
+      const filteredTemplates = promptTemplatesData.filter((template) => (
+        (!agentProfileId || !template.agentProfileId || template.agentProfileId === agentProfileId)
+        && (!favorited || template.favorited)
+      ));
+      return route.fulfill({ json: filteredTemplates });
+    }
+
+    if (pathname.includes('/api/v1/prompt-templates/') && pathname.endsWith('/touch') && request.method() === 'POST') {
+      const segments = pathname.split('/');
+      const templateId = segments[segments.length - 2];
+      promptTemplatesData = promptTemplatesData.map((template) => (
+        template.id !== templateId
+          ? template
+          : { ...template, lastUsedAt: '2026-03-08 00:40' }
+      ));
+      return route.fulfill({ json: promptTemplatesData.find((template) => template.id === templateId) ?? promptTemplatesData[0] });
     }
 
     if (pathname.endsWith('/agents/threads') && request.method() === 'GET') {

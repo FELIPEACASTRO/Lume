@@ -8,12 +8,14 @@ import com.lume.workspace.entity.AgentThreadJpaEntity;
 import com.lume.workspace.entity.LibraryEntryJpaEntity;
 import com.lume.workspace.entity.MembershipJpaEntity;
 import com.lume.workspace.entity.ProjectJpaEntity;
+import com.lume.workspace.entity.PromptTemplateJpaEntity;
 import com.lume.workspace.entity.TaskJpaEntity;
 import com.lume.workspace.repository.AgentProfileJpaRepository;
 import com.lume.workspace.repository.AgentThreadJpaRepository;
 import com.lume.workspace.repository.LibraryEntryJpaRepository;
 import com.lume.workspace.repository.MembershipJpaRepository;
 import com.lume.workspace.repository.ProjectJpaRepository;
+import com.lume.workspace.repository.PromptTemplateJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ public class SearchService {
     private final AgentProfileJpaRepository agentProfileRepository;
     private final AgentThreadJpaRepository agentThreadRepository;
     private final ProjectJpaRepository projectRepository;
+    private final PromptTemplateJpaRepository promptTemplateRepository;
     private final TaskJpaRepository taskRepository;
     private final MembershipJpaRepository membershipRepository;
     private final WorkspaceContextService workspaceContextService;
@@ -38,6 +41,7 @@ public class SearchService {
             AgentProfileJpaRepository agentProfileRepository,
             AgentThreadJpaRepository agentThreadRepository,
             ProjectJpaRepository projectRepository,
+            PromptTemplateJpaRepository promptTemplateRepository,
             TaskJpaRepository taskRepository,
             MembershipJpaRepository membershipRepository,
             WorkspaceContextService workspaceContextService
@@ -47,6 +51,7 @@ public class SearchService {
         this.agentProfileRepository = agentProfileRepository;
         this.agentThreadRepository = agentThreadRepository;
         this.projectRepository = projectRepository;
+        this.promptTemplateRepository = promptTemplateRepository;
         this.taskRepository = taskRepository;
         this.membershipRepository = membershipRepository;
         this.workspaceContextService = workspaceContextService;
@@ -113,6 +118,18 @@ public class SearchService {
                     "Contexto",
                     entry.getAvailability(),
                     List.of(entry.getTitle(), entry.getCategory(), entry.getOwnerName(), entry.getSummary(), String.join(" ", entry.getTags()))
+            ), normalizedQuery);
+        }
+
+        for (PromptTemplateJpaEntity template : promptTemplateRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)) {
+            maybeAdd(results, new SearchResultResponse(
+                    "template-%s".formatted(template.getId()),
+                    template.getTitle(),
+                    "%s. %s".formatted(template.getTemplateScope(), template.getSummary()),
+                    "/agents?template=%s".formatted(template.getId()),
+                    "Ativos inteligentes",
+                    template.getAvailability(),
+                    List.of(template.getTitle(), template.getSummary(), template.getPromptBody(), template.getVariablesRaw(), "template", "prompt")
             ), normalizedQuery);
         }
 

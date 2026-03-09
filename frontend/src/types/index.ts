@@ -47,6 +47,8 @@ export type WorkspaceDataState = PreviewState | 'loading' | 'empty' | 'error';
 export type ThemeMode = 'light' | 'dark';
 export type WorkspaceGroup = 'primary' | 'task-history' | 'secondary';
 export type StreamingMode = 'native' | 'unsupported';
+export type ChargebackMode = 'showback' | 'chargeback';
+export type BudgetStatus = 'healthy' | 'soft_limit_reached' | 'hard_limit_reached' | string;
 export type RuntimeMaturity = 'live' | 'partial' | 'catalog_only' | string;
 export type HealthSource = 'static' | 'last_connectivity_test';
 export type ImplementationStatus =
@@ -111,12 +113,120 @@ export interface LibraryEntry {
   id: string;
   title: string;
   category: string;
+  entryType: string;
   status: string;
   availability: WorkspaceDataState;
   owner: string;
   sourceLabel: string;
   summary: string;
   tags: string[];
+  projectId?: string | null;
+  projectName?: string | null;
+  favorited: boolean;
+  archived: boolean;
+  versionCount: number;
+  currentVersionLabel?: string | null;
+}
+
+export interface ArtifactVersionDto {
+  id: string;
+  entryId: string;
+  versionLabel: string;
+  changeSummary: string;
+  contentPreview: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface CreateArtifactVersionRequest {
+  versionLabel: string;
+  changeSummary: string;
+  contentPreview: string;
+}
+
+export interface PromptTemplateDto {
+  id: string;
+  title: string;
+  summary: string;
+  promptBody: string;
+  variables: string[];
+  templateScope: string;
+  statusLabel: string;
+  availability: WorkspaceDataState;
+  ownerName: string;
+  projectId?: string | null;
+  projectName?: string | null;
+  agentProfileId?: string | null;
+  agentProfileName?: string | null;
+  favorited: boolean;
+  lastUsedAt?: string | null;
+  updatedAt: string;
+}
+
+export interface CreatePromptTemplateRequest {
+  title: string;
+  summary: string;
+  promptBody: string;
+  templateScope?: string;
+  projectId?: string;
+  agentProfileId?: string;
+  variables?: string[];
+  favorited?: boolean;
+  statusLabel?: string;
+  availability?: WorkspaceDataState;
+}
+
+export interface UpdatePromptTemplateRequest {
+  title?: string;
+  summary?: string;
+  promptBody?: string;
+  templateScope?: string;
+  projectId?: string;
+  agentProfileId?: string;
+  variables?: string[];
+  favorited?: boolean;
+  statusLabel?: string;
+  availability?: WorkspaceDataState;
+}
+
+export interface KnowledgeSourceDto {
+  id: string;
+  title: string;
+  sourceType: string;
+  sourceUri?: string | null;
+  projectId?: string | null;
+  projectName?: string | null;
+  statusLabel: string;
+  availability: WorkspaceDataState;
+  documentCount: number;
+  enabledForAgents: boolean;
+  note: string;
+  lastIndexedAt?: string | null;
+  updatedAt: string;
+}
+
+export interface CreateKnowledgeSourceRequest {
+  title: string;
+  sourceType: string;
+  projectId?: string;
+  sourceUri?: string;
+  documentCount?: number;
+  enabledForAgents?: boolean;
+  statusLabel?: string;
+  availability?: WorkspaceDataState;
+  note: string;
+}
+
+export interface UpdateKnowledgeSourceRequest {
+  title?: string;
+  sourceType?: string;
+  projectId?: string;
+  sourceUri?: string;
+  documentCount?: number;
+  enabledForAgents?: boolean;
+  statusLabel?: string;
+  availability?: WorkspaceDataState;
+  note?: string;
 }
 
 export interface AgentProfile {
@@ -293,6 +403,30 @@ export interface UsageSummaryDto {
   scheduledTasks: number;
   unreadNotifications: number;
   note: string;
+  budget: BudgetSummaryDto;
+}
+
+export interface BudgetSummaryDto {
+  costCenter: string;
+  chargebackMode: ChargebackMode;
+  softLimitCredits: number;
+  hardLimitCredits: number;
+  consumedCredits: number;
+  remainingSoftCredits: number;
+  remainingHardCredits: number;
+  softLimitUtilizationPercent: number;
+  hardLimitUtilizationPercent: number;
+  softLimitReached: boolean;
+  hardLimitReached: boolean;
+  budgetStatus: BudgetStatus;
+  note: string;
+}
+
+export interface UpdateBudgetRequest {
+  costCenter?: string;
+  chargebackMode?: ChargebackMode;
+  softLimitCredits?: number;
+  hardLimitCredits?: number;
 }
 
 export interface SettingsPreferencesDto {

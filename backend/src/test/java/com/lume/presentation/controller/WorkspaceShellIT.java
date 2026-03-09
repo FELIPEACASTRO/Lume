@@ -104,7 +104,9 @@ class WorkspaceShellIT {
         mockMvc.perform(get("/library/entries").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].sourceLabel").value("Backend do workspace"));
+                .andExpect(jsonPath("$[0].sourceLabel").value("Backend do workspace"))
+                .andExpect(jsonPath("$[0].entryType").value("artifact"))
+                .andExpect(jsonPath("$[0].versionCount").isNumber());
     }
 
     @Test
@@ -174,7 +176,11 @@ class WorkspaceShellIT {
         mockMvc.perform(get("/usage/summary").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.dailyCredits").value(300))
-                .andExpect(jsonPath("$.unreadNotifications").isNumber());
+                .andExpect(jsonPath("$.unreadNotifications").isNumber())
+                .andExpect(jsonPath("$.budget.costCenter").value("core_now"))
+                .andExpect(jsonPath("$.budget.chargebackMode").value("showback"))
+                .andExpect(jsonPath("$.budget.softLimitCredits").value(300))
+                .andExpect(jsonPath("$.budget.hardLimitCredits").value(450));
     }
 
     @Test
@@ -195,7 +201,43 @@ class WorkspaceShellIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.organizationName").value("Lume"))
                 .andExpect(jsonPath("$.sections").isArray())
-                .andExpect(jsonPath("$.usage.dailyCredits").value(300));
+                .andExpect(jsonPath("$.usage.dailyCredits").value(300))
+                .andExpect(jsonPath("$.sections[?(@.key=='knowledge')]").exists())
+                .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists())
+                .andExpect(jsonPath("$.usage.budget.costCenter").value("core_now"));
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("GET /api/v1/knowledge-sources - should list persisted knowledge sources")
+    void shouldReturnKnowledgeSources() throws Exception {
+        mockMvc.perform(get("/api/v1/knowledge-sources").with(operatorHeader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].title").exists())
+                .andExpect(jsonPath("$[0].enabledForAgents").isBoolean())
+                .andExpect(jsonPath("$[0].documentCount").isNumber());
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("GET /api/v1/library/entries/{id}/versions - should return persisted artifact versions")
+    void shouldReturnArtifactVersions() throws Exception {
+        mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding").with(operatorHeader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].entryId").value("lib-onboarding"))
+                .andExpect(jsonPath("$[0].versionLabel").exists());
+    }
+
+    @Test
+    @Order(13)
+    @DisplayName("GET /api/v1/prompt-templates - should return persisted prompt templates")
+    void shouldReturnPromptTemplates() throws Exception {
+        mockMvc.perform(get("/api/v1/prompt-templates").with(operatorHeader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].promptBody").exists())
+                .andExpect(jsonPath("$[0].variables").isArray());
     }
 
     private RequestPostProcessor operatorHeader() {

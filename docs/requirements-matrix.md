@@ -25,6 +25,14 @@ Regra operacional:
 | `evidenceLevel` | `offline_verified`, `integration_verified`, `online_verified` | nivel de evidencia disponivel |
 | `streamingMode` | `native`, `unsupported` | semantica real de streaming |
 
+## Recorte curado de valor
+
+| Classe | O que entra |
+|---|---|
+| `core_now` | workspace/tenant/member/role, projects/tasks/library/inbox/usage, budgets por workspace, providers capability-first, search/RAG inicial, audit/compliance basicos e API capability-first |
+| `next_after_core` | knowledge plane completo, prompt/template library, artifact versioning, BYOK por tenant, virtual API keys, workflow runtime, approvals e semantic cache |
+| `parked` | marketplace publico, revenue share, white-label amplo, browser/computer use, telefonia e claims de escala sem benchmark |
+
 ## Matriz por capability
 
 | Capability | Endpoint principal | Estado atual | Providers principais | Evidencia minima para `live` |

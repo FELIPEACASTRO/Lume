@@ -5,24 +5,28 @@ import com.lume.domain.service.PasswordEncoder;
 import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.entity.AgentProfileJpaEntity;
+import com.lume.workspace.entity.ArtifactVersionJpaEntity;
 import com.lume.workspace.entity.KnowledgeSourceJpaEntity;
 import com.lume.workspace.entity.LibraryEntryJpaEntity;
 import com.lume.workspace.entity.MembershipJpaEntity;
 import com.lume.workspace.entity.NotificationJpaEntity;
 import com.lume.workspace.entity.OrganizationJpaEntity;
 import com.lume.workspace.entity.ProjectJpaEntity;
+import com.lume.workspace.entity.PromptTemplateJpaEntity;
 import com.lume.workspace.entity.RoleJpaEntity;
 import com.lume.workspace.entity.TaskJpaEntity;
 import com.lume.workspace.entity.TaskStepJpaEntity;
 import com.lume.workspace.entity.UserPreferenceJpaEntity;
 import com.lume.workspace.entity.WorkspaceJpaEntity;
 import com.lume.workspace.repository.AgentProfileJpaRepository;
+import com.lume.workspace.repository.ArtifactVersionJpaRepository;
 import com.lume.workspace.repository.KnowledgeSourceJpaRepository;
 import com.lume.workspace.repository.LibraryEntryJpaRepository;
 import com.lume.workspace.repository.MembershipJpaRepository;
 import com.lume.workspace.repository.NotificationJpaRepository;
 import com.lume.workspace.repository.OrganizationJpaRepository;
 import com.lume.workspace.repository.ProjectJpaRepository;
+import com.lume.workspace.repository.PromptTemplateJpaRepository;
 import com.lume.workspace.repository.RoleJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
 import com.lume.workspace.repository.TaskStepJpaRepository;
@@ -43,7 +47,9 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
     private final WorkspaceJpaRepository workspaceRepository;
     private final LibraryEntryJpaRepository libraryEntryRepository;
     private final AgentProfileJpaRepository agentProfileRepository;
+    private final ArtifactVersionJpaRepository artifactVersionRepository;
     private final ProjectJpaRepository projectRepository;
+    private final PromptTemplateJpaRepository promptTemplateRepository;
     private final TaskJpaRepository taskRepository;
     private final TaskStepJpaRepository taskStepRepository;
     private final NotificationJpaRepository notificationRepository;
@@ -59,7 +65,9 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
             WorkspaceJpaRepository workspaceRepository,
             LibraryEntryJpaRepository libraryEntryRepository,
             AgentProfileJpaRepository agentProfileRepository,
+            ArtifactVersionJpaRepository artifactVersionRepository,
             ProjectJpaRepository projectRepository,
+            PromptTemplateJpaRepository promptTemplateRepository,
             TaskJpaRepository taskRepository,
             TaskStepJpaRepository taskStepRepository,
             NotificationJpaRepository notificationRepository,
@@ -74,7 +82,9 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         this.workspaceRepository = workspaceRepository;
         this.libraryEntryRepository = libraryEntryRepository;
         this.agentProfileRepository = agentProfileRepository;
+        this.artifactVersionRepository = artifactVersionRepository;
         this.projectRepository = projectRepository;
+        this.promptTemplateRepository = promptTemplateRepository;
         this.taskRepository = taskRepository;
         this.taskStepRepository = taskStepRepository;
         this.notificationRepository = notificationRepository;
@@ -194,9 +204,9 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
     }
 
     private void seedPrimaryWorkspace(WorkspaceJpaEntity workspace) {
-        ensureLibraryEntry(workspace.getId(), "lib-onboarding", "Playbook de onboarding", "Playbook", "Operacao", "Fluxo mestre para criacao de usuarios, onboarding e comunicacao interna.", "usuarios", "compliance", "ritual");
-        ensureLibraryEntry(workspace.getId(), "lib-governanca", "Checklist de governanca", "Checklist", "Financeiro", "Lista de validacoes para acessos, politicas internas e evidencias.", "auditoria", "seguranca", "processo");
-        ensureLibraryEntry(workspace.getId(), "lib-memoria", "Memoria de reunioes do time", "Memoria", "Produto", "Resumos acionaveis de reunioes com decisoes, riscos e owners registrados.", "meeting", "owners", "roadmap");
+        ensureLibraryEntry(workspace.getId(), "lib-onboarding", "Playbook de onboarding", "Playbook", "artifact", "proj-ops", "Operacao", true, "Fluxo mestre para criacao de usuarios, onboarding e comunicacao interna.", "usuarios", "compliance", "ritual");
+        ensureLibraryEntry(workspace.getId(), "lib-governanca", "Checklist de governanca", "Checklist", "artifact", "proj-ops", "Financeiro", false, "Lista de validacoes para acessos, politicas internas e evidencias.", "auditoria", "seguranca", "processo");
+        ensureLibraryEntry(workspace.getId(), "lib-memoria", "Memoria de reunioes do time", "Memoria", "artifact", "proj-growth", "Produto", false, "Resumos acionaveis de reunioes com decisoes, riscos e owners registrados.", "meeting", "owners", "roadmap");
 
         ensureAgentProfile(workspace.getId(), "ops", "Ops Strategist", "Operacao e processos", "Traduz pedidos em fluxos executaveis com foco em custo, risco e velocidade.", "openai", "openai:gpt-4.1-mini", "agent-v1-openai", "Voce atua como operador senior. Responda com diagnostico, riscos, trade-offs e proximo passo executavel.");
         ensureAgentProfile(workspace.getId(), "growth", "Growth Architect", "Expansao e ativacao", "Estrutura campanhas, argumentos e alavancas de conversao com contexto do workspace.", "anthropic", "anthropic:claude-sonnet-4-5", "agent-v1-claude", "Voce atua como arquiteto de growth. Estruture a resposta em hipoteses, narrativa, experimento e criterio de sucesso.");
@@ -207,6 +217,11 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 
         ensureProject(workspace.getId(), "proj-ops", "Operacao do workspace", "Organiza onboarding, permissoes e checkpoints do workspace atual.", "Operacao", "API real");
         ensureProject(workspace.getId(), "proj-growth", "Growth e ativacao", "Centraliza campanhas, narrativas e alavancas de crescimento monitoradas pelo time.", "Growth", "API real");
+
+        ensureArtifactVersion(workspace.getId(), "ver-lib-onboarding-v1", "lib-onboarding", "v1", "Playbook inicial persistido", "Estrutura base de onboarding, ownership e checkpoints para ativacao.");
+        ensureArtifactVersion(workspace.getId(), "ver-lib-onboarding-v2", "lib-onboarding", "v2", "Versionamento do fluxo de aprovacao", "Inclui checkpoints de compliance, handoff para growth e criterio de aceite.");
+        ensureArtifactVersion(workspace.getId(), "ver-lib-governanca-v1", "lib-governanca", "v1", "Checklist publicado", "Primeira versao operacional com trilha de auditoria e owners definidos.");
+        ensureArtifactVersion(workspace.getId(), "ver-lib-memoria-v1", "lib-memoria", "v1", "Memoria consolidada", "Decisoes, riscos e pendencias registradas para o proximo ciclo.");
 
         ensureTask(workspace.getId(), "task-onboarding", "proj-ops", "playbook", "Estruturar onboarding operacional do workspace", "Mapeie fluxo de onboarding, checkpoints de aprovacao e owners.", "Playbook persistido para o workspace atual.");
         ensureTaskStep("task-onboarding", 1, "plan", "Definir escopo do onboarding", "Consolidar quais perfis entram, quais aprovacoes sao obrigatorias e como a trilha sera medida.", "completed");
@@ -225,17 +240,24 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         ensureNotification(workspace.getId(), "notif-library-sync", "library", "Biblioteca sincronizada", "Os artefatos centrais do workspace foram indexados para busca global.", "/library", false);
         ensureNotification(workspace.getId(), "notif-agents", "agent", "Threads de agents persistidas", "O modulo de agents continua em preview, mas as conversas ja estao no backend.", "/agents", true);
 
-        ensureKnowledgeSource(workspace.getId(), "knowledge-playbooks", "Playbooks operacionais", "library", "API real", "Conjunto de artefatos persistidos na biblioteca do workspace.");
-        ensureKnowledgeSource(workspace.getId(), "knowledge-agents", "Contexto de agents", "agent-thread", "Preview assistido", "Threads e mensagens reais aguardando a camada de inferencia unificada.");
+        ensureKnowledgeSource(workspace.getId(), "knowledge-playbooks", "Playbooks operacionais", "library", "proj-ops", "lume://library/playbooks", 3, true, "API real", "Conjunto de artefatos persistidos na biblioteca do workspace.");
+        ensureKnowledgeSource(workspace.getId(), "knowledge-agents", "Contexto de agents", "agent-thread", null, "lume://agents/threads", 2, true, "Preview assistido", "Threads e mensagens reais aguardando a camada de inferencia unificada.");
+
+        ensurePromptTemplate(workspace.getId(), "tpl-ops-onboarding", "Playbook de onboarding", "Template para abrir fluxos de onboarding com checkpoints e owners.", "Mapeie um onboarding operacional para {{workspace}} com etapas, owners, riscos e criterio de aceite.", "workspace", "proj-ops", "ops", true, "workspace,owners,risco,aceite");
+        ensurePromptTemplate(workspace.getId(), "tpl-growth-brief", "Brief de campanha", "Template para organizar tese, mensagem e experimento de growth.", "Monte um brief de campanha para {{objetivo}} com ICP, proposta de valor, prova social e experimento inicial.", "project", "proj-growth", "growth", false, "objetivo,icp,prova_social");
+        ensurePromptTemplate(workspace.getId(), "tpl-compliance-review", "Checklist de compliance", "Template para revisao conservadora antes de publicar fluxos.", "Revise o fluxo {{fluxo}} com riscos, evidencias faltantes, aprovacoes necessarias e bloqueios.", "agent", "proj-ops", "compliance", true, "fluxo,evidencias,aprovacoes");
     }
 
     private void seedStrategyWorkspace(WorkspaceJpaEntity workspace) {
-        ensureLibraryEntry(workspace.getId(), "lib-strategy-brief", "Brief de estrategia", "Brief", "Estrategia", "Resumo tatico do workspace voltado a pricing, posicionamento e canais.", "pricing", "positioning", "gtm");
-        ensureLibraryEntry(workspace.getId(), "lib-strategy-research", "Radar competitivo", "Research", "Produto", "Coleta de sinais do mercado e hipoteses de diferenciacao da Lume.", "benchmark", "research", "signals");
+        ensureLibraryEntry(workspace.getId(), "lib-strategy-brief", "Brief de estrategia", "Brief", "artifact", "proj-strategy", "Estrategia", true, "Resumo tatico do workspace voltado a pricing, posicionamento e canais.", "pricing", "positioning", "gtm");
+        ensureLibraryEntry(workspace.getId(), "lib-strategy-research", "Radar competitivo", "Research", "artifact", "proj-strategy", "Produto", false, "Coleta de sinais do mercado e hipoteses de diferenciacao da Lume.", "benchmark", "research", "signals");
 
         ensureAgentProfile(workspace.getId(), "strategy", "Strategy Operator", "Planejamento e portfolio", "Traduz benchmark, pricing e portfolio em trilhas acionaveis.", "openai", "openai:gpt-4.1-mini", "agent-v1-openai", "Voce atua como operador de estrategia. Estruture resposta em tese, evidencias, riscos e decisao recomendada.");
 
         ensureProject(workspace.getId(), "proj-strategy", "Planejamento go-to-market", "Coordena posicionamento, assets e prioridades do proximo ciclo.", "Estrategia", "API real");
+
+        ensureArtifactVersion(workspace.getId(), "ver-lib-strategy-brief-v1", "lib-strategy-brief", "v1", "Brief inicial", "Primeiro consolidado de tese, ICP e narrativa central.");
+        ensureArtifactVersion(workspace.getId(), "ver-lib-strategy-research-v1", "lib-strategy-research", "v1", "Radar competitivo base", "Sinais de benchmark, pricing e diferenciacao priorizados.");
 
         ensureTask(workspace.getId(), "task-strategy", "proj-strategy", "research", "Consolidar roteiro de posicionamento", "Cruze benchmark, pricing e ICP para definir o proximo pacote de mensagens.", "Analise de posicionamento persistida neste workspace.");
         ensureTaskStep("task-strategy", 1, "plan", "Definir tese central", "Unificar proposta de valor, ICP e principais objecoes do mercado.", "completed");
@@ -243,22 +265,36 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 
         ensureNotification(workspace.getId(), "notif-strategy", "strategy", "Workspace de estrategia ativo", "Este workspace possui backlog e contexto proprio para validacao de mercado.", "/projects", false);
 
-        ensureKnowledgeSource(workspace.getId(), "knowledge-strategy", "Fontes de estrategia", "library", "API real", "Briefs e evidencias organizadas para experimentos de posicionamento.");
+        ensureKnowledgeSource(workspace.getId(), "knowledge-strategy", "Fontes de estrategia", "library", "proj-strategy", "lume://library/strategy", 2, true, "API real", "Briefs e evidencias organizadas para experimentos de posicionamento.");
+
+        ensurePromptTemplate(workspace.getId(), "tpl-strategy-thesis", "Tese de posicionamento", "Template para consolidar tese, risco e decisao recomendada.", "Estruture a tese para {{segmento}} com benchmark, diferenciacao, risco e proxima decisao.", "project", "proj-strategy", "strategy", true, "segmento,benchmark,diferenciacao");
     }
 
-    private void ensureLibraryEntry(Long workspaceId, String id, String title, String category, String ownerName, String summary, String... tags) {
-        if (libraryEntryRepository.existsById(id)) {
-            return;
-        }
-        LibraryEntryJpaEntity entry = new LibraryEntryJpaEntity();
+    private void ensureLibraryEntry(
+            Long workspaceId,
+            String id,
+            String title,
+            String category,
+            String entryType,
+            String projectId,
+            String ownerName,
+            boolean favorited,
+            String summary,
+            String... tags
+    ) {
+        LibraryEntryJpaEntity entry = libraryEntryRepository.findById(id).orElseGet(LibraryEntryJpaEntity::new);
         entry.setId(id);
         entry.setWorkspaceId(workspaceId);
         entry.setTitle(title);
         entry.setCategory(category);
+        entry.setEntryType(entryType);
+        entry.setProjectId(projectId);
         entry.setStatusLabel("API real");
         entry.setAvailability("live");
         entry.setOwnerName(ownerName);
         entry.setSourceLabel("Backend do workspace");
+        entry.setFavorited(favorited);
+        entry.setArchived(false);
         entry.setSummary(summary);
         entry.setTags(new LinkedHashSet<>(List.of(tags)));
         libraryEntryRepository.save(entry);
@@ -356,7 +392,18 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         notificationRepository.save(notification);
     }
 
-    private void ensureKnowledgeSource(Long workspaceId, String id, String title, String sourceType, String statusLabel, String note) {
+    private void ensureKnowledgeSource(
+            Long workspaceId,
+            String id,
+            String title,
+            String sourceType,
+            String projectId,
+            String sourceUri,
+            int documentCount,
+            boolean enabledForAgents,
+            String statusLabel,
+            String note
+    ) {
         if (knowledgeSourceRepository.existsById(id)) {
             return;
         }
@@ -365,9 +412,62 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         source.setWorkspaceId(workspaceId);
         source.setTitle(title);
         source.setSourceType(sourceType);
+        source.setProjectId(projectId);
+        source.setSourceUri(sourceUri);
+        source.setDocumentCount(documentCount);
+        source.setEnabledForAgents(enabledForAgents);
         source.setStatusLabel(statusLabel);
         source.setAvailability("live");
         source.setNote(note);
+        source.setLastIndexedAt(java.time.LocalDateTime.now());
         knowledgeSourceRepository.save(source);
+    }
+
+    private void ensureArtifactVersion(
+            Long workspaceId,
+            String id,
+            String entryId,
+            String versionLabel,
+            String changeSummary,
+            String contentPreview
+    ) {
+        ArtifactVersionJpaEntity version = artifactVersionRepository.findById(id).orElseGet(ArtifactVersionJpaEntity::new);
+        version.setId(id);
+        version.setEntryId(entryId);
+        version.setWorkspaceId(workspaceId);
+        version.setVersionLabel(versionLabel);
+        version.setChangeSummary(changeSummary);
+        version.setContentPreview(contentPreview);
+        version.setCreatedByName("Lume Operator");
+        artifactVersionRepository.save(version);
+    }
+
+    private void ensurePromptTemplate(
+            Long workspaceId,
+            String id,
+            String title,
+            String summary,
+            String promptBody,
+            String templateScope,
+            String projectId,
+            String agentProfileId,
+            boolean favorited,
+            String variablesRaw
+    ) {
+        PromptTemplateJpaEntity template = promptTemplateRepository.findById(id).orElseGet(PromptTemplateJpaEntity::new);
+        template.setId(id);
+        template.setWorkspaceId(workspaceId);
+        template.setProjectId(projectId);
+        template.setAgentProfileId(agentProfileId);
+        template.setTitle(title);
+        template.setSummary(summary);
+        template.setPromptBody(promptBody);
+        template.setTemplateScope(templateScope);
+        template.setStatusLabel("Template operacional");
+        template.setAvailability("live");
+        template.setOwnerName("Lume Operator");
+        template.setVariablesRaw(variablesRaw);
+        template.setFavorited(favorited);
+        promptTemplateRepository.save(template);
     }
 }

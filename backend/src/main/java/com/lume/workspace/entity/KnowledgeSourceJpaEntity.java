@@ -26,6 +26,18 @@ public class KnowledgeSourceJpaEntity {
     @Column(name = "source_type", nullable = false, length = 80)
     private String sourceType;
 
+    @Column(name = "project_id", length = 64)
+    private String projectId;
+
+    @Column(name = "source_uri", length = 512)
+    private String sourceUri;
+
+    @Column(name = "document_count", nullable = false)
+    private Integer documentCount;
+
+    @Column(name = "enabled_for_agents", nullable = false)
+    private Boolean enabledForAgents;
+
     @Column(name = "status_label", nullable = false, length = 80)
     private String statusLabel;
 
@@ -34,6 +46,9 @@ public class KnowledgeSourceJpaEntity {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String note;
+
+    @Column(name = "last_indexed_at")
+    private LocalDateTime lastIndexedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -48,6 +63,12 @@ public class KnowledgeSourceJpaEntity {
         }
         if (updatedAt == null) {
             updatedAt = LocalDateTime.now();
+        }
+        if (documentCount == null) {
+            documentCount = 0;
+        }
+        if (enabledForAgents == null) {
+            enabledForAgents = Boolean.TRUE;
         }
     }
 
@@ -96,6 +117,38 @@ public class KnowledgeSourceJpaEntity {
         this.statusLabel = statusLabel;
     }
 
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getSourceUri() {
+        return sourceUri;
+    }
+
+    public void setSourceUri(String sourceUri) {
+        this.sourceUri = sourceUri;
+    }
+
+    public Integer getDocumentCount() {
+        return documentCount;
+    }
+
+    public void setDocumentCount(Integer documentCount) {
+        this.documentCount = documentCount;
+    }
+
+    public Boolean getEnabledForAgents() {
+        return enabledForAgents;
+    }
+
+    public void setEnabledForAgents(Boolean enabledForAgents) {
+        this.enabledForAgents = enabledForAgents;
+    }
+
     public String getAvailability() {
         return availability;
     }
@@ -110,5 +163,21 @@ public class KnowledgeSourceJpaEntity {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public LocalDateTime getLastIndexedAt() {
+        return lastIndexedAt;
+    }
+
+    public void setLastIndexedAt(LocalDateTime lastIndexedAt) {
+        this.lastIndexedAt = lastIndexedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

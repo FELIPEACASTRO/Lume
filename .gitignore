@@ -44,3 +44,4 @@ backend/target/
 .codex-run/
 .playwright-cli/
 output/
+reports/integration-audit/
