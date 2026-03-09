@@ -62,7 +62,7 @@ public class VectorCapabilityService {
                     List.of(),
                     null,
                     null,
-                    "O provedor selecionado nao suporta embeddings no runtime atual."
+                    "O provedor selecionado nao oferece embeddings nesta integracao."
             );
         }
 
@@ -119,7 +119,7 @@ public class VectorCapabilityService {
                     List.of(),
                     List.of(),
                     null,
-                    "O provedor selecionado nao suporta rerank no runtime atual."
+                    "O provedor selecionado nao oferece reranqueamento nesta integracao."
             );
         }
 

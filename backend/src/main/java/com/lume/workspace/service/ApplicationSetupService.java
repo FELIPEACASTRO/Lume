@@ -253,6 +253,7 @@ public class ApplicationSetupService {
                     WorkspaceContextService.PERMISSION_TEMPLATES_MANAGE,
                     WorkspaceContextService.PERMISSION_BUDGETS_READ,
                     WorkspaceContextService.PERMISSION_BUDGETS_MANAGE,
+                    WorkspaceContextService.PERMISSION_SETTINGS_MANAGE,
                     WorkspaceContextService.PERMISSION_AGENTS_RUNTIME_MANAGE,
                     WorkspaceContextService.PERMISSION_RESEARCH_RUN,
                     WorkspaceContextService.PERMISSION_THREAT_INTEL_READ,

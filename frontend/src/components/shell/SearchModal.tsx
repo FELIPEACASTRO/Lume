@@ -11,7 +11,7 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
-const preferredSectionOrder = ['Projetos', 'Tarefas', 'Biblioteca', 'Equipe', 'Configuracoes', 'Knowledge', 'Templates', 'Agents', 'Membros', 'Inbox', 'Uso', 'Settings'];
+const preferredSectionOrder = ['Tarefas', 'Projetos', 'Biblioteca', 'Equipe', 'Conhecimento', 'Templates', 'Agentes', 'Configuracoes'];
 const focusableSelector = [
   'button:not([disabled])',
   '[href]',
@@ -91,8 +91,8 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
         try {
           setLoading(true);
           setError(null);
-          const results = await searchService.search(query);
-          setSearchTargets(results);
+          const results = await searchService.searchResults(query);
+          setSearchTargets(results.results);
         } catch (searchError) {
           setError(toApiClientError(searchError).message);
           setSearchTargets([]);
@@ -208,10 +208,10 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
             </div>
             <div className="min-w-0 flex-1">
               <p id={dialogId} className="text-sm font-semibold text-[var(--ink-strong)]">
-                Busca global do workspace
+                Buscar no workspace
               </p>
               <p id={descriptionId} className="mt-1 text-sm text-[var(--ink-soft)]">
-                Use setas para navegar, Enter para abrir e Esc para fechar.
+                Use as setas para navegar, Enter para abrir e Esc para fechar.
               </p>
             </div>
             <kbd className="hidden rounded-full border px-3 py-1 text-xs font-semibold text-[var(--ink-soft)] sm:inline-flex" style={{ borderColor: 'var(--line-soft)' }}>
@@ -237,7 +237,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
           {loading ? (
             <div className="rounded-[24px] border border-dashed px-6 py-10 text-center" style={{ borderColor: 'var(--line-soft)' }}>
               <p className="text-sm font-semibold text-[var(--ink-strong)]">Buscando no workspace...</p>
-              <p className="mt-2 text-sm text-[var(--ink-soft)]">Buscando tarefas, projetos, pessoas, arquivos e conversas.</p>
+              <p className="mt-2 text-sm text-[var(--ink-soft)]">Procurando tarefas, projetos, pessoas, arquivos e conversas.</p>
             </div>
           ) : error ? (
             <div className="rounded-[24px] border border-dashed px-6 py-10 text-center" style={{ borderColor: 'var(--line-soft)' }}>

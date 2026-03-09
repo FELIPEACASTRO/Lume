@@ -6,6 +6,8 @@ import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.entity.AgentProfileJpaEntity;
 import com.lume.workspace.entity.ArtifactVersionJpaEntity;
+import com.lume.workspace.entity.HomeOverviewBlockJpaEntity;
+import com.lume.workspace.entity.HomeOverviewSettingsJpaEntity;
 import com.lume.workspace.entity.KnowledgeSourceJpaEntity;
 import com.lume.workspace.entity.LibraryEntryJpaEntity;
 import com.lume.workspace.entity.MembershipJpaEntity;
@@ -20,6 +22,8 @@ import com.lume.workspace.entity.UserPreferenceJpaEntity;
 import com.lume.workspace.entity.WorkspaceJpaEntity;
 import com.lume.workspace.repository.AgentProfileJpaRepository;
 import com.lume.workspace.repository.ArtifactVersionJpaRepository;
+import com.lume.workspace.repository.HomeOverviewBlockJpaRepository;
+import com.lume.workspace.repository.HomeOverviewSettingsJpaRepository;
 import com.lume.workspace.repository.KnowledgeSourceJpaRepository;
 import com.lume.workspace.repository.LibraryEntryJpaRepository;
 import com.lume.workspace.repository.MembershipJpaRepository;
@@ -50,6 +54,8 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
     private final LibraryEntryJpaRepository libraryEntryRepository;
     private final AgentProfileJpaRepository agentProfileRepository;
     private final ArtifactVersionJpaRepository artifactVersionRepository;
+    private final HomeOverviewSettingsJpaRepository homeOverviewSettingsRepository;
+    private final HomeOverviewBlockJpaRepository homeOverviewBlockRepository;
     private final ProjectJpaRepository projectRepository;
     private final PromptTemplateJpaRepository promptTemplateRepository;
     private final TaskJpaRepository taskRepository;
@@ -68,6 +74,8 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
             LibraryEntryJpaRepository libraryEntryRepository,
             AgentProfileJpaRepository agentProfileRepository,
             ArtifactVersionJpaRepository artifactVersionRepository,
+            HomeOverviewSettingsJpaRepository homeOverviewSettingsRepository,
+            HomeOverviewBlockJpaRepository homeOverviewBlockRepository,
             ProjectJpaRepository projectRepository,
             PromptTemplateJpaRepository promptTemplateRepository,
             TaskJpaRepository taskRepository,
@@ -85,6 +93,8 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         this.libraryEntryRepository = libraryEntryRepository;
         this.agentProfileRepository = agentProfileRepository;
         this.artifactVersionRepository = artifactVersionRepository;
+        this.homeOverviewSettingsRepository = homeOverviewSettingsRepository;
+        this.homeOverviewBlockRepository = homeOverviewBlockRepository;
         this.projectRepository = projectRepository;
         this.promptTemplateRepository = promptTemplateRepository;
         this.taskRepository = taskRepository;
@@ -117,6 +127,7 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 
         ensurePreference(operator.getId(), primaryWorkspace.getId());
         ensurePreference(analyst.getId(), strategyWorkspace.getId());
+        ensureHomeOverviewCatalog();
 
         seedPrimaryWorkspace(primaryWorkspace);
         seedStrategyWorkspace(strategyWorkspace);
@@ -215,10 +226,10 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         ensureAgentProfile(workspace.getId(), "compliance", "Compliance Analyst", "Controles e validacoes", "Valida regras, checkpoints e politicas antes de publicar qualquer fluxo.", "google-gemini", "google-gemini:gemini-2.5-pro", "agent-v1-gemini-pro", "Voce atua como analista de compliance. Priorize controle, evidencias, risco residual e linguagem conservadora.");
         ensureAgentProfile(workspace.getId(), "deepseek-research", "DeepSeek Researcher", "Analise e raciocinio", "Cruza contexto e monta respostas enxutas para investigacao e decisao.", "deepseek", "deepseek:deepseek-chat", "agent-v1-deepseek", "Voce atua como pesquisador pragmatico. Priorize clareza analitica, estrutura e proximos passos.");
         ensureAgentProfile(workspace.getId(), "grok-scout", "Grok Scout", "Sinais e exploracao", "Explora hipoteses e devolve leituras objetivas para debate rapido.", "xai", "xai:grok-4", "agent-v1-grok", "Voce atua como scout de sinais. Traga leitura objetiva, comparacoes e pontos de tensao do problema.");
-        ensureAgentProfile(workspace.getId(), "sonar-briefing", "Sonar Briefing", "Pesquisa assistida", "Resume contexto com linguagem de briefing e foco em priorizacao.", "perplexity", "perplexity:sonar", "agent-v1-sonar", "Voce atua como sintetizador de briefing. Responda com resumo, contexto e recomendacao acionavel.");
+        ensureAgentProfile(workspace.getId(), "sonar-briefing", "Sonar Briefing", "Pesquisa", "Resume contexto com linguagem de briefing e foco em priorizacao.", "perplexity", "perplexity:sonar", "agent-v1-sonar", "Voce atua como sintetizador de briefing. Responda com resumo, contexto e recomendacao acionavel.");
 
-        ensureProject(workspace.getId(), "proj-ops", "Operacao do workspace", "Organiza onboarding, permissoes e checkpoints do workspace atual.", "Operacao", "API real");
-        ensureProject(workspace.getId(), "proj-growth", "Growth e ativacao", "Centraliza campanhas, narrativas e alavancas de crescimento monitoradas pelo time.", "Growth", "API real");
+        ensureProject(workspace.getId(), "proj-ops", "Operacao do workspace", "Organiza onboarding, permissoes e checkpoints do workspace atual.", "Operacao", "Ativo");
+        ensureProject(workspace.getId(), "proj-growth", "Growth e ativacao", "Centraliza campanhas, narrativas e alavancas de crescimento monitoradas pelo time.", "Growth", "Ativo");
 
         ensureArtifactVersion(workspace.getId(), "ver-lib-onboarding-v1", "lib-onboarding", "v1", "Playbook inicial persistido", "Estrutura base de onboarding, ownership e checkpoints para ativacao.");
         ensureArtifactVersion(workspace.getId(), "ver-lib-onboarding-v2", "lib-onboarding", "v2", "Versionamento do fluxo de aprovacao", "Inclui checkpoints de compliance, handoff para growth e criterio de aceite.");
@@ -228,9 +239,9 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         ensureTask(workspace.getId(), "task-onboarding", "proj-ops", "playbook", "Estruturar onboarding operacional do workspace", "Mapeie fluxo de onboarding, checkpoints de aprovacao e owners.", "Playbook persistido para o workspace atual.");
         ensureTaskStep("task-onboarding", 1, "plan", "Definir escopo do onboarding", "Consolidar quais perfis entram, quais aprovacoes sao obrigatorias e como a trilha sera medida.", "completed");
         ensureTaskStep("task-onboarding", 2, "context", "Consultar biblioteca do workspace", "Cruzar playbooks e checklists ja existentes antes de publicar a nova rotina.", "completed");
-        ensureTaskStep("task-onboarding", 3, "execution", "Preparar execucao assistida", "A tarefa esta persistida e pronta para seguir para inferencia unificada nas proximas fases.", "running");
+        ensureTaskStep("task-onboarding", 3, "execution", "Preparar execucao", "A tarefa esta registrada e pronta para o proximo passo operacional.", "running");
 
-        ensureTask(workspace.getId(), "task-site", "proj-growth", "sites", "Organizar site de campanha para o trimestre", "Crie a estrutura de paginas, mensagens e blocos de prova social.", "Tarefa registrada como execucao assistida antes da inferencia real.");
+        ensureTask(workspace.getId(), "task-site", "proj-growth", "sites", "Organizar site de campanha para o trimestre", "Crie a estrutura de paginas, mensagens e blocos de prova social.", "Tarefa registrada para planejamento e execucao do site de campanha.");
         ensureTaskStep("task-site", 1, "plan", "Definir estrutura da campanha", "Criar paginas, mensagens centrais e blocos de captura associados ao projeto.", "completed");
         ensureTaskStep("task-site", 2, "execution", "Planejar deploy e aprovacoes", "O fluxo aguarda integracoes reais de site generation e publish.", "running");
 
@@ -240,10 +251,10 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 
         ensureNotification(workspace.getId(), "notif-task-onboarding", "task", "Task pronta para revisao", "A tarefa de onboarding ja possui plano inicial, contexto recuperado e proximo passo definido.", "/tasks/task-onboarding", false);
         ensureNotification(workspace.getId(), "notif-library-sync", "library", "Biblioteca sincronizada", "Os artefatos centrais do workspace foram indexados para busca global.", "/library", false);
-        ensureNotification(workspace.getId(), "notif-agents", "agent", "Threads de agents persistidas", "O modulo de agents continua em preview, mas as conversas ja estao no backend.", "/agents", true);
+        ensureNotification(workspace.getId(), "notif-agents", "agent", "Threads de agentes persistidas", "As conversas de agentes ja estao registradas no backend.", "/agents", true);
 
-        ensureKnowledgeSource(workspace.getId(), "knowledge-playbooks", "Playbooks operacionais", "library", "proj-ops", "lume://library/playbooks", 3, true, "API real", "Conjunto de artefatos persistidos na biblioteca do workspace.");
-        ensureKnowledgeSource(workspace.getId(), "knowledge-agents", "Contexto de agents", "agent-thread", null, "lume://agents/threads", 2, true, "Preview assistido", "Threads e mensagens reais aguardando a camada de inferencia unificada.");
+        ensureKnowledgeSource(workspace.getId(), "knowledge-playbooks", "Playbooks operacionais", "library", "proj-ops", "lume://library/playbooks", 3, true, "Ativo", "Conjunto de artefatos persistidos na biblioteca do workspace.");
+        ensureKnowledgeSource(workspace.getId(), "knowledge-agents", "Contexto de agents", "agent-thread", null, "lume://agents/threads", 2, true, "Contexto ativo", "Threads e mensagens do workspace disponiveis para consulta operacional.");
 
         ensurePromptTemplate(workspace.getId(), "tpl-ops-onboarding", "Playbook de onboarding", "Template para abrir fluxos de onboarding com checkpoints e owners.", "Mapeie um onboarding operacional para {{workspace}} com etapas, owners, riscos e criterio de aceite.", "workspace", "proj-ops", "ops", true, "workspace,owners,risco,aceite");
         ensurePromptTemplate(workspace.getId(), "tpl-growth-brief", "Brief de campanha", "Template para organizar tese, mensagem e experimento de growth.", "Monte um brief de campanha para {{objetivo}} com ICP, proposta de valor, prova social e experimento inicial.", "project", "proj-growth", "growth", false, "objetivo,icp,prova_social");
@@ -256,7 +267,7 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 
         ensureAgentProfile(workspace.getId(), "strategy", "Strategy Operator", "Planejamento e portfolio", "Traduz benchmark, pricing e portfolio em trilhas acionaveis.", "openai", "openai:gpt-4.1-mini", "agent-v1-openai", "Voce atua como operador de estrategia. Estruture resposta em tese, evidencias, riscos e decisao recomendada.");
 
-        ensureProject(workspace.getId(), "proj-strategy", "Planejamento go-to-market", "Coordena posicionamento, assets e prioridades do proximo ciclo.", "Estrategia", "API real");
+        ensureProject(workspace.getId(), "proj-strategy", "Planejamento go-to-market", "Coordena posicionamento, assets e prioridades do proximo ciclo.", "Estrategia", "Ativo");
 
         ensureArtifactVersion(workspace.getId(), "ver-lib-strategy-brief-v1", "lib-strategy-brief", "v1", "Brief inicial", "Primeiro consolidado de tese, ICP e narrativa central.");
         ensureArtifactVersion(workspace.getId(), "ver-lib-strategy-research-v1", "lib-strategy-research", "v1", "Radar competitivo base", "Sinais de benchmark, pricing e diferenciacao priorizados.");
@@ -267,9 +278,26 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 
         ensureNotification(workspace.getId(), "notif-strategy", "strategy", "Workspace de estrategia ativo", "Este workspace possui backlog e contexto proprio para validacao de mercado.", "/projects", false);
 
-        ensureKnowledgeSource(workspace.getId(), "knowledge-strategy", "Fontes de estrategia", "library", "proj-strategy", "lume://library/strategy", 2, true, "API real", "Briefs e evidencias organizadas para experimentos de posicionamento.");
+        ensureKnowledgeSource(workspace.getId(), "knowledge-strategy", "Fontes de estrategia", "library", "proj-strategy", "lume://library/strategy", 2, true, "Ativo", "Briefs e evidencias organizadas para experimentos de posicionamento.");
 
         ensurePromptTemplate(workspace.getId(), "tpl-strategy-thesis", "Tese de posicionamento", "Template para consolidar tese, risco e decisao recomendada.", "Estruture a tese para {{segmento}} com benchmark, diferenciacao, risco e proxima decisao.", "project", "proj-strategy", "strategy", true, "segmento,benchmark,diferenciacao");
+    }
+
+    private void ensureHomeOverviewCatalog() {
+        HomeOverviewSettingsJpaEntity settings = homeOverviewSettingsRepository.findById("default").orElseGet(() -> {
+            HomeOverviewSettingsJpaEntity entity = new HomeOverviewSettingsJpaEntity();
+            entity.setId("default");
+            return entity;
+        });
+        settings.setHeadline("O que voce quer fazer?");
+        settings.setSupportingText("Busque informacoes do workspace, abra uma nova tarefa e acompanhe o que pede atencao.");
+        homeOverviewSettingsRepository.save(settings);
+
+        ensureHomeOverviewBlock("in-progress", "in_progress", "Em andamento", "O que precisa de voce agora.", 10, 4, "Ver tarefas", "/tasks", true);
+        ensureHomeOverviewBlock("alerts", "alerts", "Alertas", "O que mudou e precisa de atencao.", 20, 4, null, null, true);
+        ensureHomeOverviewBlock("team-context", "team_context", "Equipe e contexto", "Quem cuida do trabalho e onde encontrar contexto.", 30, 4, "Ver equipe", "/users", true);
+        ensureHomeOverviewBlock("recent", "recent", "Recentes", "Volte para onde parou.", 40, 4, "Abrir biblioteca", "/library", true);
+        ensureHomeOverviewBlock("quick-links", "quick_links", "Acoes rapidas", "Abra as areas principais do workspace.", 50, 6, "Abrir busca", "/search/results?q=", true);
     }
 
     private void ensureLibraryEntry(
@@ -291,7 +319,7 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         entry.setCategory(category);
         entry.setEntryType(entryType);
         entry.setProjectId(projectId);
-        entry.setStatusLabel("API real");
+        entry.setStatusLabel("Ativo");
         entry.setAvailability("live");
         entry.setOwnerName(ownerName);
         entry.setSourceLabel("Backend do workspace");
@@ -319,9 +347,9 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         profile.setName(name);
         profile.setSpecialty(specialty);
         profile.setDescription(description);
-        profile.setStatusLabel("Agente versionado");
-        profile.setAvailability("preview");
-        profile.setNote("O perfil ja possui provider, modelo e versao definidos. A execucao real depende apenas da credencial do provedor.");
+        profile.setStatusLabel("Configurado");
+        profile.setAvailability("attention");
+        profile.setNote("Perfil configurado com provedor e modelo definidos para este tipo de trabalho.");
         profile.setProviderCode(providerCode);
         profile.setModelCode(modelCode);
         profile.setVersionLabel(versionLabel);
@@ -473,5 +501,29 @@ public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
         template.setVariablesRaw(variablesRaw);
         template.setFavorited(favorited);
         promptTemplateRepository.save(template);
+    }
+
+    private void ensureHomeOverviewBlock(
+            String id,
+            String blockType,
+            String title,
+            String description,
+            int sortOrder,
+            int maxItems,
+            String ctaLabel,
+            String ctaPath,
+            boolean enabled
+    ) {
+        HomeOverviewBlockJpaEntity block = homeOverviewBlockRepository.findById(id).orElseGet(HomeOverviewBlockJpaEntity::new);
+        block.setId(id);
+        block.setBlockType(blockType);
+        block.setTitle(title);
+        block.setDescription(description);
+        block.setSortOrder(sortOrder);
+        block.setMaxItems(maxItems);
+        block.setCtaLabel(ctaLabel);
+        block.setCtaPath(ctaPath);
+        block.setEnabled(enabled);
+        homeOverviewBlockRepository.save(block);
     }
 }

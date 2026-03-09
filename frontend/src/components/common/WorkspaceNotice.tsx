@@ -24,7 +24,7 @@ export default function WorkspaceNotice({
           <div className="flex flex-wrap items-center gap-3">
             <StatusBadge state={state} />
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-secondary)]">
-              Situacao
+              Estado
             </p>
           </div>
           <h2 className="mt-4 text-xl font-semibold text-[var(--text-primary)]">{title}</h2>

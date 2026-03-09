@@ -3,6 +3,7 @@ package com.lume.workspace.service;
 import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.dto.SearchResultResponse;
+import com.lume.workspace.dto.SearchResultsResponse;
 import com.lume.workspace.entity.AgentProfileJpaEntity;
 import com.lume.workspace.entity.AgentThreadJpaEntity;
 import com.lume.workspace.entity.KnowledgeSourceJpaEntity;
@@ -63,7 +64,20 @@ public class SearchService {
     }
 
     public List<SearchResultResponse> search(String query) {
+        return searchInternal(query, 24, true);
+    }
+
+    public SearchResultsResponse searchResults(String query) {
+        String normalizedQuery = query == null ? "" : query.trim();
+        List<SearchResultResponse> results = searchInternal(normalizedQuery, 60, false);
+        return new SearchResultsResponse(normalizedQuery, results.size(), results);
+    }
+
+    private List<SearchResultResponse> searchInternal(String query, int limit, boolean includeBlankQueryResults) {
         String normalizedQuery = query == null ? "" : query.trim().toLowerCase();
+        if (normalizedQuery.isBlank() && !includeBlankQueryResults) {
+            return List.of();
+        }
         List<SearchResultResponse> results = new ArrayList<>();
 
         Long workspaceId = workspaceContextService.getWorkspaceId();
@@ -78,11 +92,11 @@ public class SearchService {
             maybeAdd(results, new SearchResultResponse(
                     "user-%d".formatted(user.getId()),
                     user.getName(),
-                    "Usuario do workspace: %s".formatted(user.getEmail()),
+                    "Pessoa da equipe . %s".formatted(user.getEmail()),
                     "/users",
-                    "Membros",
+                    "Equipe",
                     "live",
-                    List.of(user.getName(), user.getEmail(), String.valueOf(user.getId()), "usuario", "users")
+                    List.of(user.getName(), user.getEmail(), String.valueOf(user.getId()), "equipe", "usuario", "users")
             ), normalizedQuery);
         }
 
@@ -90,7 +104,7 @@ public class SearchService {
             maybeAdd(results, new SearchResultResponse(
                     "project-%s".formatted(project.getId()),
                     project.getName(),
-                    project.getSummary(),
+                    defaultText(project.getSummary(), "Projeto do workspace."),
                     "/projects?project=%s".formatted(project.getId()),
                     "Projetos",
                     project.getAvailability(),
@@ -102,7 +116,7 @@ public class SearchService {
             maybeAdd(results, new SearchResultResponse(
                     "task-%s".formatted(task.getId()),
                     task.getTitle(),
-                    "%s. %s".formatted(task.getTaskType(), task.getSummary()),
+                    defaultText(task.getSummary(), task.getPrompt()),
                     "/tasks/%s".formatted(task.getId()),
                     "Tarefas",
                     task.getAvailability(),
@@ -114,7 +128,7 @@ public class SearchService {
             maybeAdd(results, new SearchResultResponse(
                     "library-%s".formatted(entry.getId()),
                     entry.getTitle(),
-                    "%s. %s".formatted(entry.getCategory(), entry.getSummary()),
+                    "%s . %s".formatted(entry.getCategory(), defaultText(entry.getSummary(), "Arquivo do workspace.")),
                     "/library?entry=%s".formatted(entry.getId()),
                     "Biblioteca",
                     entry.getAvailability(),
@@ -126,11 +140,11 @@ public class SearchService {
             maybeAdd(results, new SearchResultResponse(
                     "knowledge-%s".formatted(source.getId()),
                     source.getTitle(),
-                    "%s. %s".formatted(source.getSourceType(), source.getNote()),
+                    "%s . %s".formatted(source.getSourceType(), defaultText(source.getNote(), "Fonte conectada ao workspace.")),
                     "/settings?section=knowledge",
-                    "Knowledge",
+                    "Conhecimento",
                     source.getAvailability(),
-                    List.of(source.getTitle(), source.getSourceType(), source.getNote(), source.getSourceUri() == null ? "" : source.getSourceUri(), "knowledge", "fonte")
+                    List.of(source.getTitle(), source.getSourceType(), source.getNote(), source.getSourceUri() == null ? "" : source.getSourceUri(), "conhecimento", "fonte")
             ), normalizedQuery);
         }
 
@@ -138,7 +152,7 @@ public class SearchService {
             maybeAdd(results, new SearchResultResponse(
                     "template-%s".formatted(template.getId()),
                     template.getTitle(),
-                    "%s. %s".formatted(template.getTemplateScope(), template.getSummary()),
+                    "%s . %s".formatted(template.getTemplateScope(), defaultText(template.getSummary(), "Template operacional do workspace.")),
                     "/agents?template=%s".formatted(template.getId()),
                     "Templates",
                     template.getAvailability(),
@@ -150,9 +164,9 @@ public class SearchService {
             maybeAdd(results, new SearchResultResponse(
                     "profile-%s".formatted(profile.getId()),
                     profile.getName(),
-                    "%s. %s".formatted(profile.getSpecialty(), profile.getNote()),
+                    "%s . %s".formatted(profile.getSpecialty(), defaultText(profile.getNote(), "Configuracao do agente.")),
                     "/agents",
-                    "Agents",
+                    "Agentes",
                     profile.getAvailability(),
                     List.of(profile.getName(), profile.getSpecialty(), profile.getDescription(), profile.getNote())
             ), normalizedQuery);
@@ -164,13 +178,13 @@ public class SearchService {
                     thread.getTitle(),
                     thread.getLastMessagePreview() != null ? thread.getLastMessagePreview() : "Thread do agent",
                     "/agents?thread=%s".formatted(thread.getId()),
-                    "Agents",
+                    "Agentes",
                     thread.getAvailability(),
                     List.of(thread.getTitle(), thread.getLastMessagePreview() == null ? "" : thread.getLastMessagePreview(), "agent", "thread")
             ), normalizedQuery);
         }
 
-        return results.stream().limit(24).toList();
+        return results.stream().limit(limit).toList();
     }
 
     private void maybeAdd(List<SearchResultResponse> results, SearchResultResponse result, String normalizedQuery) {
@@ -184,5 +198,12 @@ public class SearchService {
         if (haystack.contains(normalizedQuery)) {
             results.add(result);
         }
+    }
+
+    private String defaultText(String primary, String fallback) {
+        if (primary == null || primary.isBlank()) {
+            return fallback;
+        }
+        return primary;
     }
 }

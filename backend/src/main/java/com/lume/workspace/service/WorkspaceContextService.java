@@ -50,6 +50,7 @@ public class WorkspaceContextService {
     public static final String PERMISSION_TEMPLATES_MANAGE = "templates.manage";
     public static final String PERMISSION_BUDGETS_READ = "budgets.read";
     public static final String PERMISSION_BUDGETS_MANAGE = "budgets.manage";
+    public static final String PERMISSION_SETTINGS_MANAGE = "settings.manage";
     public static final String PERMISSION_THREAT_INTEL_READ = "threat_intel.read";
     public static final String PERMISSION_THREAT_INTEL_RUN = "threat_intel.run";
     public static final String PERMISSION_THREAT_INTEL_MANAGE = "threat_intel.manage";
@@ -262,6 +263,7 @@ public class WorkspaceContextService {
                     PERMISSION_TEMPLATES_MANAGE,
                     PERMISSION_BUDGETS_READ,
                     PERMISSION_BUDGETS_MANAGE,
+                    PERMISSION_SETTINGS_MANAGE,
                     PERMISSION_AGENTS_RUNTIME_MANAGE,
                     PERMISSION_RESEARCH_RUN,
                     PERMISSION_THREAT_INTEL_READ,

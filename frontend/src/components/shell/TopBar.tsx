@@ -17,6 +17,9 @@ function resolveSectionTitle(pathname: string, navigation: ReturnType<typeof use
   if (pathname.startsWith('/agents')) {
     return 'Tarefas';
   }
+  if (pathname.startsWith('/search/results')) {
+    return 'Buscar';
+  }
   if (pathname.startsWith('/inbox')) {
     return 'Inicio';
   }
@@ -80,12 +83,12 @@ export default function TopBar({ onMenuToggle, onSearchOpen, onLogout }: TopBarP
           </button>
 
           <div className="hidden rounded-full border px-3 py-2 text-sm font-medium md:flex md:items-center md:gap-2" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-secondary)' }}>
-            <span className="text-[var(--accent)]">Credits</span>
+            <span className="text-[var(--accent)]">Uso</span>
             <span className="font-semibold text-[var(--text-primary)]">{usageLabel}</span>
           </div>
 
           <label className="hidden items-center gap-2 rounded-full border px-3 py-2 text-sm md:flex" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)', color: 'var(--text-secondary)' }}>
-            <span>Espaco</span>
+            <span>Workspace</span>
             <select
               className="min-w-[170px] border-none bg-transparent font-semibold text-[var(--text-primary)] outline-none"
               value={activeWorkspaceId}

@@ -42,8 +42,8 @@ export interface ApiClientError {
   details?: Record<string, string>;
 }
 
-export type PreviewState = 'live' | 'preview' | 'disabled-preview' | 'restricted';
-export type WorkspaceDataState = PreviewState | 'loading' | 'empty' | 'error';
+export type WorkspaceAvailabilityState = 'live' | 'attention' | 'unavailable' | 'restricted';
+export type WorkspaceDataState = WorkspaceAvailabilityState | 'loading' | 'empty' | 'error';
 export type ThemeMode = 'light' | 'dark';
 export type WorkspaceGroup = 'primary' | 'task-history' | 'secondary';
 export type StreamingMode = 'native' | 'unsupported';
@@ -89,6 +89,72 @@ export interface ShellTaskTypeDto {
   description: string;
 }
 
+export interface ShellCatalogItemDto {
+  id: string;
+  label: string;
+  path: string;
+  description: string;
+  icon: ShellIconKey;
+  availability: WorkspaceAvailabilityState;
+  group: WorkspaceGroup;
+  sortOrder: number;
+  enabled: boolean;
+  keywords: string[];
+}
+
+export interface ShellCatalogTaskTypeDto {
+  taskType: string;
+  label: string;
+  description: string;
+  sortOrder: number;
+  enabled: boolean;
+}
+
+export interface ShellCatalogDto {
+  items: ShellCatalogItemDto[];
+  taskTypes: ShellCatalogTaskTypeDto[];
+}
+
+export interface UpdateShellCatalogItemRequest {
+  label?: string;
+  path?: string;
+  description?: string;
+  icon?: ShellIconKey;
+  availability?: WorkspaceAvailabilityState;
+  group?: WorkspaceGroup;
+  sortOrder?: number;
+  enabled?: boolean;
+  keywords?: string[];
+}
+
+export interface CreateShellCatalogItemRequest {
+  id: string;
+  label: string;
+  path: string;
+  description: string;
+  icon: ShellIconKey;
+  availability: WorkspaceAvailabilityState;
+  group: WorkspaceGroup;
+  sortOrder: number;
+  enabled?: boolean;
+  keywords?: string[];
+}
+
+export interface UpdateShellTaskTypeRequest {
+  label?: string;
+  description?: string;
+  sortOrder?: number;
+  enabled?: boolean;
+}
+
+export interface CreateShellTaskTypeRequest {
+  taskType: string;
+  label: string;
+  description: string;
+  sortOrder: number;
+  enabled?: boolean;
+}
+
 export interface HomeFocusItemDto {
   id: string;
   title: string;
@@ -114,10 +180,62 @@ export interface HomeOverviewDto {
   organizationName: string;
   headline: string;
   supportingText: string;
+  blocks: HomeOverviewBlockDto[];
   inProgress: HomeFocusItemDto[];
   recentItems: RecentTask[];
   alerts: HomeAlertDto[];
   teamAndContext: WorkspaceFacet[];
+}
+
+export type HomeOverviewBlockType = 'in_progress' | 'alerts' | 'team_context' | 'recent' | 'quick_links';
+
+export interface HomeOverviewBlockDto {
+  id: string;
+  blockType: HomeOverviewBlockType;
+  title: string;
+  description: string;
+  sortOrder: number;
+  maxItems?: number;
+  ctaLabel?: string | null;
+  ctaPath?: string | null;
+  enabled: boolean;
+}
+
+export interface HomeOverviewSettingsDto {
+  headline: string;
+  supportingText: string;
+}
+
+export interface HomeOverviewCatalogDto {
+  settings: HomeOverviewSettingsDto;
+  blocks: HomeOverviewBlockDto[];
+}
+
+export interface UpdateHomeOverviewSettingsRequest {
+  headline?: string;
+  supportingText?: string;
+}
+
+export interface CreateHomeOverviewBlockRequest {
+  id: string;
+  blockType: HomeOverviewBlockType;
+  title: string;
+  description: string;
+  sortOrder: number;
+  maxItems?: number;
+  ctaLabel?: string;
+  ctaPath?: string;
+  enabled?: boolean;
+}
+
+export interface UpdateHomeOverviewBlockRequest {
+  title?: string;
+  description?: string;
+  sortOrder?: number;
+  maxItems?: number;
+  ctaLabel?: string;
+  ctaPath?: string;
+  enabled?: boolean;
 }
 
 export interface RecentTask {
@@ -292,6 +410,12 @@ export interface SearchTarget {
   section: string;
   availability: WorkspaceDataState;
   keywords: string[];
+}
+
+export interface SearchResultsDto {
+  query: string;
+  totalResults: number;
+  results: SearchTarget[];
 }
 
 export interface SessionContext {
@@ -499,7 +623,6 @@ export interface SettingsSectionDto {
   title: string;
   description: string;
   availability: WorkspaceDataState;
-  previewState: PreviewState;
 }
 
 export interface SettingsOverviewDto {

@@ -66,7 +66,7 @@ public class AudioDocumentCapabilityService {
                     null,
                     null,
                     null,
-                    "O provedor selecionado nao suporta speech-to-text no runtime atual."
+                    "O provedor selecionado nao oferece transcricao nesta integracao."
             );
         }
 
@@ -145,7 +145,7 @@ public class AudioDocumentCapabilityService {
                     "unsupported",
                     null,
                     null,
-                    "O provedor selecionado nao suporta text-to-speech no runtime atual."
+                    "O provedor selecionado nao oferece voz sintetizada nesta integracao."
             );
         }
 
@@ -207,7 +207,7 @@ public class AudioDocumentCapabilityService {
                     "unsupported",
                     null,
                     List.of(),
-                    "O provedor selecionado nao suporta OCR no runtime atual."
+                    "O provedor selecionado nao oferece OCR nesta integracao."
             );
         }
 

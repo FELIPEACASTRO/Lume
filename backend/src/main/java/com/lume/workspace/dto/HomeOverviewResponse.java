@@ -7,6 +7,7 @@ public record HomeOverviewResponse(
         String organizationName,
         String headline,
         String supportingText,
+        java.util.List<HomeOverviewBlockResponse> blocks,
         List<HomeFocusItemResponse> inProgress,
         List<RecentItemResponse> recentItems,
         List<HomeAlertResponse> alerts,

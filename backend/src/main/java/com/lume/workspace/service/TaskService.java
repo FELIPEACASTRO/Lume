@@ -6,7 +6,6 @@ import com.lume.workspace.dto.TaskDetailResponse;
 import com.lume.workspace.dto.TaskStepResponse;
 import com.lume.workspace.dto.TaskSummaryResponse;
 import com.lume.workspace.entity.TaskJpaEntity;
-import com.lume.workspace.entity.TaskStepJpaEntity;
 import com.lume.workspace.repository.ProjectJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
 import com.lume.workspace.repository.TaskStepJpaRepository;
@@ -65,8 +64,8 @@ public class TaskService {
         task.setTaskType(request.taskType());
         task.setTitle(titleFromPrompt(request.prompt(), request.taskType()));
         task.setPrompt(request.prompt());
-        task.setSummary(summaryFromType(request.taskType()));
-        task.setStatusLabel("Registrada");
+        task.setSummary(summaryFromPrompt(request.prompt()));
+        task.setStatusLabel("Na fila");
         task.setAvailability("live");
         task.setRuntimeState("queued");
         task.setLastError(null);
@@ -74,15 +73,6 @@ public class TaskService {
         task.setScheduledFor(null);
         task.setShareSlug(null);
         TaskJpaEntity savedTask = taskRepository.save(task);
-
-        createStep(
-                savedTask.getId(),
-                1,
-                "registration",
-                "Tarefa registrada",
-                "A tarefa foi persistida neste workspace e esta pronta para seguir no pipeline operacional real.",
-                "completed"
-        );
 
         auditLogService.record(
                 "task",
@@ -92,18 +82,6 @@ public class TaskService {
         );
 
         return toDetailResponse(savedTask);
-    }
-
-    private void createStep(String taskId, int order, String type, String title, String detail, String statusLabel) {
-        TaskStepJpaEntity step = new TaskStepJpaEntity();
-        step.setId("step-" + UUID.randomUUID().toString().substring(0, 8));
-        step.setTaskId(taskId);
-        step.setStepOrder(order);
-        step.setStepType(type);
-        step.setTitle(title);
-        step.setDetail(detail);
-        step.setStatusLabel(statusLabel);
-        taskStepRepository.save(step);
     }
 
     private TaskSummaryResponse toSummaryResponse(TaskJpaEntity task) {
@@ -144,7 +122,7 @@ public class TaskService {
         return new TaskDetailResponse(
                 toSummaryResponse(task),
                 steps,
-                buildFollowUpSuggestions(task)
+                List.of()
         );
     }
 
@@ -165,16 +143,12 @@ public class TaskService {
         return "%s...".formatted(normalized.substring(0, 69));
     }
 
-    private String summaryFromType(String taskType) {
-        return switch (taskType) {
-            case "slides" -> "Estruturando narrativa e artefatos para apresentacao.";
-            case "sites" -> "Planejando arquitetura de pagina e conteudo publicado.";
-            case "apps" -> "Organizando fluxo, escopo e passos para aplicacao.";
-            case "design" -> "Consolidando referencias, direcao visual e entregaveis.";
-            case "research" -> "Mapeando fontes, perguntas e trilha de investigacao.";
-            case "playbook" -> "Traduzindo o pedido em rotina operacional reutilizavel.";
-            default -> "Registrando a tarefa no workspace e preparando o fluxo operacional.";
-        };
+    private String summaryFromPrompt(String prompt) {
+        String normalized = prompt.trim().replaceAll("\\s+", " ");
+        if (normalized.length() <= 140) {
+            return normalized;
+        }
+        return "%s...".formatted(normalized.substring(0, 137));
     }
 
     private String resolveOwnerName(String projectId) {
@@ -186,12 +160,5 @@ public class TaskService {
                         ? workspaceContextService.getActorName()
                         : project.getOwnerName())
                 .orElse(workspaceContextService.getActorName());
-    }
-
-    private List<String> buildFollowUpSuggestions(TaskJpaEntity task) {
-        if (task.getProjectId() != null && !task.getProjectId().isBlank()) {
-            return List.of("Abrir o projeto relacionado para continuar a execucao.");
-        }
-        return List.of();
     }
 }

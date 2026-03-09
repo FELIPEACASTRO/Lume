@@ -50,8 +50,8 @@ public class ProviderHealthService {
                                 snapshot != null ? "last_connectivity_test" : "static",
                                 "memory",
                                 provider.executionSupported()
-                                        ? "Provider suportado fora do runtime textual principal; health deriva do catalogo e do ultimo snapshot."
-                                        : "Provider fora do runtime real desta fase.",
+                                        ? "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado."
+                                        : "Integracao catalogada, mas ainda nao liberada para uso operacional.",
                                 snapshot != null ? snapshot.status() : null,
                                 snapshot != null ? snapshot.checkedAt().toString() : null,
                                 provider.credentialFields().stream().filter(field -> field.required() && !field.configured()).map(field -> field.envVar()).toList()

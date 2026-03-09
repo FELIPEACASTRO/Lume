@@ -55,14 +55,14 @@ export default function Usage() {
           label="Limite de alerta"
           value={budget ? `${budget.consumedCredits}/${budget.softLimitCredits}` : '--'}
           detail="Faixa de alerta para acompanhar o consumo."
-          state={budget?.softLimitReached ? 'preview' : 'live'}
+          state={budget?.softLimitReached ? 'attention' : 'live'}
         />
         <MetricCard
           icon={FiLayers}
           label="Limite maximo"
           value={budget ? `${budget.consumedCredits}/${budget.hardLimitCredits}` : '--'}
           detail="Limite maximo permitido para o workspace."
-          state={budget?.hardLimitReached ? 'disabled-preview' : 'live'}
+          state={budget?.hardLimitReached ? 'unavailable' : 'live'}
         />
         <MetricCard
           icon={FiActivity}

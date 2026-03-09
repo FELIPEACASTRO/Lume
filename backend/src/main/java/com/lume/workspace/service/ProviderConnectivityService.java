@@ -91,7 +91,7 @@ public class ProviderConnectivityService {
                     providerCatalogService.streamingMode(provider),
                     providerCatalogService.runtimeMaturity(provider),
                     null,
-                    "Este provider segue manual/catalog-only nesta rodada.",
+                    "Esta integracao ainda depende de habilitacao manual antes do uso operacional.",
                     missingCredentials
             );
             remember(response);

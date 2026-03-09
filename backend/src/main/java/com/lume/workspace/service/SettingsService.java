@@ -41,16 +41,15 @@ public class SettingsService {
     public SettingsOverviewResponse getOverview() {
         List<String> permissions = workspaceContextService.getCurrentPermissions();
         List<SettingsSectionResponse> sections = new ArrayList<>(List.of(
-                new SettingsSectionResponse("conta", "Perfil e preferencias", "Dados do usuario e escolhas basicas do workspace.", "live", "live"),
-                new SettingsSectionResponse("configuracoes", "Workspace", "Idioma, aparencia e avisos da operacao.", "live", "live"),
-                new SettingsSectionResponse("uso", "Uso", "Consumo, limites e acompanhamento do workspace.", "live", "live")
+                new SettingsSectionResponse("conta", "Perfil e preferencias", "Dados pessoais e escolhas basicas da operacao.", "live"),
+                new SettingsSectionResponse("configuracoes", "Workspace", "Idioma, aparencia e avisos do workspace.", "live"),
+                new SettingsSectionResponse("uso", "Resumo de uso", "Consumo, limites e leituras principais do workspace.", "live")
         ));
         if (permissions.contains(WorkspaceContextService.PERMISSION_KNOWLEDGE_READ)) {
             sections.add(new SettingsSectionResponse(
                     "knowledge",
-                    "Knowledge",
+                    "Conhecimento",
                     "Fontes, contexto e acesso ao conhecimento do workspace.",
-                    "live",
                     "live"
             ));
         }
@@ -58,17 +57,29 @@ public class SettingsService {
             sections.add(new SettingsSectionResponse(
                     "finops",
                     "Uso e budgets",
-                    "Centro de custo, limites e repasse do consumo.",
-                    "live",
+                    "Centro de custo, limites e acompanhamento do consumo.",
                     "live"
             ));
         }
         if (permissions.contains(WorkspaceContextService.PERMISSION_PROVIDERS_READ)) {
             sections.add(new SettingsSectionResponse(
                     "providers-runtime",
-                    "Providers",
+                    "Modelos e integracoes",
                     "Modelos disponiveis, acesso e estado de cada integracao.",
-                    "live",
+                    "live"
+            ));
+        }
+        if (permissions.contains(WorkspaceContextService.PERMISSION_SETTINGS_MANAGE)) {
+            sections.add(new SettingsSectionResponse(
+                    "home-overview",
+                    "Tela inicial",
+                    "Ajuste a mensagem principal e os blocos exibidos no inicio.",
+                    "live"
+            ));
+            sections.add(new SettingsSectionResponse(
+                    "workspace-catalog",
+                    "Menu e tarefas",
+                    "Ajuste a navegacao principal e os tipos de tarefa sem novo deploy.",
                     "live"
             ));
         }

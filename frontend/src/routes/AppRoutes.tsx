@@ -5,6 +5,7 @@ import Users from '../pages/Users';
 import Agents from '../pages/Agents';
 import Library from '../pages/Library';
 import Projects from '../pages/Projects';
+import SearchResults from '../pages/SearchResults';
 import Tasks from '../pages/Tasks';
 import TaskView from '../pages/TaskView';
 import Usage from '../pages/Usage';
@@ -19,6 +20,7 @@ export default function AppRoutes() {
         <Route index element={<Home />} />
         <Route path="users" element={<Users />} />
         <Route path="projects" element={<Projects />} />
+        <Route path="search/results" element={<SearchResults />} />
         <Route path="tasks" element={<Tasks />} />
         <Route path="tasks/:taskId" element={<TaskView />} />
         <Route path="agents" element={<Agents />} />

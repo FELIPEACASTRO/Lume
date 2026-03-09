@@ -21,25 +21,39 @@ import { useShell } from '../components/shell/ShellContext';
 import { useTheme } from '../components/theme/ThemeProvider';
 import { toApiClientError } from '../services/api';
 import { budgetService } from '../services/budgetService';
+import { homeService } from '../services/homeService';
 import { knowledgeSourceService } from '../services/knowledgeSourceService';
 import { providerService } from '../services/providerService';
 import { projectService } from '../services/projectService';
+import { shellCatalogService } from '../services/shellCatalogService';
 import { settingsService } from '../services/settingsService';
 import {
   BudgetSummaryDto,
   ChargebackMode,
+  CreateHomeOverviewBlockRequest,
+  CreateShellCatalogItemRequest,
+  CreateShellTaskTypeRequest,
   CreateKnowledgeSourceRequest,
+  HomeOverviewBlockDto,
+  HomeOverviewBlockType,
+  HomeOverviewCatalogDto,
   KnowledgeSourceDto,
-  PreviewState,
   ProjectDto,
   ProviderConnectivityDto,
   ProviderCredentialDto,
   ProviderDto,
   ProviderHealthDto,
   ProviderStatusDto,
+  ShellCatalogDto,
+  ShellCatalogItemDto,
+  ShellCatalogTaskTypeDto,
+  ShellIconKey,
   SettingsOverviewDto,
   ThemeMode,
+  UpdateHomeOverviewSettingsRequest,
   UpdateKnowledgeSourceRequest,
+  WorkspaceAvailabilityState,
+  WorkspaceGroup,
 } from '../types';
 import { humanizeChargebackMode, humanizeToken } from '../utils/uiText';
 
@@ -61,11 +75,11 @@ const emptyKnowledgeDraft: CreateKnowledgeSourceRequest = {
   note: '',
 };
 
-function providerState(card: ProviderCard): PreviewState {
+function providerState(card: ProviderCard): WorkspaceAvailabilityState {
   if (!(card.health?.executionSupported ?? card.status?.executionSupported ?? card.provider.executionSupported)) {
-    return 'preview';
+    return card.provider.adminOnly ? 'restricted' : 'unavailable';
   }
-  return (card.health?.configured ?? card.status?.configured ?? card.provider.configured) ? 'live' : 'disabled-preview';
+  return (card.health?.configured ?? card.status?.configured ?? card.provider.configured) ? 'live' : 'attention';
 }
 
 function credentialSummary(card: ProviderCard) {
@@ -79,7 +93,7 @@ function credentialSummary(card: ProviderCard) {
 function providerReadiness(card: ProviderCard) {
   const readiness = card.health?.readinessStatus ?? card.status?.readinessStatus ?? card.provider.catalogState;
   if (!readiness) {
-    return 'Situacao indisponivel.';
+    return 'Prontidao indisponivel.';
   }
   return humanizeToken(readiness);
 }
@@ -109,6 +123,65 @@ function ExternalLink({ href, label }: { href: string; label: string }) {
   );
 }
 
+const shellIconOptions: Array<{ value: ShellIconKey; label: string }> = [
+  { value: 'home', label: 'Inicio' },
+  { value: 'tasks', label: 'Tarefas' },
+  { value: 'projects', label: 'Projetos' },
+  { value: 'library', label: 'Biblioteca' },
+  { value: 'users', label: 'Equipe' },
+  { value: 'settings', label: 'Configuracoes' },
+  { value: 'search', label: 'Busca' },
+  { value: 'usage', label: 'Uso' },
+  { value: 'agents', label: 'Agentes' },
+  { value: 'inbox', label: 'Entrada' },
+];
+
+const emptyShellCatalogItemDraft: CreateShellCatalogItemRequest = {
+  id: '',
+  label: '',
+  path: '',
+  description: '',
+  icon: 'home',
+  availability: 'live',
+  group: 'secondary',
+  sortOrder: 100,
+  enabled: true,
+  keywords: [],
+};
+
+const emptyShellTaskTypeDraft: CreateShellTaskTypeRequest = {
+  taskType: '',
+  label: '',
+  description: '',
+  sortOrder: 100,
+  enabled: true,
+};
+
+const emptyHomeSettingsDraft: UpdateHomeOverviewSettingsRequest = {
+  headline: '',
+  supportingText: '',
+};
+
+const emptyHomeBlockDraft: CreateHomeOverviewBlockRequest = {
+  id: '',
+  blockType: 'in_progress',
+  title: '',
+  description: '',
+  sortOrder: 100,
+  maxItems: 4,
+  ctaLabel: '',
+  ctaPath: '',
+  enabled: true,
+};
+
+const homeBlockOptions: Array<{ value: HomeOverviewBlockType; label: string }> = [
+  { value: 'in_progress', label: 'Em andamento' },
+  { value: 'alerts', label: 'Alertas' },
+  { value: 'team_context', label: 'Equipe e contexto' },
+  { value: 'recent', label: 'Recentes' },
+  { value: 'quick_links', label: 'Acoes rapidas' },
+];
+
 function ProviderCatalogCard({
   card,
   canTest,
@@ -132,7 +205,7 @@ function ProviderCatalogCard({
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary)]">
           <span>{humanizeToken(card.provider.category)}</span>
-          <span>{card.provider.apiStyle}</span>
+          <span>{humanizeToken(card.provider.apiStyle)}</span>
           <span>{providerImplementationStatus(card)}</span>
           <span>{providerEvidenceLevel(card)}</span>
           <span>{humanizeToken(card.provider.catalogState)}</span>
@@ -147,10 +220,10 @@ function ProviderCatalogCard({
           <p className="mt-2 text-sm text-[var(--text-primary)]">{credentialSummary(card)}</p>
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Situacao</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Prontidao</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">{providerReadiness(card)}</p>
           <p className="mt-2 text-xs text-[var(--text-secondary)]">
-            {card.health?.message ?? 'Health agregado sem chamadas externas pesadas.'}
+            {card.health?.message ?? 'Resumo operacional calculado sem consultar o provedor em tempo real.'}
           </p>
           {card.health ? (
             <p className="mt-2 text-xs text-[var(--text-tertiary)]">
@@ -159,11 +232,11 @@ function ProviderCatalogCard({
           ) : null}
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Requisitos</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Compatibilidade</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.requiredHeaders.join(', ') || 'Nenhum requisito adicional.'}</p>
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Governanca</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Confianca</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">
             {providerImplementationStatus(card)} | {providerEvidenceLevel(card)}
           </p>
@@ -180,9 +253,9 @@ function ProviderCatalogCard({
           <p className="mt-2 text-xs text-[var(--text-secondary)]">{card.provider.rateLimitSummary}</p>
         </div>
         <div className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Prioridade</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Uso recomendado</p>
           <p className="mt-2 text-sm text-[var(--text-primary)]">{card.provider.routingModes.map(humanizeToken).join(', ')}</p>
-          <p className="mt-2 text-xs text-[var(--text-secondary)]">Fonte documental: {humanizeToken(card.provider.documentationSource)}</p>
+          <p className="mt-2 text-xs text-[var(--text-secondary)]">Base de referencia: {humanizeToken(card.provider.documentationSource)}</p>
         </div>
       </div>
 
@@ -212,7 +285,7 @@ function ProviderCatalogCard({
 
 export default function Settings() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { session } = useShell();
+  const { session, refreshSummary } = useShell();
   const { preferences, preferencesError, updatePreferences } = useTheme();
   const [overview, setOverview] = useState<SettingsOverviewDto | null>(null);
   const [providers, setProviders] = useState<ProviderDto[]>([]);
@@ -237,6 +310,23 @@ export default function Settings() {
   const [knowledgeSaving, setKnowledgeSaving] = useState(false);
   const [editingKnowledgeId, setEditingKnowledgeId] = useState<string | null>(null);
   const [knowledgeDraft, setKnowledgeDraft] = useState<CreateKnowledgeSourceRequest>(emptyKnowledgeDraft);
+  const [shellCatalog, setShellCatalog] = useState<ShellCatalogDto | null>(null);
+  const [shellCatalogLoading, setShellCatalogLoading] = useState(false);
+  const [shellCatalogError, setShellCatalogError] = useState<string | null>(null);
+  const [savingNavigationItemId, setSavingNavigationItemId] = useState<string | null>(null);
+  const [savingTaskTypeId, setSavingTaskTypeId] = useState<string | null>(null);
+  const [creatingNavigationItem, setCreatingNavigationItem] = useState(false);
+  const [creatingTaskType, setCreatingTaskType] = useState(false);
+  const [navigationItemDraft, setNavigationItemDraft] = useState<CreateShellCatalogItemRequest>(emptyShellCatalogItemDraft);
+  const [taskTypeDraft, setTaskTypeDraft] = useState<CreateShellTaskTypeRequest>(emptyShellTaskTypeDraft);
+  const [homeCatalog, setHomeCatalog] = useState<HomeOverviewCatalogDto | null>(null);
+  const [homeCatalogLoading, setHomeCatalogLoading] = useState(false);
+  const [homeCatalogError, setHomeCatalogError] = useState<string | null>(null);
+  const [homeSettingsDraft, setHomeSettingsDraft] = useState<UpdateHomeOverviewSettingsRequest>(emptyHomeSettingsDraft);
+  const [homeBlockDraft, setHomeBlockDraft] = useState<CreateHomeOverviewBlockRequest>(emptyHomeBlockDraft);
+  const [savingHomeSettings, setSavingHomeSettings] = useState(false);
+  const [creatingHomeBlock, setCreatingHomeBlock] = useState(false);
+  const [savingHomeBlockId, setSavingHomeBlockId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [providerLoading, setProviderLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -253,6 +343,7 @@ export default function Settings() {
   const canManageKnowledge = permissions.includes('knowledge.manage');
   const canReadBudgets = permissions.includes('budgets.read');
   const canManageBudgets = permissions.includes('budgets.manage');
+  const canManageSettings = permissions.includes('settings.manage');
 
   useEffect(() => {
     void (async () => {
@@ -365,6 +456,55 @@ export default function Settings() {
     });
   }, [budget]);
 
+  useEffect(() => {
+    if (!canManageSettings) {
+      setShellCatalog(null);
+      setShellCatalogError(null);
+      setShellCatalogLoading(false);
+      return;
+    }
+
+    void (async () => {
+      try {
+        setShellCatalogLoading(true);
+        setShellCatalogError(null);
+        setShellCatalog(await shellCatalogService.getCatalog());
+      } catch (loadError) {
+        setShellCatalog(null);
+        setShellCatalogError(toApiClientError(loadError).message);
+      } finally {
+        setShellCatalogLoading(false);
+      }
+    })();
+  }, [canManageSettings]);
+
+  useEffect(() => {
+    if (!canManageSettings) {
+      setHomeCatalog(null);
+      setHomeCatalogError(null);
+      setHomeCatalogLoading(false);
+      return;
+    }
+
+    void (async () => {
+      try {
+        setHomeCatalogLoading(true);
+        setHomeCatalogError(null);
+        const catalog = await homeService.getCatalog();
+        setHomeCatalog(catalog);
+        setHomeSettingsDraft({
+          headline: catalog.settings.headline,
+          supportingText: catalog.settings.supportingText,
+        });
+      } catch (loadError) {
+        setHomeCatalog(null);
+        setHomeCatalogError(toApiClientError(loadError).message);
+      } finally {
+        setHomeCatalogLoading(false);
+      }
+    })();
+  }, [canManageSettings]);
+
   const state = useMemo(() => {
     if (loading) return 'loading';
     if (error) return 'error';
@@ -392,8 +532,10 @@ export default function Settings() {
   const isKnowledgeSection = activeSection?.key === 'knowledge';
   const isFinopsSection = activeSection?.key === 'finops';
   const isProvidersSection = activeSection?.key === 'providers-runtime';
+  const isHomeOverviewSection = activeSection?.key === 'home-overview';
+  const isWorkspaceCatalogSection = activeSection?.key === 'workspace-catalog';
   const isThreatSection = activeSection?.key === 'threat-intelligence';
-  const isLiveSection = activeSection?.previewState === 'live';
+  const isLiveSection = activeSection?.availability === 'live';
 
   const handleThemeChange = async (nextTheme: ThemeMode) => {
     try {
@@ -535,6 +677,275 @@ export default function Settings() {
     }
   };
 
+  const updateShellCatalogItemDraft = (itemId: string, updater: (item: ShellCatalogItemDto) => ShellCatalogItemDto) => {
+    setShellCatalog((current) => {
+      if (!current) {
+        return current;
+      }
+      return {
+        ...current,
+        items: current.items.map((item) => (item.id === itemId ? updater(item) : item)),
+      };
+    });
+  };
+
+  const updateShellTaskTypeDraft = (taskTypeId: string, updater: (item: ShellCatalogTaskTypeDto) => ShellCatalogTaskTypeDto) => {
+    setShellCatalog((current) => {
+      if (!current) {
+        return current;
+      }
+      return {
+        ...current,
+        taskTypes: current.taskTypes.map((item) => (item.taskType === taskTypeId ? updater(item) : item)),
+      };
+    });
+  };
+
+  const handleNavigationItemSave = async (item: ShellCatalogItemDto) => {
+    try {
+      setSavingNavigationItemId(item.id);
+      setShellCatalogError(null);
+      const savedItem = await shellCatalogService.updateNavigationItem(item.id, {
+        label: item.label,
+        path: item.path,
+        description: item.description,
+        icon: item.icon,
+        availability: item.availability,
+        group: item.group,
+        sortOrder: item.sortOrder,
+        enabled: item.enabled,
+        keywords: item.keywords,
+      });
+      setShellCatalog((current) => {
+        if (!current) {
+          return current;
+        }
+        return {
+          ...current,
+          items: current.items
+            .map((catalogItem) => (catalogItem.id === savedItem.id ? savedItem : catalogItem))
+            .sort((left, right) => left.sortOrder - right.sortOrder),
+        };
+      });
+      await refreshSummary();
+    } catch (saveError) {
+      setShellCatalogError(toApiClientError(saveError).message);
+    } finally {
+      setSavingNavigationItemId(null);
+    }
+  };
+
+  const handleTaskTypeSave = async (item: ShellCatalogTaskTypeDto) => {
+    try {
+      setSavingTaskTypeId(item.taskType);
+      setShellCatalogError(null);
+      const savedItem = await shellCatalogService.updateTaskType(item.taskType, {
+        label: item.label,
+        description: item.description,
+        sortOrder: item.sortOrder,
+        enabled: item.enabled,
+      });
+      setShellCatalog((current) => {
+        if (!current) {
+          return current;
+        }
+        return {
+          ...current,
+          taskTypes: current.taskTypes
+            .map((catalogItem) => (catalogItem.taskType === savedItem.taskType ? savedItem : catalogItem))
+            .sort((left, right) => left.sortOrder - right.sortOrder),
+        };
+      });
+      await refreshSummary();
+    } catch (saveError) {
+      setShellCatalogError(toApiClientError(saveError).message);
+    } finally {
+      setSavingTaskTypeId(null);
+    }
+  };
+
+  const handleNavigationItemCreate = async () => {
+    try {
+      setCreatingNavigationItem(true);
+      setShellCatalogError(null);
+      const savedItem = await shellCatalogService.createNavigationItem({
+        ...navigationItemDraft,
+        keywords: navigationItemDraft.keywords?.filter(Boolean) ?? [],
+      });
+      setShellCatalog((current) => current ? {
+        ...current,
+        items: [...current.items, savedItem].sort((left, right) => left.sortOrder - right.sortOrder),
+      } : current);
+      setNavigationItemDraft(emptyShellCatalogItemDraft);
+      await refreshSummary();
+    } catch (saveError) {
+      setShellCatalogError(toApiClientError(saveError).message);
+    } finally {
+      setCreatingNavigationItem(false);
+    }
+  };
+
+  const handleNavigationItemDelete = async (item: ShellCatalogItemDto) => {
+    if (!window.confirm(`Remover a area "${item.label}" da shell?`)) {
+      return;
+    }
+    try {
+      setSavingNavigationItemId(item.id);
+      setShellCatalogError(null);
+      await shellCatalogService.deleteNavigationItem(item.id);
+      setShellCatalog((current) => current ? {
+        ...current,
+        items: current.items.filter((catalogItem) => catalogItem.id !== item.id),
+      } : current);
+      await refreshSummary();
+    } catch (deleteError) {
+      setShellCatalogError(toApiClientError(deleteError).message);
+    } finally {
+      setSavingNavigationItemId(null);
+    }
+  };
+
+  const handleTaskTypeCreate = async () => {
+    try {
+      setCreatingTaskType(true);
+      setShellCatalogError(null);
+      const savedItem = await shellCatalogService.createTaskType(taskTypeDraft);
+      setShellCatalog((current) => current ? {
+        ...current,
+        taskTypes: [...current.taskTypes, savedItem].sort((left, right) => left.sortOrder - right.sortOrder),
+      } : current);
+      setTaskTypeDraft(emptyShellTaskTypeDraft);
+      await refreshSummary();
+    } catch (saveError) {
+      setShellCatalogError(toApiClientError(saveError).message);
+    } finally {
+      setCreatingTaskType(false);
+    }
+  };
+
+  const handleTaskTypeDelete = async (item: ShellCatalogTaskTypeDto) => {
+    if (!window.confirm(`Remover o tipo de tarefa "${item.label}"?`)) {
+      return;
+    }
+    try {
+      setSavingTaskTypeId(item.taskType);
+      setShellCatalogError(null);
+      await shellCatalogService.deleteTaskType(item.taskType);
+      setShellCatalog((current) => current ? {
+        ...current,
+        taskTypes: current.taskTypes.filter((catalogItem) => catalogItem.taskType !== item.taskType),
+      } : current);
+      await refreshSummary();
+    } catch (deleteError) {
+      setShellCatalogError(toApiClientError(deleteError).message);
+    } finally {
+      setSavingTaskTypeId(null);
+    }
+  };
+
+  const updateHomeBlockDraftItem = (blockId: string, updater: (item: HomeOverviewBlockDto) => HomeOverviewBlockDto) => {
+    setHomeCatalog((current) => {
+      if (!current) {
+        return current;
+      }
+      return {
+        ...current,
+        blocks: current.blocks.map((item) => (item.id === blockId ? updater(item) : item)),
+      };
+    });
+  };
+
+  const handleHomeSettingsSave = async () => {
+    try {
+      setSavingHomeSettings(true);
+      setHomeCatalogError(null);
+      const savedSettings = await homeService.updateSettings({
+        headline: homeSettingsDraft.headline?.trim(),
+        supportingText: homeSettingsDraft.supportingText?.trim(),
+      });
+      setHomeCatalog((current) => current ? { ...current, settings: savedSettings } : current);
+      setHomeSettingsDraft(savedSettings);
+      await refreshSummary();
+      setOverview(await settingsService.getOverview());
+    } catch (saveError) {
+      setHomeCatalogError(toApiClientError(saveError).message);
+    } finally {
+      setSavingHomeSettings(false);
+    }
+  };
+
+  const handleHomeBlockCreate = async () => {
+    try {
+      setCreatingHomeBlock(true);
+      setHomeCatalogError(null);
+      const savedBlock = await homeService.createBlock({
+        ...homeBlockDraft,
+        id: homeBlockDraft.id.trim(),
+        title: homeBlockDraft.title.trim(),
+        description: homeBlockDraft.description.trim(),
+        ctaLabel: homeBlockDraft.ctaLabel?.trim() || '',
+        ctaPath: homeBlockDraft.ctaPath?.trim() || '',
+      });
+      setHomeCatalog((current) => current ? {
+        ...current,
+        blocks: [...current.blocks, savedBlock].sort((left, right) => left.sortOrder - right.sortOrder),
+      } : current);
+      setHomeBlockDraft(emptyHomeBlockDraft);
+      await refreshSummary();
+    } catch (saveError) {
+      setHomeCatalogError(toApiClientError(saveError).message);
+    } finally {
+      setCreatingHomeBlock(false);
+    }
+  };
+
+  const handleHomeBlockSave = async (block: HomeOverviewBlockDto) => {
+    try {
+      setSavingHomeBlockId(block.id);
+      setHomeCatalogError(null);
+      const savedBlock = await homeService.updateBlock(block.id, {
+        title: block.title,
+        description: block.description,
+        sortOrder: block.sortOrder,
+        maxItems: block.maxItems,
+        ctaLabel: block.ctaLabel?.trim() || '',
+        ctaPath: block.ctaPath?.trim() || '',
+        enabled: block.enabled,
+      });
+      setHomeCatalog((current) => current ? {
+        ...current,
+        blocks: current.blocks
+          .map((item) => (item.id === savedBlock.id ? savedBlock : item))
+          .sort((left, right) => left.sortOrder - right.sortOrder),
+      } : current);
+      await refreshSummary();
+    } catch (saveError) {
+      setHomeCatalogError(toApiClientError(saveError).message);
+    } finally {
+      setSavingHomeBlockId(null);
+    }
+  };
+
+  const handleHomeBlockDelete = async (block: HomeOverviewBlockDto) => {
+    if (!window.confirm(`Remover o bloco "${block.title}" da tela inicial?`)) {
+      return;
+    }
+    try {
+      setSavingHomeBlockId(block.id);
+      setHomeCatalogError(null);
+      await homeService.deleteBlock(block.id);
+      setHomeCatalog((current) => current ? {
+        ...current,
+        blocks: current.blocks.filter((item) => item.id !== block.id),
+      } : current);
+      await refreshSummary();
+    } catch (deleteError) {
+      setHomeCatalogError(toApiClientError(deleteError).message);
+    } finally {
+      setSavingHomeBlockId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <WorkspaceNotice
@@ -583,7 +994,7 @@ export default function Settings() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm font-semibold text-[var(--text-primary)]">{section.title}</p>
-                          <StatusBadge state={section.previewState} />
+                          <StatusBadge state={section.availability} />
                         </div>
                         <p className="mt-1 text-sm text-[var(--text-secondary)]">{section.description}</p>
                       </div>
@@ -597,7 +1008,7 @@ export default function Settings() {
                 <section className="manus-banner">
                   <div className="flex flex-wrap items-center gap-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">{activeSection.title}</p>
-                    <StatusBadge state={activeSection.previewState} />
+                    <StatusBadge state={activeSection.availability} />
                   </div>
                   <h1 className="mt-3 text-3xl font-semibold text-[var(--text-primary)]">{activeSection.title}</h1>
                   <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{activeSection.description}</p>
@@ -1043,11 +1454,748 @@ export default function Settings() {
                   </section>
                 ) : null}
 
+                {isHomeOverviewSection ? (
+                  <section className="space-y-4">
+                    <div className="grid gap-4 lg:grid-cols-4">
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Blocos ativos</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{homeCatalog?.blocks.filter((block) => block.enabled).length ?? '--'}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Mensagem principal</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Editavel</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Reflexo</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Imediato</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Origem</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Banco</p>
+                      </div>
+                    </div>
+
+                    {homeCatalogLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando tela inicial...</div> : null}
+                    {homeCatalogError ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">{homeCatalogError}</div> : null}
+
+                    {homeCatalog ? (
+                      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                        <article className="shell-panel p-5">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Mensagem principal</p>
+                              <p className="mt-2 text-sm text-[var(--text-secondary)]">Defina o titulo e o texto de apoio exibidos no inicio do workspace.</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="pill-button"
+                              onClick={() => void handleHomeSettingsSave()}
+                              disabled={!canManageSettings || savingHomeSettings}
+                            >
+                              {savingHomeSettings ? 'Salvando...' : 'Salvar mensagem'}
+                            </button>
+                          </div>
+
+                          <div className="mt-4 grid gap-3">
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Titulo principal</span>
+                              <input
+                                aria-label="Titulo principal"
+                                value={homeSettingsDraft.headline ?? ''}
+                                onChange={(event) => setHomeSettingsDraft((current) => ({ ...current, headline: event.target.value }))}
+                                disabled={!canManageSettings || savingHomeSettings}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="text-sm font-semibold text-[var(--text-primary)]">Texto de apoio</span>
+                              <textarea
+                                aria-label="Texto de apoio"
+                                value={homeSettingsDraft.supportingText ?? ''}
+                                onChange={(event) => setHomeSettingsDraft((current) => ({ ...current, supportingText: event.target.value }))}
+                                disabled={!canManageSettings || savingHomeSettings}
+                                rows={4}
+                                className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                              />
+                            </label>
+                          </div>
+                        </article>
+
+                        <article className="shell-panel p-5">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Blocos do painel</p>
+                              <p className="mt-2 text-sm text-[var(--text-secondary)]">Controle a ordem, o texto e a visibilidade dos blocos da tela inicial.</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="pill-button"
+                              onClick={() => void handleHomeBlockCreate()}
+                              disabled={!canManageSettings || creatingHomeBlock}
+                            >
+                              {creatingHomeBlock ? 'Criando...' : 'Criar bloco'}
+                            </button>
+                          </div>
+
+                          <div className="mt-4 rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)' }}>
+                            <div className="grid gap-3 lg:grid-cols-2">
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">ID</span>
+                                <input
+                                  aria-label="ID do novo bloco"
+                                  value={homeBlockDraft.id}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, id: event.target.value }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Tipo do bloco</span>
+                                <select
+                                  aria-label="Tipo do bloco"
+                                  value={homeBlockDraft.blockType}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, blockType: event.target.value as HomeOverviewBlockType }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                >
+                                  {homeBlockOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Titulo do bloco</span>
+                                <input
+                                  aria-label="Titulo do novo bloco"
+                                  value={homeBlockDraft.title}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, title: event.target.value }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Ordem</span>
+                                <input
+                                  aria-label="Ordem do novo bloco"
+                                  type="number"
+                                  min={0}
+                                  value={homeBlockDraft.sortOrder}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, sortOrder: Number.parseInt(event.target.value || '0', 10) }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Itens exibidos</span>
+                                <input
+                                  aria-label="Limite do novo bloco"
+                                  type="number"
+                                  min={1}
+                                  max={12}
+                                  value={homeBlockDraft.maxItems ?? 4}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, maxItems: Number.parseInt(event.target.value || '4', 10) }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2 lg:col-span-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Descricao do bloco</span>
+                                <input
+                                  aria-label="Descricao do novo bloco"
+                                  value={homeBlockDraft.description}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, description: event.target.value }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Texto do CTA</span>
+                                <input
+                                  aria-label="Texto do CTA do novo bloco"
+                                  value={homeBlockDraft.ctaLabel ?? ''}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, ctaLabel: event.target.value }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Rota do CTA</span>
+                                <input
+                                  aria-label="Rota do CTA do novo bloco"
+                                  value={homeBlockDraft.ctaPath ?? ''}
+                                  onChange={(event) => setHomeBlockDraft((current) => ({ ...current, ctaPath: event.target.value }))}
+                                  disabled={!canManageSettings || creatingHomeBlock}
+                                  placeholder="/tasks"
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 space-y-3">
+                            {homeCatalog.blocks.map((block) => (
+                              <div
+                                key={block.id}
+                                data-testid={`home-block-${block.id}`}
+                                className="rounded-[12px] border px-4 py-4"
+                                style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p className="text-sm font-semibold text-[var(--text-primary)]">{block.id}</p>
+                                      <StatusBadge state={block.enabled ? 'live' : 'restricted'} />
+                                    </div>
+                                    <p className="mt-1 text-xs text-[var(--text-tertiary)]">{homeBlockOptions.find((option) => option.value === block.blockType)?.label ?? block.blockType}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="pill-button"
+                                    aria-label={`Salvar bloco ${block.id}`}
+                                    onClick={() => void handleHomeBlockSave(block)}
+                                    disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                  >
+                                    {savingHomeBlockId === block.id ? 'Salvando...' : 'Salvar bloco'}
+                                  </button>
+                                </div>
+
+                                <div className="mt-4 grid gap-3">
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Titulo</span>
+                                    <input
+                                      aria-label={`Titulo do bloco ${block.id}`}
+                                      value={block.title}
+                                      onChange={(event) => updateHomeBlockDraftItem(block.id, (current) => ({ ...current, title: event.target.value }))}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Descricao</span>
+                                    <input
+                                      aria-label={`Descricao do bloco ${block.id}`}
+                                      value={block.description}
+                                      onChange={(event) => updateHomeBlockDraftItem(block.id, (current) => ({ ...current, description: event.target.value }))}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Ordem</span>
+                                    <input
+                                      aria-label={`Ordem do bloco ${block.id}`}
+                                      type="number"
+                                      min={0}
+                                      value={block.sortOrder}
+                                      onChange={(event) => updateHomeBlockDraftItem(block.id, (current) => ({ ...current, sortOrder: Number.parseInt(event.target.value || '0', 10) }))}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Itens exibidos</span>
+                                    <input
+                                      aria-label={`Limite do bloco ${block.id}`}
+                                      type="number"
+                                      min={1}
+                                      max={12}
+                                      value={block.maxItems ?? 4}
+                                      onChange={(event) => updateHomeBlockDraftItem(block.id, (current) => ({ ...current, maxItems: Number.parseInt(event.target.value || '4', 10) }))}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Texto do CTA</span>
+                                    <input
+                                      aria-label={`Texto do CTA do bloco ${block.id}`}
+                                      value={block.ctaLabel ?? ''}
+                                      onChange={(event) => updateHomeBlockDraftItem(block.id, (current) => ({ ...current, ctaLabel: event.target.value }))}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Rota do CTA</span>
+                                    <input
+                                      aria-label={`Rota do CTA do bloco ${block.id}`}
+                                      value={block.ctaPath ?? ''}
+                                      onChange={(event) => updateHomeBlockDraftItem(block.id, (current) => ({ ...current, ctaPath: event.target.value }))}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                      placeholder="/tasks"
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="flex items-center justify-between rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)' }}>
+                                    <span>
+                                      <p className="text-sm font-semibold text-[var(--text-primary)]">Exibir no inicio</p>
+                                      <p className="text-sm text-[var(--text-secondary)]">Quando desligado, esse bloco sai da tela inicial do workspace.</p>
+                                    </span>
+                                    <input
+                                      type="checkbox"
+                                      aria-label={`Exibir bloco ${block.id} no inicio`}
+                                      checked={block.enabled}
+                                      onChange={(event) => updateHomeBlockDraftItem(block.id, (current) => ({ ...current, enabled: event.target.checked }))}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                    />
+                                  </label>
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      className="pill-button"
+                                      aria-label={`Remover bloco ${block.id}`}
+                                      onClick={() => void handleHomeBlockDelete(block)}
+                                      disabled={!canManageSettings || savingHomeBlockId === block.id}
+                                    >
+                                      <FiTrash2 size={14} />
+                                      Remover bloco
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
+
+                {isWorkspaceCatalogSection ? (
+                  <section className="space-y-4">
+                    <div className="grid gap-4 lg:grid-cols-4">
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Areas ativas</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{shellCatalog?.items.filter((item) => item.enabled).length ?? '--'}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Tipos ativos</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{shellCatalog?.taskTypes.filter((item) => item.enabled).length ?? '--'}</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Navegacao</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Gerenciavel</p>
+                      </div>
+                      <div className="shell-panel p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Reflexo</p>
+                        <p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Imediato</p>
+                      </div>
+                    </div>
+
+                    {shellCatalogLoading ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">Carregando menu e tipos de tarefa...</div> : null}
+                    {shellCatalogError ? <div className="shell-panel p-5 text-sm text-[var(--text-secondary)]">{shellCatalogError}</div> : null}
+
+                    {shellCatalog ? (
+                      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+                        <article className="shell-panel p-5">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Menu principal</p>
+                              <p className="mt-2 text-sm text-[var(--text-secondary)]">Ajuste nome, rota, icone, ordem, grupo e disponibilidade das areas exibidas no workspace.</p>
+                            </div>
+                          </div>
+                          <div className="mt-4 rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)' }}>
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-[var(--text-primary)]">Nova area</p>
+                                <p className="mt-1 text-sm text-[var(--text-secondary)]">Adicione uma nova entrada na shell sem deploy.</p>
+                              </div>
+                              <button
+                                type="button"
+                                className="pill-button"
+                                onClick={() => void handleNavigationItemCreate()}
+                                disabled={!canManageSettings || creatingNavigationItem}
+                              >
+                                {creatingNavigationItem ? 'Criando...' : 'Criar area'}
+                              </button>
+                            </div>
+                            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">ID</span>
+                                <input
+                                  value={navigationItemDraft.id}
+                                  onChange={(event) => setNavigationItemDraft((current) => ({ ...current, id: event.target.value }))}
+                                  disabled={!canManageSettings || creatingNavigationItem}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Nome da nova area</span>
+                                <input
+                                  aria-label="Nome da nova area"
+                                  value={navigationItemDraft.label}
+                                  onChange={(event) => setNavigationItemDraft((current) => ({ ...current, label: event.target.value }))}
+                                  disabled={!canManageSettings || creatingNavigationItem}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Rota da nova area</span>
+                                <input
+                                  aria-label="Rota da nova area"
+                                  value={navigationItemDraft.path}
+                                  onChange={(event) => setNavigationItemDraft((current) => ({ ...current, path: event.target.value }))}
+                                  disabled={!canManageSettings || creatingNavigationItem}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Icone da nova area</span>
+                                <select
+                                  aria-label="Icone da nova area"
+                                  value={navigationItemDraft.icon}
+                                  onChange={(event) => setNavigationItemDraft((current) => ({ ...current, icon: event.target.value as ShellIconKey }))}
+                                  disabled={!canManageSettings || creatingNavigationItem}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                >
+                                  {shellIconOptions.map((icon) => (
+                                    <option key={icon.value} value={icon.value}>
+                                      {icon.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label className="grid gap-2 lg:col-span-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Descricao da nova area</span>
+                                <input
+                                  aria-label="Descricao da nova area"
+                                  value={navigationItemDraft.description}
+                                  onChange={(event) => setNavigationItemDraft((current) => ({ ...current, description: event.target.value }))}
+                                  disabled={!canManageSettings || creatingNavigationItem}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                          <div className="mt-4 space-y-3">
+                            {shellCatalog.items.map((item) => (
+                              <div key={item.id} className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p className="text-sm font-semibold text-[var(--text-primary)]">{item.id}</p>
+                                      <StatusBadge state={item.enabled ? item.availability : 'restricted'} />
+                                    </div>
+                                    <p className="mt-1 text-xs text-[var(--text-tertiary)]">{item.path}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="pill-button"
+                                    onClick={() => void handleNavigationItemSave(item)}
+                                    disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                  >
+                                    {savingNavigationItemId === item.id ? 'Salvando...' : 'Salvar area'}
+                                  </button>
+                                </div>
+
+                                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Nome</span>
+                                    <input
+                                      value={item.label}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, label: event.target.value }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Rota</span>
+                                    <input
+                                      value={item.path}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, path: event.target.value }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Icone</span>
+                                    <select
+                                      value={item.icon}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, icon: event.target.value as ShellIconKey }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    >
+                                      {shellIconOptions.map((icon) => (
+                                        <option key={icon.value} value={icon.value}>
+                                          {icon.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Grupo</span>
+                                    <select
+                                      value={item.group}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, group: event.target.value as WorkspaceGroup }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    >
+                                      <option value="primary">primary</option>
+                                      <option value="task-history">task-history</option>
+                                      <option value="secondary">secondary</option>
+                                    </select>
+                                  </label>
+                                  <label className="grid gap-2 lg:col-span-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Descricao</span>
+                                    <input
+                                      value={item.description}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, description: event.target.value }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Ordem</span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={item.sortOrder}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, sortOrder: Number.parseInt(event.target.value || '0', 10) }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Disponibilidade</span>
+                                    <select
+                                      value={item.availability}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, availability: event.target.value as WorkspaceAvailabilityState }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    >
+                                      <option value="live">live</option>
+                                      <option value="attention">attention</option>
+                                      <option value="unavailable">unavailable</option>
+                                      <option value="restricted">restricted</option>
+                                    </select>
+                                  </label>
+                                  <label className="grid gap-2 lg:col-span-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Palavras-chave</span>
+                                    <input
+                                      value={item.keywords.join(', ')}
+                                      onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({
+                                        ...current,
+                                        keywords: event.target.value.split(',').map((value) => value.trim()).filter(Boolean),
+                                      }))}
+                                      disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                </div>
+
+                                <label className="mt-4 flex items-center justify-between rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)' }}>
+                                  <span>
+                                    <p className="text-sm font-semibold text-[var(--text-primary)]">Exibir no workspace</p>
+                                    <p className="text-sm text-[var(--text-secondary)]">Quando desligado, a area sai da navegacao principal.</p>
+                                  </span>
+                                  <input
+                                    type="checkbox"
+                                    checked={item.enabled}
+                                    onChange={(event) => updateShellCatalogItemDraft(item.id, (current) => ({ ...current, enabled: event.target.checked }))}
+                                    disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                  />
+                                </label>
+                                <div className="mt-3 flex justify-end">
+                                  <button
+                                    type="button"
+                                    className="pill-button"
+                                    onClick={() => void handleNavigationItemDelete(item)}
+                                    disabled={!canManageSettings || savingNavigationItemId === item.id}
+                                  >
+                                    <FiTrash2 size={14} />
+                                    Remover area
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+
+                        <article className="shell-panel p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Tipos de tarefa</p>
+                          <p className="mt-2 text-sm text-[var(--text-secondary)]">Defina os nomes e a ordem das tarefas sugeridas no fluxo principal.</p>
+                          <div className="mt-4 rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)' }}>
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-[var(--text-primary)]">Novo tipo</p>
+                                <p className="mt-1 text-sm text-[var(--text-secondary)]">Adicione um novo tipo de tarefa para o fluxo principal.</p>
+                              </div>
+                              <button
+                                type="button"
+                                className="pill-button"
+                                onClick={() => void handleTaskTypeCreate()}
+                                disabled={!canManageSettings || creatingTaskType}
+                              >
+                                {creatingTaskType ? 'Criando...' : 'Criar tipo'}
+                              </button>
+                            </div>
+                            <div className="mt-4 grid gap-3">
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">ID do tipo</span>
+                                <input
+                                  value={taskTypeDraft.taskType}
+                                  onChange={(event) => setTaskTypeDraft((current) => ({ ...current, taskType: event.target.value }))}
+                                  disabled={!canManageSettings || creatingTaskType}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Nome do novo tipo</span>
+                                <input
+                                  aria-label="Nome do novo tipo"
+                                  value={taskTypeDraft.label}
+                                  onChange={(event) => setTaskTypeDraft((current) => ({ ...current, label: event.target.value }))}
+                                  disabled={!canManageSettings || creatingTaskType}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                              <label className="grid gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">Descricao do novo tipo</span>
+                                <input
+                                  aria-label="Descricao do novo tipo"
+                                  value={taskTypeDraft.description}
+                                  onChange={(event) => setTaskTypeDraft((current) => ({ ...current, description: event.target.value }))}
+                                  disabled={!canManageSettings || creatingTaskType}
+                                  className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                  style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                          <div className="mt-4 space-y-3">
+                            {shellCatalog.taskTypes.map((item) => (
+                              <div key={item.taskType} className="rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--fill-tsp-white-main)' }}>
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-semibold text-[var(--text-primary)]">{item.taskType}</p>
+                                    <p className="mt-1 text-xs text-[var(--text-tertiary)]">Usado na home e na criacao de tarefa.</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="pill-button"
+                                    onClick={() => void handleTaskTypeSave(item)}
+                                    disabled={!canManageSettings || savingTaskTypeId === item.taskType}
+                                  >
+                                    {savingTaskTypeId === item.taskType ? 'Salvando...' : 'Salvar tipo'}
+                                  </button>
+                                </div>
+
+                                <div className="mt-4 grid gap-3">
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Nome</span>
+                                    <input
+                                      value={item.label}
+                                      onChange={(event) => updateShellTaskTypeDraft(item.taskType, (current) => ({ ...current, label: event.target.value }))}
+                                      disabled={!canManageSettings || savingTaskTypeId === item.taskType}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Descricao</span>
+                                    <input
+                                      value={item.description}
+                                      onChange={(event) => updateShellTaskTypeDraft(item.taskType, (current) => ({ ...current, description: event.target.value }))}
+                                      disabled={!canManageSettings || savingTaskTypeId === item.taskType}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="grid gap-2">
+                                    <span className="text-sm font-semibold text-[var(--text-primary)]">Ordem</span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={item.sortOrder}
+                                      onChange={(event) => updateShellTaskTypeDraft(item.taskType, (current) => ({ ...current, sortOrder: Number.parseInt(event.target.value || '0', 10) }))}
+                                      disabled={!canManageSettings || savingTaskTypeId === item.taskType}
+                                      className="rounded-[12px] border px-4 py-3 text-sm outline-none"
+                                      style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)', color: 'var(--text-primary)' }}
+                                    />
+                                  </label>
+                                  <label className="flex items-center justify-between rounded-[12px] border px-4 py-4" style={{ borderColor: 'var(--surface-border-main)', background: 'var(--surface-bg)' }}>
+                                    <span>
+                                      <p className="text-sm font-semibold text-[var(--text-primary)]">Exibir nas sugestoes</p>
+                                      <p className="text-sm text-[var(--text-secondary)]">Quando desligado, esse tipo deixa de aparecer como opcao principal.</p>
+                                    </span>
+                                    <input
+                                      type="checkbox"
+                                      checked={item.enabled}
+                                      onChange={(event) => updateShellTaskTypeDraft(item.taskType, (current) => ({ ...current, enabled: event.target.checked }))}
+                                      disabled={!canManageSettings || savingTaskTypeId === item.taskType}
+                                    />
+                                  </label>
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      className="pill-button"
+                                      onClick={() => void handleTaskTypeDelete(item)}
+                                      disabled={!canManageSettings || savingTaskTypeId === item.taskType}
+                                    >
+                                      <FiTrash2 size={14} />
+                                      Remover tipo
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+                      </div>
+                    ) : null}
+
+                    <section className="manus-banner">
+                      <div className="flex items-start gap-3">
+                        <FiSettings size={18} className="mt-0.5 text-[var(--accent)]" />
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">Mudancas aplicadas sem deploy</p>
+                          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                            Ao salvar, a barra lateral e a tela inicial refletem a nova ordem do workspace imediatamente.
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                  </section>
+                ) : null}
+
                 {isThreatSection ? (
                   <section className="space-y-4">
                     <div className="grid gap-4 lg:grid-cols-3">
                       <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Fontes</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">{threatIntelCards.length}</p></div>
-                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Governanca</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Auditado</p></div>
+                      <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Confianca</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Auditado</p></div>
                       <div className="shell-panel p-5"><p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Status</p><p className="mt-3 text-lg font-semibold text-[var(--text-primary)]">Restrito</p></div>
                     </div>
 
@@ -1086,7 +2234,7 @@ export default function Settings() {
                   </section>
                 ) : null}
 
-                {!isConfigSection && !isKnowledgeSection && !isFinopsSection && !isProvidersSection && !isThreatSection ? (
+                {!isConfigSection && !isKnowledgeSection && !isFinopsSection && !isProvidersSection && !isWorkspaceCatalogSection && !isThreatSection ? (
                   <section className="grid gap-4 lg:grid-cols-2">
                     <div className="shell-panel p-5">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--text-tertiary)]">Estado da secao</p>

@@ -55,7 +55,7 @@ public abstract class AbstractAiProviderAdapter implements AiProviderAdapter {
 
         if (!executionSupported) {
             readinessStatus = "manual";
-            message = "Provider catalogado, mas fora do runtime real desta fase.";
+            message = "Integracao catalogada, mas ainda nao liberada para uso operacional.";
         } else if (configured) {
             readinessStatus = "ready";
             message = "Provider configurado e pronto para execucao.";

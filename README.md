@@ -259,10 +259,13 @@ Governanca por provider:
 | Metodo | Endpoint |
 |---|---|
 | `GET` | `/api/health` |
+| `GET` | `/api/v1/home/overview` |
+| `GET` | `/api/v1/shell/navigation` |
 | `GET` | `/api/workspace/summary` |
 | `GET` | `/api/usage/summary` |
 | `GET` | `/api/notifications` |
 | `GET` | `/api/search` |
+| `GET` | `/api/v1/search/results` |
 
 ### Sessao, tenancy e members
 
@@ -292,6 +295,9 @@ Governanca por provider:
 | `GET` | `/api/v1/providers/status` |
 | `GET` | `/api/v1/providers/health` |
 | `POST` | `/api/v1/providers/{code}/connectivity-test` |
+| `GET` | `/api/v1/shell/catalog` |
+| `PATCH` | `/api/v1/shell/catalog/navigation-items/{id}` |
+| `PATCH` | `/api/v1/shell/catalog/task-types/{taskType}` |
 
 ### Inference e capability API
 
@@ -333,6 +339,31 @@ Contratos capability-first nesta fase:
 | `PATCH` | `/api/v1/agents/profiles/{id}/runtime` |
 
 ## Runtime multi-provider de IA
+
+## Home e navegacao operacional
+
+O shell principal foi simplificado para seis areas de trabalho:
+
+- `Inicio`
+- `Tarefas`
+- `Projetos`
+- `Biblioteca`
+- `Equipe`
+- `Configuracoes`
+
+Comportamento atual da home:
+
+- o composer principal abre em modo `Buscar`
+- enviar no modo `Buscar` leva para `/search/results` usando busca real no banco
+- `Nova tarefa` continua disponivel, mas como modo explicito
+- `Agents`, `Uso` e `Inbox` deixaram de competir como area primaria; aparecem no contexto das areas principais
+
+Catalogo administravel da shell:
+
+- admins com `settings.manage` podem editar labels, rotas, icones, descricoes, ordem, grupo e disponibilidade da navegacao
+- admins com `settings.manage` podem editar labels, descricoes, ordem e disponibilidade dos tipos de tarefa
+- as alteracoes sao persistidas no banco e auditadas
+- a shell e a home passam a refletir o catalogo sem deploy
 
 Providers com runtime textual realmente ligado nesta fase:
 

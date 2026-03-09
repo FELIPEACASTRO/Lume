@@ -159,7 +159,7 @@ class KnowledgeSourceServiceTest {
         entity.setTitle(title);
         entity.setSourceType("library");
         entity.setProjectId(projectId);
-        entity.setStatusLabel("API real");
+        entity.setStatusLabel("Ativo");
         entity.setAvailability("live");
         entity.setDocumentCount(3);
         entity.setEnabledForAgents(true);

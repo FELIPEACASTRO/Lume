@@ -26,6 +26,8 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -99,6 +101,18 @@ class WorkspaceShellIT {
 
     @Test
     @Order(3)
+    @DisplayName("GET /api/v1/home/overview - should return persisted home overview state")
+    void shouldReturnHomeOverview() throws Exception {
+        mockMvc.perform(get("/api/v1/home/overview").with(operatorHeader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.headline").isString())
+                .andExpect(jsonPath("$.supportingText").isString())
+                .andExpect(jsonPath("$.blocks").isArray())
+                .andExpect(jsonPath("$.blocks[0].maxItems").isNumber());
+    }
+
+    @Test
+    @Order(4)
     @DisplayName("GET /library/entries - should list persisted documents")
     void shouldReturnLibraryEntries() throws Exception {
         mockMvc.perform(get("/library/entries").with(operatorHeader()))
@@ -110,7 +124,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     @DisplayName("GET /search - should search current workspace content")
     void shouldSearchAcrossWorkspace() throws Exception {
         mockMvc.perform(get("/search").with(operatorHeader()).param("q", "onboarding"))
@@ -119,7 +133,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     @DisplayName("POST /agents/threads - should return an operational provider error when runtime is unavailable")
     void shouldCreateAgentThread() throws Exception {
         CreateAgentThreadRequest request = new CreateAgentThreadRequest(
@@ -136,7 +150,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     @DisplayName("GET /projects - should list persisted projects")
     void shouldReturnProjects() throws Exception {
         mockMvc.perform(get("/projects").with(operatorHeader()))
@@ -146,7 +160,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     @DisplayName("POST /tasks - should create a persisted task with truthful initial state")
     void shouldCreateTask() throws Exception {
         CreateTaskRequest request = new CreateTaskRequest(
@@ -163,11 +177,22 @@ class WorkspaceShellIT {
                 .andExpect(jsonPath("$.task.id").exists())
                 .andExpect(jsonPath("$.task.taskType").value("playbook"))
                 .andExpect(jsonPath("$.task.runtimeState").value("queued"))
-                .andExpect(jsonPath("$.steps.length()").value(1));
+                .andExpect(jsonPath("$.steps.length()").value(0));
     }
 
     @Test
-    @Order(8)
+    @Order(9)
+    @DisplayName("GET /api/v1/search/results - should return grouped real results")
+    void shouldReturnSearchResults() throws Exception {
+        mockMvc.perform(get("/api/v1/search/results").with(operatorHeader()).param("q", "onboarding"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.query").value("onboarding"))
+                .andExpect(jsonPath("$.totalResults").isNumber())
+                .andExpect(jsonPath("$.results").isArray());
+    }
+
+    @Test
+    @Order(10)
     @DisplayName("GET /usage/summary - should return operational usage summary")
     void shouldReturnUsageSummary() throws Exception {
         mockMvc.perform(get("/usage/summary").with(operatorHeader()))
@@ -181,7 +206,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(9)
+    @Order(11)
     @DisplayName("GET /notifications - should list operational inbox")
     void shouldReturnNotifications() throws Exception {
         mockMvc.perform(get("/notifications").with(operatorHeader()))
@@ -191,7 +216,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(10)
+    @Order(12)
     @DisplayName("GET /settings/overview - should return settings shell")
     void shouldReturnSettingsOverview() throws Exception {
         mockMvc.perform(get("/settings/overview").with(operatorHeader()))
@@ -205,7 +230,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(11)
+    @Order(13)
     @DisplayName("GET /api/v1/knowledge-sources - should list persisted knowledge sources")
     void shouldReturnKnowledgeSources() throws Exception {
         mockMvc.perform(get("/api/v1/knowledge-sources").with(operatorHeader()))
@@ -213,11 +238,12 @@ class WorkspaceShellIT {
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].title").exists())
                 .andExpect(jsonPath("$[0].enabledForAgents").isBoolean())
-                .andExpect(jsonPath("$[0].documentCount").isNumber());
+                .andExpect(jsonPath("$[0].documentCount").isNumber())
+                .andExpect(jsonPath("$[*].statusLabel", not(hasItem("Preview assistido"))));
     }
 
     @Test
-    @Order(12)
+    @Order(14)
     @DisplayName("GET /api/v1/library/entries/{id}/versions - should return persisted artifact versions")
     void shouldReturnArtifactVersions() throws Exception {
         mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding").with(operatorHeader()))
@@ -227,7 +253,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(13)
+    @Order(15)
     @DisplayName("GET /api/v1/prompt-templates - should return persisted prompt templates")
     void shouldReturnPromptTemplates() throws Exception {
         mockMvc.perform(get("/api/v1/prompt-templates").with(operatorHeader()))

@@ -72,7 +72,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
       </div>
 
       <div className="space-y-3">
-        <Link to="/" className="btn-primary w-full justify-between" onClick={onClose}>
+        <Link to="/?mode=task" className="btn-primary w-full justify-between" onClick={onClose}>
           <span>Nova tarefa</span>
           <FiZap size={16} />
         </Link>
@@ -80,7 +80,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
         <button type="button" className="btn-secondary w-full justify-between" onClick={onOpenSearch}>
           <span className="flex items-center gap-2">
             <FiSearch size={16} />
-            Pesquisar
+            Buscar
           </span>
           <span className="rounded-full border px-2 py-1 text-[11px]" style={{ borderColor: 'var(--surface-border-main)' }}>
             Ctrl K
@@ -171,7 +171,7 @@ function SidebarContent({ onClose, onOpenSearch }: Omit<SidebarProps, 'mobileOpe
           {summary?.organizationName ?? session?.organization.name ?? 'Lume'} . {summary?.workspaceName ?? session?.workspace.name ?? 'Workspace'}
         </p>
         <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-          Use este painel para abrir as areas principais e acompanhar o que mudou no workspace.
+          Abra as areas principais e acompanhe o que mudou no workspace.
         </p>
         <Link to="/settings" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-link" onClick={onClose}>
           Abrir configuracoes

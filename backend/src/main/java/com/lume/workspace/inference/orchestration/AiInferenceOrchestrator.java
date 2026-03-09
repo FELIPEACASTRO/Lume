@@ -65,7 +65,7 @@ public class AiInferenceOrchestrator {
             attemptedProviderCodes.add(provider.code());
 
             if (!provider.executionSupported()) {
-                lastError = "O provider " + provider.name() + " esta catalogado, mas nao entrou no runtime real desta fase.";
+                lastError = "O provedor " + provider.name() + " ainda nao esta liberado para uso operacional.";
                 attemptChain.add(new AiExecutionAttempt(provider.code(), "unsupported", lastError, null));
                 continue;
             }
@@ -191,7 +191,7 @@ public class AiInferenceOrchestrator {
             ProviderDefinition provider = providerCatalogService.requireProvider(providerCode);
             ModelDefinition model = providerCatalogService.resolveModel(provider.code(), request.modelCode());
             if (!provider.executionSupported()) {
-                lastError = "O provider " + provider.name() + " esta catalogado, mas nao entrou no runtime real desta fase.";
+                lastError = "O provedor " + provider.name() + " ainda nao esta liberado para uso operacional.";
                 continue;
             }
             List<String> missingCredentials = providerCatalogService.missingCredentialEnvVars(provider);

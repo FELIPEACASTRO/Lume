@@ -25,6 +25,7 @@ const baseSession = {
       'workspace.read',
       'workspace.switch',
       'members.manage',
+      'settings.manage',
       'providers.read',
       'providers.test',
       'artifacts.read',
@@ -590,7 +591,7 @@ const baseAgentProfiles = [
     specialty: 'Operacao e processos',
     description: 'Traduz pedidos em fluxos executaveis com foco em custo, risco e velocidade.',
     status: 'Configure credenciais',
-    availability: 'disabled-preview',
+    availability: 'attention',
     note: 'Configure OPENAI_API_KEY para ativar este runtime.',
     providerCode: 'openai',
     modelCode: 'openai:gpt-4.1-mini',
@@ -726,8 +727,67 @@ function buildSummary(workspaceName: string, userCount: number) {
 
 function buildHomeOverview(workspaceName: string) {
   return {
+    workspaceName,
+    organizationName: 'Lume',
     headline: 'O que voce quer fazer?',
     supportingText: `Painel principal de ${workspaceName}.`,
+    blocks: [
+      {
+        id: 'in-progress',
+        blockType: 'in_progress',
+        title: 'Em andamento',
+        description: 'Trabalho em curso que pede acompanhamento.',
+        sortOrder: 10,
+        maxItems: 4,
+        ctaLabel: 'Ver tarefas',
+        ctaPath: '/tasks',
+        enabled: true,
+      },
+      {
+        id: 'alerts',
+        blockType: 'alerts',
+        title: 'Alertas',
+        description: 'Pontos que precisam de atencao agora.',
+        sortOrder: 20,
+        maxItems: 4,
+        ctaLabel: null,
+        ctaPath: null,
+        enabled: true,
+      },
+      {
+        id: 'team-context',
+        blockType: 'team_context',
+        title: 'Equipe e contexto',
+        description: 'Responsaveis e situacao do workspace.',
+        sortOrder: 30,
+        maxItems: 4,
+        ctaLabel: 'Ver equipe',
+        ctaPath: '/users',
+        enabled: true,
+      },
+      {
+        id: 'recent',
+        blockType: 'recent',
+        title: 'Recentes',
+        description: 'Ultimas entregas e atualizacoes.',
+        sortOrder: 40,
+        maxItems: 4,
+        ctaLabel: 'Abrir biblioteca',
+        ctaPath: '/library',
+        enabled: true,
+      },
+      {
+        id: 'quick-links',
+        blockType: 'quick_links',
+        title: 'Acoes rapidas',
+        description: 'Entradas mais usadas no dia a dia.',
+        sortOrder: 50,
+        maxItems: 6,
+        ctaLabel: null,
+        ctaPath: null,
+        enabled: true,
+      },
+    ],
     inProgress: [
       {
         id: 'task-onboarding',
@@ -751,9 +811,9 @@ function buildHomeOverview(workspaceName: string) {
     teamAndContext: [
       {
         id: 'team-1',
-        title: 'Equipe',
-        summary: '1 pessoa com acesso administrativo.',
-        detail: 'Acesso atualizado agora',
+        label: 'Equipe',
+        headline: '1 pessoa com acesso administrativo.',
+        description: 'Acesso atualizado agora',
         path: '/users',
         availability: 'live',
       },
@@ -811,35 +871,36 @@ function buildSettingsOverview(preferences: typeof basePreferences, workspaceNam
         title: 'Configuracoes',
         description: 'Aparencia e comunicacao.',
         availability: 'live',
-        previewState: 'live',
       },
       {
         key: 'knowledge',
         title: 'Knowledge',
         description: 'Fontes de conhecimento persistidas.',
         availability: 'live',
-        previewState: 'live',
       },
       {
         key: 'finops',
         title: 'FinOps',
         description: 'Budget e governanca do workspace.',
         availability: 'live',
-        previewState: 'live',
       },
       {
         key: 'providers-runtime',
         title: 'Providers & Runtime',
         description: 'Catalogo e runtime real dos agentes.',
         availability: 'live',
-        previewState: 'live',
+      },
+      {
+        key: 'home-overview',
+        title: 'Tela inicial',
+        description: 'Ajuste a mensagem principal e os blocos exibidos no inicio.',
+        availability: 'live',
       },
       {
         key: 'threat-intelligence',
         title: 'Threat Intelligence',
         description: 'Secao administrativa e auditada.',
         availability: 'live',
-        previewState: 'disabled-preview',
       },
     ],
   };
@@ -865,6 +926,13 @@ test.beforeEach(async ({ page }) => {
   const agentMessagesData = deepClone(baseAgentMessages);
   let promptTemplatesData = deepClone(basePromptTemplates);
   const notificationsData = deepClone(baseNotifications);
+  let homeCatalogData = {
+    settings: {
+      headline: 'O que voce quer fazer?',
+      supportingText: `Painel principal de ${sessionData.workspace.name}.`,
+    },
+    blocks: buildHomeOverview(sessionData.workspace.name).blocks,
+  };
   let summaryData = buildSummary(sessionData.workspace.name, membersData.length);
   let taskDetailsData = Object.fromEntries(tasksData.map((task) => [task.id, buildTaskDetail(task)]));
   let memberIdCounter = 20;
@@ -887,6 +955,13 @@ test.beforeEach(async ({ page }) => {
     };
 
     summaryData = buildSummary(nextWorkspace.name, membersData.length);
+    homeCatalogData = {
+      ...homeCatalogData,
+      settings: {
+        ...homeCatalogData.settings,
+        supportingText: `Painel principal de ${nextWorkspace.name}.`,
+      },
+    };
   };
 
   await page.route('**/api/**', async (route) => {
@@ -914,7 +989,82 @@ test.beforeEach(async ({ page }) => {
     }
 
     if (pathname.endsWith('/api/v1/home/overview')) {
-      return route.fulfill({ json: buildHomeOverview(sessionData.workspace.name) });
+      return route.fulfill({
+        json: {
+          ...buildHomeOverview(sessionData.workspace.name),
+          headline: homeCatalogData.settings.headline,
+          supportingText: homeCatalogData.settings.supportingText,
+          blocks: homeCatalogData.blocks,
+        },
+      });
+    }
+
+    if (pathname.endsWith('/api/v1/home/catalog') && request.method() === 'GET') {
+      return route.fulfill({ json: homeCatalogData });
+    }
+
+    if (pathname.endsWith('/api/v1/home/catalog/settings') && request.method() === 'PATCH') {
+      const payload = request.postDataJSON() as Partial<typeof homeCatalogData.settings>;
+      homeCatalogData = {
+        ...homeCatalogData,
+        settings: {
+          headline: payload.headline ?? homeCatalogData.settings.headline,
+          supportingText: payload.supportingText ?? homeCatalogData.settings.supportingText,
+        },
+      };
+      return route.fulfill({ json: homeCatalogData.settings });
+    }
+
+    if (pathname.endsWith('/api/v1/home/catalog/blocks') && request.method() === 'POST') {
+      const payload = request.postDataJSON() as (typeof homeCatalogData.blocks)[number];
+      const newBlock = {
+        id: payload.id,
+        blockType: payload.blockType,
+        title: payload.title,
+        description: payload.description,
+        sortOrder: payload.sortOrder,
+        maxItems: payload.maxItems ?? 4,
+        ctaLabel: payload.ctaLabel ?? null,
+        ctaPath: payload.ctaPath ?? null,
+        enabled: payload.enabled ?? true,
+      };
+      homeCatalogData = {
+        ...homeCatalogData,
+        blocks: [...homeCatalogData.blocks, newBlock].sort((left, right) => left.sortOrder - right.sortOrder),
+      };
+      return route.fulfill({ status: 201, json: newBlock });
+    }
+
+    if (pathname.includes('/api/v1/home/catalog/blocks/') && request.method() === 'PATCH') {
+      const blockId = pathname.split('/').at(-1) ?? '';
+      const payload = request.postDataJSON() as Partial<(typeof homeCatalogData.blocks)[number]>;
+      let updatedBlock = homeCatalogData.blocks.find((item) => item.id === blockId) ?? homeCatalogData.blocks[0];
+      updatedBlock = {
+        ...updatedBlock,
+        title: payload.title ?? updatedBlock.title,
+        description: payload.description ?? updatedBlock.description,
+        sortOrder: payload.sortOrder ?? updatedBlock.sortOrder,
+        maxItems: payload.maxItems ?? updatedBlock.maxItems,
+        ctaLabel: payload.ctaLabel ?? updatedBlock.ctaLabel,
+        ctaPath: payload.ctaPath ?? updatedBlock.ctaPath,
+        enabled: payload.enabled ?? updatedBlock.enabled,
+      };
+      homeCatalogData = {
+        ...homeCatalogData,
+        blocks: homeCatalogData.blocks
+          .map((item) => (item.id === blockId ? updatedBlock : item))
+          .sort((left, right) => left.sortOrder - right.sortOrder),
+      };
+      return route.fulfill({ json: updatedBlock });
+    }
+
+    if (pathname.includes('/api/v1/home/catalog/blocks/') && request.method() === 'DELETE') {
+      const blockId = pathname.split('/').at(-1) ?? '';
+      homeCatalogData = {
+        ...homeCatalogData,
+        blocks: homeCatalogData.blocks.filter((item) => item.id !== blockId),
+      };
+      return route.fulfill({ status: 204, body: '' });
     }
 
     if (pathname.endsWith('/api/usage/summary')) {
@@ -1238,6 +1388,41 @@ test.beforeEach(async ({ page }) => {
       });
     }
 
+    if (pathname.endsWith('/api/v1/search/results')) {
+      const query = new URL(request.url()).searchParams.get('q') ?? '';
+      const normalizedQuery = query.trim().toLowerCase();
+      const results = normalizedQuery
+        ? [
+            {
+              id: 'task-onboarding',
+              title: 'Estruturar onboarding operacional',
+              description: 'Task registrada com contexto real.',
+              path: '/tasks/task-onboarding',
+              section: 'Tarefas',
+              availability: 'live',
+              keywords: ['onboarding'],
+            },
+            {
+              id: 'proj-ops',
+              title: 'Operacao do workspace',
+              description: 'Projeto principal com backlog e ownership.',
+              path: '/projects?project=proj-ops',
+              section: 'Projetos',
+              availability: 'live',
+              keywords: ['operacao', 'workspace'],
+            },
+          ].filter((item) => `${item.title} ${item.description} ${item.keywords.join(' ')}`.toLowerCase().includes(normalizedQuery))
+        : [];
+
+      return route.fulfill({
+        json: {
+          query,
+          totalResults: results.length,
+          results,
+        },
+      });
+    }
+
     if (pathname.includes('/api/v1/workspaces/') && pathname.endsWith('/activate')) {
       const segments = pathname.split('/');
       const workspaceId = Number(segments[segments.length - 2]);
@@ -1253,9 +1438,9 @@ test('home renders and the search modal opens with keyboard', async ({ page }) =
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'O que voce quer fazer?' })).toBeVisible();
   await page.keyboard.press('Control+K');
-  await expect(page.getByText('Busca global do workspace')).toBeVisible();
+  await expect(page.getByText('Buscar no workspace')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.getByText('Busca global do workspace')).not.toBeVisible();
+  await expect(page.getByText('Buscar no workspace')).not.toBeVisible();
 });
 
 test('settings toggles the theme and persists the resolved theme on the root element', async ({ page }) => {
@@ -1273,8 +1458,19 @@ test('workspace switch updates the topbar context without breaking layout', asyn
   await expect(page.locator('header p').filter({ hasText: 'Workspace Secundario' }).first()).toBeVisible();
 });
 
-test('home creates a task and opens the generated task view', async ({ page }) => {
+test('home searches by default and opens the search results page', async ({ page }) => {
   await page.goto('/');
+  await page.getByLabel('Buscar no workspace').fill('onboarding');
+  await page.getByRole('button', { name: 'Buscar agora' }).click();
+  await expect(page).toHaveURL(/\/search\/results\?q=onboarding$/);
+  await expect(page.getByRole('heading', { name: 'Resultados do workspace' })).toBeVisible();
+  const resultsSection = page.locator('section').filter({ has: page.getByText('Resumo') }).first();
+  await expect(resultsSection.getByRole('link', { name: /Estruturar onboarding operacional/ })).toBeVisible();
+});
+
+test('home creates a task when switched to task mode', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Nova tarefa' }).click();
   await page.getByLabel('Nova tarefa').fill('Gerar um roteiro de onboarding com checkpoints claros.');
   await page.getByRole('button', { name: 'Abrir tarefa' }).click();
   await expect(page).toHaveURL(/\/tasks\/task-generated$/);
@@ -1343,18 +1539,34 @@ test('settings renders providers runtime and threat intelligence sections with r
   await expect(page.getByText('DarkOwl', { exact: true })).toBeVisible();
 });
 
+test('settings manages the home overview catalog without deploy', async ({ page }) => {
+  await page.goto('/settings?section=home-overview');
+  await expect(page.getByRole('heading', { name: 'Tela inicial' })).toBeVisible();
+  await page.getByLabel('Titulo principal').fill('Defina sua proxima acao');
+  await page.getByRole('button', { name: 'Salvar mensagem' }).click();
+  const recentBlock = page.getByTestId('home-block-recent');
+  await recentBlock.getByLabel('Titulo do bloco recent').fill('Recentes atualizados');
+  await recentBlock.getByLabel('Descricao do bloco recent').fill('Ultimas entregas e tarefas atualizadas.');
+  await recentBlock.getByLabel('Limite do bloco recent').fill('3');
+  await recentBlock.getByLabel('Texto do CTA do bloco recent').fill('Abrir biblioteca');
+  await recentBlock.getByLabel('Rota do CTA do bloco recent').fill('/library');
+  await recentBlock.getByLabel('Salvar bloco recent').click();
+  await expect(recentBlock.getByLabel('Titulo do bloco recent')).toHaveValue('Recentes atualizados');
+  await expect(recentBlock.getByLabel('Limite do bloco recent')).toHaveValue('3');
+});
+
 test('agents page exposes runtime metadata and allows admin runtime updates', async ({ page }) => {
   await page.goto('/agents');
   await expect(page.getByText('Perfis de trabalho')).toBeVisible();
-  await page.getByLabel('Selecionar provider do agent').selectOption('anthropic');
-  await page.getByLabel('Selecionar modelo do agent').selectOption('anthropic:claude-sonnet-4-5');
-  await page.getByLabel('Versao do agent').fill('agent-v2-claude');
-  await page.getByRole('button', { name: /Salvar configuracao/ }).click();
-  await expect(page.locator('button').filter({ hasText: 'Ops Strategist' }).getByText(/^anthropic$/)).toBeVisible();
-  await expect(page.getByText('agent-v2-claude').first()).toBeVisible();
+  await page.getByLabel('Selecionar provedor do agente').selectOption('anthropic');
+  await page.getByLabel('Selecionar modelo do agente').selectOption('anthropic:claude-sonnet-4-5');
+  await page.getByLabel('Versao do agente').fill('agent-v2-claude');
+  await page.getByRole('button', { name: /Salvar perfil/ }).click();
+  await expect(page.locator('button').filter({ hasText: 'Ops Strategist' }).getByText(/^Anthropic$/)).toBeVisible();
+  await expect(page.getByText(/Versao agent-v2-claude/i).first()).toBeVisible();
 });
 
-test('core routes render with mocked backend contracts', async ({ page }) => {
+test('core routes render with the integration harness data', async ({ page }) => {
   const routes = [
     ['/agents', 'Perfis de trabalho'],
     ['/tasks', 'Tarefas do workspace'],

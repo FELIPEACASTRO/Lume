@@ -84,10 +84,10 @@ public class AgentService {
         AgentProfileJpaEntity profile = findProfile(profileId);
         ProviderDefinition provider = providerCatalogService.requireProvider(request.providerCode());
         if (!"text-runtime".equalsIgnoreCase(provider.category())) {
-            throw new IllegalArgumentException("O runtime do agente aceita apenas providers da categoria text-runtime.");
+            throw new IllegalArgumentException("A configuracao do agente aceita apenas provedores de texto nesta etapa.");
         }
         if (!provider.executionSupported()) {
-            throw new IllegalArgumentException("O runtime do agente nesta fase aceita apenas providers com execucao real habilitada.");
+            throw new IllegalArgumentException("Escolha um provedor ativo para usar neste agente.");
         }
 
         var model = providerCatalogService.resolveModel(provider.code(), request.modelCode());
@@ -101,7 +101,7 @@ public class AgentService {
         if (request.systemPrompt() != null && !request.systemPrompt().isBlank()) {
             profile.setSystemPrompt(request.systemPrompt().trim());
         }
-        profile.setStatusLabel(provider.executionSupported() ? "Runtime versionado" : "Catalogado/manual");
+        profile.setStatusLabel(provider.executionSupported() ? "Configurado" : "Restrito");
         profile.setAvailability(resolveAvailability(provider));
         agentProfileRepository.save(profile);
 
@@ -286,18 +286,18 @@ public class AgentService {
     }
 
     private void applyThreadSuccess(AgentThreadJpaEntity thread) {
-        thread.setStatusLabel("Inferencia concluida");
+        thread.setStatusLabel("Concluida");
         thread.setAvailability("live");
         thread.setRuntimeState("completed");
         thread.setLastError(null);
     }
 
     private void applyThreadFailure(AgentThreadJpaEntity thread, String error) {
-        thread.setStatusLabel("Falhou");
+        thread.setStatusLabel("Com erro");
         thread.setAvailability("live");
         thread.setRuntimeState("failed");
         thread.setLastError(error == null || error.isBlank()
-                ? "A inferencia real nao foi concluida para este agent."
+                ? "Nao foi possivel concluir a resposta deste agente."
                 : error);
     }
 
@@ -306,7 +306,7 @@ public class AgentService {
         boolean configured = provider != null && providerCatalogService.isConfigured(provider);
         boolean executionSupported = provider != null && provider.executionSupported();
         String status = resolveStatusLabel(provider, configured, executionSupported);
-        String availability = provider != null ? resolveAvailability(provider) : "preview";
+        String availability = provider != null ? resolveAvailability(provider) : "unavailable";
         String note = buildRuntimeNote(profile, provider);
         String credentialState = provider == null
                 ? "unknown"
@@ -376,22 +376,22 @@ public class AgentService {
 
     private String resolveStatusLabel(ProviderDefinition provider, boolean configured, boolean executionSupported) {
         if (provider == null) {
-            return "Catalogado";
+            return "Indisponivel";
         }
         if (!executionSupported) {
-            return "Catalogado/manual";
+            return "Restrito";
         }
-        return configured ? "Inferencia ativa" : "Configure credenciais";
+        return configured ? "Ativo" : "Credenciais pendentes";
     }
 
     private String resolveAvailability(ProviderDefinition provider) {
         if (provider == null) {
-            return "preview";
+            return "unavailable";
         }
         if (!provider.executionSupported()) {
-            return "preview";
+            return "restricted";
         }
-        return providerCatalogService.isConfigured(provider) ? "live" : "disabled-preview";
+        return providerCatalogService.isConfigured(provider) ? "live" : "attention";
     }
 
     private String buildRuntimeNote(AgentProfileJpaEntity profile, ProviderDefinition provider) {
@@ -402,6 +402,6 @@ public class AgentService {
         if (missingCredentials.isEmpty()) {
             return profile.getNote();
         }
-        return profile.getNote() + " Configure " + String.join(", ", missingCredentials) + " para ativar este runtime.";
+        return "Conecte as credenciais do provedor para ativar este agente.";
     }
 }

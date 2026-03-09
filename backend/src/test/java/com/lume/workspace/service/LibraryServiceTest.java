@@ -41,7 +41,7 @@ class LibraryServiceTest {
         entry.setCategory("Playbook");
         entry.setEntryType("artifact");
         entry.setProjectId("proj-ops");
-        entry.setStatusLabel("API real");
+        entry.setStatusLabel("Ativo");
         entry.setAvailability("live");
         entry.setOwnerName("Operacao");
         entry.setSourceLabel("Backend do workspace");
@@ -98,7 +98,7 @@ class LibraryServiceTest {
         entry.setTitle("Playbook");
         entry.setCategory("Playbook");
         entry.setEntryType("artifact");
-        entry.setStatusLabel("API real");
+        entry.setStatusLabel("Ativo");
         entry.setAvailability("live");
         entry.setOwnerName("Operacao");
         entry.setSourceLabel("Backend do workspace");

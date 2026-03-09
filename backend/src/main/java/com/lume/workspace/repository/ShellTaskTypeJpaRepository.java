@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface ShellTaskTypeJpaRepository extends JpaRepository<ShellTaskTypeJpaEntity, String> {
 
+    List<ShellTaskTypeJpaEntity> findAllByOrderBySortOrderAsc();
+
     List<ShellTaskTypeJpaEntity> findByEnabledTrueOrderBySortOrderAsc();
 }

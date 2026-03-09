@@ -70,7 +70,7 @@ public class ThreatIntelService {
             return invalid;
         }
 
-        ThreatIntelQueryResponse response = unsupported(provider, request.query(), "A integracao deste provedor continua manual/catalog-only nesta rodada.");
+        ThreatIntelQueryResponse response = unsupported(provider, request.query(), "Esta integracao ainda exige habilitacao manual antes do uso operacional.");
         auditLogService.record(
                 "threat_intel_query",
                 provider.code(),

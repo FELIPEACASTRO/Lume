@@ -15,7 +15,7 @@
 
 | Area | Titulo | Objetivo | CTA principal | CTA secundaria |
 | --- | --- | --- | --- | --- |
-| Inicio | O que voce quer fazer? | Abrir trabalho novo e retomar pendencias | Abrir tarefa | Buscar |
+| Inicio | O que voce quer fazer? | Buscar informacoes, retomar pendencias e iniciar trabalho novo | Buscar | Nova tarefa |
 | Tarefas | Tarefas | Acompanhar execucao e prioridades | Nova tarefa | Filtrar tarefas |
 | Projetos | Projetos | Organizar contexto, responsaveis e prioridades | Novo projeto | Ver tarefas |
 | Biblioteca | Arquivos e entregas | Consultar arquivos, versoes e historico | Registrar versao | Buscar |
@@ -57,3 +57,6 @@
 ## Observacoes
 - Modulos incompletos ficam fora da navegacao principal.
 - Areas restritas aparecem apenas com permissao e estado real no backend.
+- O campo principal de `Inicio` usa `Buscar` como modo padrao.
+- `Nova tarefa` continua disponivel, mas nao e mais o comportamento implicito do composer principal.
+- O catalogo da shell e dos tipos de tarefa agora e administravel por banco e refletido na UI sem deploy.

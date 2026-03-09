@@ -278,14 +278,14 @@ describe('Agents', () => {
     );
 
     await waitFor(() => expect(screen.getByText('Perfis de trabalho')).toBeInTheDocument());
-    await waitFor(() => expect(screen.getByLabelText('Selecionar provider do agent')).toHaveValue('openai'));
+    await waitFor(() => expect(screen.getByLabelText('Selecionar provedor do agente')).toHaveValue('openai'));
 
-    fireEvent.change(screen.getByLabelText('Selecionar provider do agent'), { target: { value: 'anthropic' } });
-    await waitFor(() => expect(screen.getByLabelText('Selecionar provider do agent')).toHaveValue('anthropic'));
-    fireEvent.change(screen.getByLabelText('Selecionar modelo do agent'), { target: { value: 'anthropic:claude-sonnet-4-5' } });
-    await waitFor(() => expect(screen.getByLabelText('Selecionar modelo do agent')).toHaveValue('anthropic:claude-sonnet-4-5'));
-    fireEvent.change(screen.getByLabelText('Versao do agent'), { target: { value: 'agent-v2-claude' } });
-    fireEvent.click(screen.getByRole('button', { name: /Salvar configuracao/i }));
+    fireEvent.change(screen.getByLabelText('Selecionar provedor do agente'), { target: { value: 'anthropic' } });
+    await waitFor(() => expect(screen.getByLabelText('Selecionar provedor do agente')).toHaveValue('anthropic'));
+    fireEvent.change(screen.getByLabelText('Selecionar modelo do agente'), { target: { value: 'anthropic:claude-sonnet-4-5' } });
+    await waitFor(() => expect(screen.getByLabelText('Selecionar modelo do agente')).toHaveValue('anthropic:claude-sonnet-4-5'));
+    fireEvent.change(screen.getByLabelText('Versao do agente'), { target: { value: 'agent-v2-claude' } });
+    fireEvent.click(screen.getByRole('button', { name: /Salvar perfil/i }));
 
     await waitFor(() => expect(mockUpdateRuntime).toHaveBeenCalledWith('ops', {
       providerCode: 'anthropic',

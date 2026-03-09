@@ -7,8 +7,8 @@ interface StatusBadgeProps {
 
 const statusCopy: Record<WorkspaceDataState, string> = {
   live: 'Ativo',
-  preview: 'Atencao',
-  'disabled-preview': 'Indisponivel',
+  attention: 'Atencao',
+  unavailable: 'Indisponivel',
   restricted: 'Restrito',
   loading: 'Carregando',
   empty: 'Sem dados',

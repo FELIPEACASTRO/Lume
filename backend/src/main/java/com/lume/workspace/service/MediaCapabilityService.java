@@ -75,7 +75,7 @@ public class MediaCapabilityService {
                     List.of(),
                     List.of(),
                     null,
-                    "O provedor selecionado nao suporta image generation no runtime atual."
+                    "O provedor selecionado nao oferece geracao de imagem nesta integracao."
             );
         }
 
@@ -145,7 +145,7 @@ public class MediaCapabilityService {
                     List.of(),
                     List.of(),
                     null,
-                    "O provedor selecionado nao suporta image editing no runtime atual."
+                    "O provedor selecionado nao oferece edicao de imagem nesta integracao."
             );
         }
 
@@ -238,7 +238,7 @@ public class MediaCapabilityService {
                     "unsupported",
                     List.of(),
                     null,
-                    "O provedor selecionado nao suporta video generation no runtime atual."
+                    "O provedor selecionado nao oferece geracao de video nesta integracao."
             );
         }
 
@@ -314,7 +314,7 @@ public class MediaCapabilityService {
                     "unsupported",
                     List.of(),
                     null,
-                    "O provedor selecionado nao suporta video generation no runtime atual."
+                    "O provedor selecionado nao oferece geracao de video nesta integracao."
             );
         }
         if (jobId == null || jobId.isBlank()) {
@@ -388,7 +388,7 @@ public class MediaCapabilityService {
                     List.of(),
                     List.of(),
                     null,
-                    "O provedor selecionado nao suporta polling de image generation no runtime atual."
+                    "O provedor selecionado nao oferece acompanhamento de jobs de imagem nesta integracao."
             );
         }
         if (jobId == null || jobId.isBlank()) {

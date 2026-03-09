@@ -278,22 +278,22 @@ html[data-theme='light'] {
   }
 
   .status-badge--live {
-    background: rgba(255, 191, 54, 0.14);
-    color: var(--accent);
-    border-color: rgba(255, 191, 54, 0.24);
-  }
+      background: rgba(255, 191, 54, 0.14);
+      color: var(--accent);
+      border-color: rgba(255, 191, 54, 0.24);
+    }
+  
+  .status-badge--attention {
+      background: var(--fill-tsp-white-main);
+      color: var(--text-secondary);
+      border-color: var(--surface-border-main);
+    }
 
-  .status-badge--preview {
-    background: var(--fill-tsp-white-main);
-    color: var(--text-secondary);
-    border-color: var(--surface-border-main);
-  }
-
-  .status-badge--disabled-preview {
-    background: color-mix(in srgb, var(--text-disabled) 20%, transparent);
-    color: var(--text-disabled);
-    border-color: color-mix(in srgb, var(--text-disabled) 35%, transparent);
-  }
+  .status-badge--unavailable {
+      background: color-mix(in srgb, var(--text-disabled) 20%, transparent);
+      color: var(--text-disabled);
+      border-color: color-mix(in srgb, var(--text-disabled) 35%, transparent);
+    }
 
   .status-badge--restricted {
     background: rgba(200, 138, 29, 0.14);

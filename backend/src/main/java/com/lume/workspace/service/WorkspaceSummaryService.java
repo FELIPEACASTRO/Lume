@@ -110,9 +110,9 @@ public class WorkspaceSummaryService {
                         "thread-" + thread.getId(),
                         thread.getTitle(),
                         thread.getLastMessagePreview() == null || thread.getLastMessagePreview().isBlank()
-                                ? "Thread persistida do workspace."
+                                ? "Conversa registrada."
                                 : thread.getLastMessagePreview(),
-                        "Agents . " + formatMoment(thread.getUpdatedAt()),
+                        "Agentes . " + formatMoment(thread.getUpdatedAt()),
                         "/agents?thread=" + thread.getId(),
                         thread.getAvailability()
                 )
@@ -149,9 +149,11 @@ public class WorkspaceSummaryService {
         List<WorkspaceFacetResponse> facets = new ArrayList<>();
         facets.add(new WorkspaceFacetResponse(
                 "facet-members",
-                "Membros",
+                "Equipe",
                 activeUsers + " usuarios ativos",
-                "Workspace com " + userCount + " memberships visiveis no contexto atual.",
+                userCount == 0
+                        ? "Nenhuma pessoa foi adicionada a este workspace ainda."
+                        : "Veja quem tem acesso e quais funcoes estao em uso.",
                 "live",
                 "/users"
         ));
@@ -161,7 +163,7 @@ public class WorkspaceSummaryService {
                 projectCount + " projetos persistidos",
                 projectCount == 0
                         ? "Nenhum projeto foi registrado ainda neste workspace."
-                        : "Backlog, ownership e contexto agora sao derivados do banco do workspace.",
+                        : "Abra um projeto para acompanhar contexto, responsaveis e andamento.",
                 "live",
                 "/projects"
         ));
@@ -171,7 +173,7 @@ public class WorkspaceSummaryService {
                 taskCount + " tarefas no workspace",
                 taskCount == 0
                         ? "Ainda nao ha tarefas persistidas."
-                        : "O composer e a task view refletem o historico real armazenado no backend.",
+                        : "A lista mostra o trabalho em andamento, concluido ou com erro.",
                 tasks.stream().map(TaskJpaEntity::getAvailability).findFirst().orElse("live"),
                 "/tasks"
         ));
@@ -181,18 +183,18 @@ public class WorkspaceSummaryService {
                 libraryCount + " artefatos versionados",
                 libraryCount == 0
                         ? "Nenhum artefato foi encontrado na biblioteca."
-                        : "Entradas, versoes e metadados da biblioteca sao lidos diretamente do banco.",
+                        : "Consulte arquivos, entregas e versoes registradas pelo time.",
                 "live",
                 "/library"
         ));
         facets.add(new WorkspaceFacetResponse(
                 "facet-agents",
-                "Agents",
+                "Agentes",
                 threadCount + " threads persistidas",
                 threadCount == 0
-                        ? "Nenhuma thread de agent foi aberta ainda."
-                        : "Conversas e runtime dos agents agora refletem o estado real do workspace.",
-                threads.stream().map(AgentThreadJpaEntity::getAvailability).findFirst().orElse("preview"),
+                        ? "Nenhuma conversa de agente foi registrada ainda."
+                        : "Acompanhe conversas, execucao e falhas dos agentes.",
+                threads.stream().map(AgentThreadJpaEntity::getAvailability).findFirst().orElse("live"),
                 "/agents"
         ));
         facets.add(new WorkspaceFacetResponse(

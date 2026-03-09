@@ -42,12 +42,25 @@
 - consolidar workspace, roles, budgets, cost centers e guardrails por workspace
 - manter budgets como camada operacional, sem fingir faturamento comercial final
 - expor `budgets.read` e `budgets.manage` com leitura no shell e gestao em settings
+- manter `setup`, `login/logout` e shell dinamica como contratos reais do produto, sem seed obrigatoria no runtime
 
 ### Fase 2. Runtime capability-first
 
 - consolidar `chat`, `responses`, `embeddings`, `rerank`, `search` e `web-grounded-chat`
 - expor `routingMode`, `attemptChain`, `requestedProviderCode` e metadados de evidencia no contrato
 - remover qualquer semantica enganosa de streaming
+- manter `home/overview`, `search/results` e `shell/navigation` como composicao backend-driven e database-driven
+- manter o composer principal da home orientado a `Buscar` por padrao, com `Nova tarefa` como modo explicito
+
+### Fase 2.1. UX operacional e catalogo da shell
+
+- consolidar a navegacao principal em `Inicio`, `Tarefas`, `Projetos`, `Biblioteca`, `Equipe` e `Configuracoes`
+- manter `Agents`, `Uso` e `Inbox` como contexto interno das areas principais
+- permitir administracao da shell por banco:
+  - itens de navegacao
+  - tipos de tarefa
+- expor CRUD administrativo da shell em settings apenas para perfis com `settings.manage`
+- remover da UI principal linguagem metatecnica como `preview`, `shell`, `runtime`, `backend-first`
 
 ### Fase 3. Media e audio
 
