@@ -2,6 +2,7 @@ package com.lume.application.mapper;
 
 import com.lume.application.command.CreateUserCommand;
 import com.lume.application.command.UpdateUserCommand;
+import com.lume.application.dto.request.UpdateUserRequestDTO;
 import com.lume.application.dto.request.UserRequestDTO;
 import com.lume.application.dto.response.UserResponseDTO;
 import com.lume.domain.model.User;
@@ -44,9 +45,9 @@ public final class UserMapper {
     }
 
     /**
-     * Converte um UserRequestDTO em UpdateUserCommand com o ID fornecido.
+     * Converte um UpdateUserRequestDTO em UpdateUserCommand com o ID fornecido.
      */
-    public static UpdateUserCommand toUpdateCommand(Long id, UserRequestDTO dto) {
+    public static UpdateUserCommand toUpdateCommand(Long id, UpdateUserRequestDTO dto) {
         return new UpdateUserCommand(id, dto.name(), dto.email(), dto.password());
     }
 }

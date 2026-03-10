@@ -1,8 +1,12 @@
 package com.lume.presentation.advice;
 
+import com.lume.domain.exception.AccessDeniedException;
 import com.lume.domain.exception.BusinessRuleException;
 import com.lume.domain.exception.ResourceNotFoundException;
+import com.lume.domain.exception.SetupRequiredException;
+import com.lume.domain.exception.UnauthorizedException;
 import com.lume.presentation.response.ApiResponse;
+import com.lume.workspace.inference.error.AiProviderException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -13,18 +17,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Handler global de exceções para a camada de apresentação.
- *
- * <p><b>Clean Architecture:</b> Pertence à camada de apresentação e traduz
- * exceções de domínio em respostas HTTP apropriadas.</p>
- *
- * <p><b>Princípio SRP:</b> Responsável exclusivamente pelo mapeamento
- * exceção → resposta HTTP.</p>
- *
- * <p><b>Princípio OCP:</b> Novos handlers podem ser adicionados sem
- * modificar os existentes.</p>
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -33,6 +25,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.of(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse> handleUnauthorized(UnauthorizedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.of(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(SetupRequiredException.class)
+    public ResponseEntity<ApiResponse> handleSetupRequired(SetupRequiredException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.of(HttpStatus.CONFLICT.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
@@ -49,6 +62,20 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.of(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.of(HttpStatus.CONFLICT.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(AiProviderException.class)
+    public ResponseEntity<ApiResponse> handleAiProvider(AiProviderException ex) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.of(HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -60,7 +87,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.of(HttpStatus.BAD_REQUEST.value(), "Erro de validação", errors));
+                .body(ApiResponse.of(HttpStatus.BAD_REQUEST.value(), "Erro de validacao", errors));
     }
 
     @ExceptionHandler(Exception.class)

@@ -1,0 +1,407 @@
+package com.lume.workspace.service;
+
+import com.lume.domain.exception.ResourceNotFoundException;
+import com.lume.workspace.dto.*;
+import com.lume.workspace.entity.AgentMessageJpaEntity;
+import com.lume.workspace.entity.AgentProfileJpaEntity;
+import com.lume.workspace.entity.AgentThreadJpaEntity;
+import com.lume.workspace.repository.AgentMessageJpaRepository;
+import com.lume.workspace.repository.AgentProfileJpaRepository;
+import com.lume.workspace.repository.AgentThreadJpaRepository;
+import com.lume.workspace.inference.ProviderDefinition;
+import com.lume.workspace.inference.error.AiProviderException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+public class AgentService {
+
+    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    private final AgentProfileJpaRepository agentProfileRepository;
+    private final AgentThreadJpaRepository agentThreadRepository;
+    private final AgentMessageJpaRepository agentMessageRepository;
+    private final WorkspaceContextService workspaceContextService;
+    private final AuditLogService auditLogService;
+    private final ProviderCatalogService providerCatalogService;
+    private final InferenceGatewayService inferenceGatewayService;
+
+    public AgentService(
+            AgentProfileJpaRepository agentProfileRepository,
+            AgentThreadJpaRepository agentThreadRepository,
+            AgentMessageJpaRepository agentMessageRepository,
+            WorkspaceContextService workspaceContextService,
+            AuditLogService auditLogService,
+            ProviderCatalogService providerCatalogService,
+            InferenceGatewayService inferenceGatewayService
+    ) {
+        this.agentProfileRepository = agentProfileRepository;
+        this.agentThreadRepository = agentThreadRepository;
+        this.agentMessageRepository = agentMessageRepository;
+        this.workspaceContextService = workspaceContextService;
+        this.auditLogService = auditLogService;
+        this.providerCatalogService = providerCatalogService;
+        this.inferenceGatewayService = inferenceGatewayService;
+    }
+
+    public List<AgentProfileResponse> listProfiles() {
+        return agentProfileRepository.findByWorkspaceIdOrderByNameAsc(workspaceContextService.getWorkspaceId())
+                .stream()
+                .map(this::toProfileResponse)
+                .toList();
+    }
+
+    public List<AgentThreadResponse> listThreads() {
+        Map<String, AgentProfileJpaEntity> profiles = agentProfileRepository.findByWorkspaceIdOrderByNameAsc(workspaceContextService.getWorkspaceId())
+                .stream()
+                .collect(Collectors.toMap(AgentProfileJpaEntity::getId, profile -> profile));
+
+        return agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId())
+                .stream()
+                .map(thread -> toThreadResponse(thread, profiles.get(thread.getAgentProfileId())))
+                .toList();
+    }
+
+    public List<AgentMessageResponse> listMessages(String threadId) {
+        findThread(threadId);
+        return agentMessageRepository.findByThreadIdOrderByCreatedAtAsc(threadId)
+                .stream()
+                .map(this::toMessageResponse)
+                .toList();
+    }
+
+    @Transactional
+    public AgentProfileResponse updateRuntime(String profileId, UpdateAgentRuntimeRequest request) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_AGENTS_RUNTIME_MANAGE);
+
+        AgentProfileJpaEntity profile = findProfile(profileId);
+        ProviderDefinition provider = providerCatalogService.requireProvider(request.providerCode());
+        if (!"text-runtime".equalsIgnoreCase(provider.category())) {
+            throw new IllegalArgumentException("A configuracao do agente aceita apenas provedores de texto nesta etapa.");
+        }
+        if (!provider.executionSupported()) {
+            throw new IllegalArgumentException("Escolha um provedor ativo para usar neste agente.");
+        }
+
+        var model = providerCatalogService.resolveModel(provider.code(), request.modelCode());
+        profile.setProviderCode(provider.code());
+        profile.setModelCode(model.code());
+        profile.setVersionLabel(
+                request.versionLabel() != null && !request.versionLabel().isBlank()
+                        ? request.versionLabel().trim()
+                        : model.versionLabel()
+        );
+        if (request.systemPrompt() != null && !request.systemPrompt().isBlank()) {
+            profile.setSystemPrompt(request.systemPrompt().trim());
+        }
+        profile.setStatusLabel(provider.executionSupported() ? "Configurado" : "Restrito");
+        profile.setAvailability(resolveAvailability(provider));
+        agentProfileRepository.save(profile);
+
+        auditLogService.record(
+                "agent_profile",
+                profile.getId(),
+                "runtime_updated",
+                Map.of(
+                        "providerCode", profile.getProviderCode(),
+                        "modelCode", profile.getModelCode(),
+                        "versionLabel", profile.getVersionLabel()
+                )
+        );
+
+        return toProfileResponse(profile);
+    }
+
+    @Transactional
+    public AgentConversationResponse createThread(CreateAgentThreadRequest request) {
+        AgentProfileJpaEntity profile = findProfile(request.agentProfileId());
+        String threadId = UUID.randomUUID().toString();
+        String initialMessage = request.message().trim();
+
+        AgentThreadJpaEntity thread = new AgentThreadJpaEntity();
+        thread.setId(threadId);
+        thread.setWorkspaceId(workspaceContextService.getWorkspaceId());
+        thread.setAgentProfileId(profile.getId());
+        thread.setTitle(buildThreadTitle(initialMessage, profile));
+        thread.setStatusLabel("Executando");
+        thread.setAvailability("live");
+        thread.setRuntimeState("running");
+        thread.setLastError(null);
+        thread.setLastMessagePreview(initialMessage);
+        agentThreadRepository.save(thread);
+
+        AgentMessageJpaEntity userMessage = saveMessage(threadId, "user", initialMessage);
+        UnifiedInferenceResponse inference = inferenceGatewayService.execute(new UnifiedInferenceRequest(
+                profile.getProviderCode(),
+                profile.getModelCode(),
+                profile.getSystemPrompt(),
+                null,
+                List.of(new UnifiedMessageRequest("user", initialMessage)),
+                0.3,
+                700
+        ));
+        if (!isSuccessfulInference(inference)) {
+            applyThreadFailure(thread, inference.error());
+            agentThreadRepository.save(thread);
+            auditLogService.record(
+                    "agent_thread",
+                    threadId,
+                    "failed",
+                    Map.of(
+                            "agentProfileId", profile.getId(),
+                            "providerCode", profile.getProviderCode(),
+                            "modelCode", profile.getModelCode(),
+                            "error", thread.getLastError()
+                    )
+            );
+            throw new AiProviderException(thread.getLastError(), false);
+        }
+
+        AgentMessageJpaEntity assistantMessage = saveMessage(threadId, "assistant", inference.content());
+        applyThreadSuccess(thread);
+        thread.setLastMessagePreview(assistantMessage.getBody());
+        agentThreadRepository.save(thread);
+
+        auditLogService.record(
+                "agent_thread",
+                threadId,
+                "created",
+                Map.of(
+                        "agentProfileId", profile.getId(),
+                        "title", thread.getTitle(),
+                        "providerCode", profile.getProviderCode(),
+                        "modelCode", profile.getModelCode(),
+                        "runtimeState", thread.getRuntimeState()
+                )
+        );
+
+        return new AgentConversationResponse(
+                toThreadResponse(thread, profile),
+                List.of(toMessageResponse(userMessage), toMessageResponse(assistantMessage))
+        );
+    }
+
+    @Transactional
+    public AgentConversationResponse appendMessage(String threadId, CreateAgentMessageRequest request) {
+        AgentThreadJpaEntity thread = findThread(threadId);
+        AgentProfileJpaEntity profile = findProfile(thread.getAgentProfileId());
+        String prompt = request.message().trim();
+
+        saveMessage(threadId, "user", prompt);
+        List<UnifiedMessageRequest> history = agentMessageRepository.findByThreadIdOrderByCreatedAtAsc(threadId)
+                .stream()
+                .map(message -> new UnifiedMessageRequest(message.getRole(), message.getBody()))
+                .toList();
+        UnifiedInferenceResponse inference = inferenceGatewayService.execute(new UnifiedInferenceRequest(
+                profile.getProviderCode(),
+                profile.getModelCode(),
+                profile.getSystemPrompt(),
+                null,
+                history,
+                0.3,
+                700
+        ));
+        if (!isSuccessfulInference(inference)) {
+            applyThreadFailure(thread, inference.error());
+            thread.setLastMessagePreview(prompt);
+            agentThreadRepository.save(thread);
+            auditLogService.record(
+                    "agent_thread",
+                    threadId,
+                    "failed",
+                    Map.of(
+                            "agentProfileId", profile.getId(),
+                            "providerCode", profile.getProviderCode(),
+                            "modelCode", profile.getModelCode(),
+                            "error", thread.getLastError()
+                    )
+            );
+            throw new AiProviderException(thread.getLastError(), false);
+        }
+
+        saveMessage(threadId, "assistant", inference.content());
+        List<AgentMessageResponse> messages = agentMessageRepository.findByThreadIdOrderByCreatedAtAsc(threadId)
+                .stream()
+                .map(this::toMessageResponse)
+                .toList();
+        applyThreadSuccess(thread);
+        thread.setLastMessagePreview(messages.get(messages.size() - 1).body());
+        agentThreadRepository.save(thread);
+
+        auditLogService.record(
+                "agent_thread",
+                threadId,
+                "message_appended",
+                Map.of(
+                        "agentProfileId", profile.getId(),
+                        "messageLength", prompt.length(),
+                        "providerCode", profile.getProviderCode(),
+                        "modelCode", profile.getModelCode(),
+                        "runtimeState", thread.getRuntimeState()
+                )
+        );
+
+        return new AgentConversationResponse(toThreadResponse(thread, profile), messages);
+    }
+
+    private AgentProfileJpaEntity findProfile(String profileId) {
+        return agentProfileRepository.findByIdAndWorkspaceId(profileId, workspaceContextService.getWorkspaceId())
+                .orElseThrow(() -> new ResourceNotFoundException("AgentProfile", profileId));
+    }
+
+    private AgentThreadJpaEntity findThread(String threadId) {
+        return agentThreadRepository.findByIdAndWorkspaceId(threadId, workspaceContextService.getWorkspaceId())
+                .orElseThrow(() -> new ResourceNotFoundException("AgentThread", threadId));
+    }
+
+    private AgentMessageJpaEntity saveMessage(String threadId, String role, String body) {
+        AgentMessageJpaEntity message = new AgentMessageJpaEntity();
+        message.setId(UUID.randomUUID().toString());
+        message.setThreadId(threadId);
+        message.setRole(role);
+        message.setBody(body);
+        return agentMessageRepository.save(message);
+    }
+
+    private String buildThreadTitle(String prompt, AgentProfileJpaEntity profile) {
+        String normalized = prompt.trim();
+        if (normalized.length() <= 42) {
+            return normalized;
+        }
+        return profile.getName() + ": " + normalized.substring(0, 39) + "...";
+    }
+
+    private boolean isSuccessfulInference(UnifiedInferenceResponse inference) {
+        return inference != null
+                && "completed".equalsIgnoreCase(inference.status())
+                && inference.content() != null
+                && !inference.content().isBlank();
+    }
+
+    private void applyThreadSuccess(AgentThreadJpaEntity thread) {
+        thread.setStatusLabel("Concluida");
+        thread.setAvailability("live");
+        thread.setRuntimeState("completed");
+        thread.setLastError(null);
+    }
+
+    private void applyThreadFailure(AgentThreadJpaEntity thread, String error) {
+        thread.setStatusLabel("Com erro");
+        thread.setAvailability("live");
+        thread.setRuntimeState("failed");
+        thread.setLastError(error == null || error.isBlank()
+                ? "Nao foi possivel concluir a resposta deste agente."
+                : error);
+    }
+
+    private AgentProfileResponse toProfileResponse(AgentProfileJpaEntity profile) {
+        ProviderDefinition provider = providerCatalogService.findProvider(profile.getProviderCode()).orElse(null);
+        boolean configured = provider != null && providerCatalogService.isConfigured(provider);
+        boolean executionSupported = provider != null && provider.executionSupported();
+        String status = resolveStatusLabel(provider, configured, executionSupported);
+        String availability = provider != null ? resolveAvailability(provider) : "unavailable";
+        String note = buildRuntimeNote(profile, provider);
+        String credentialState = provider == null
+                ? "unknown"
+                : configured ? "configured" : "missing_credentials";
+        String apiStyle = provider != null ? provider.apiStyle() : "unknown";
+        String catalogState = provider != null ? provider.catalogState() : "catalog-only";
+        List<String> toolset = provider != null ? provider.capabilities() : List.of();
+
+        return new AgentProfileResponse(
+                profile.getId(),
+                profile.getName(),
+                profile.getSpecialty(),
+                profile.getDescription(),
+                status,
+                availability,
+                note,
+                profile.getProviderCode(),
+                profile.getModelCode(),
+                profile.getVersionLabel(),
+                apiStyle,
+                credentialState,
+                catalogState,
+                configured,
+                executionSupported,
+                toolset
+        );
+    }
+
+    private AgentThreadResponse toThreadResponse(AgentThreadJpaEntity thread, AgentProfileJpaEntity profile) {
+        String agentName = profile != null ? profile.getName() : "Agent";
+        ProviderDefinition provider = profile != null
+                ? providerCatalogService.findProvider(profile.getProviderCode()).orElse(null)
+                : null;
+        boolean configured = provider != null && providerCatalogService.isConfigured(provider);
+        return new AgentThreadResponse(
+                thread.getId(),
+                thread.getAgentProfileId(),
+                agentName,
+                thread.getTitle(),
+                thread.getStatusLabel(),
+                thread.getAvailability(),
+                thread.getRuntimeState(),
+                thread.getLastError(),
+                thread.getLastMessagePreview(),
+                formatTimestamp(thread.getUpdatedAt()),
+                profile != null ? profile.getProviderCode() : null,
+                profile != null ? profile.getModelCode() : null,
+                profile != null ? profile.getVersionLabel() : null,
+                provider != null ? provider.apiStyle() : null,
+                provider == null ? null : configured ? "configured" : "missing_credentials",
+                provider != null ? provider.catalogState() : null
+        );
+    }
+
+    private AgentMessageResponse toMessageResponse(AgentMessageJpaEntity message) {
+        return new AgentMessageResponse(
+                message.getId(),
+                message.getRole(),
+                message.getBody(),
+                formatTimestamp(message.getCreatedAt())
+        );
+    }
+
+    private String formatTimestamp(LocalDateTime temporal) {
+        return TIMESTAMP_FORMAT.format(temporal != null ? temporal : LocalDateTime.now());
+    }
+
+    private String resolveStatusLabel(ProviderDefinition provider, boolean configured, boolean executionSupported) {
+        if (provider == null) {
+            return "Indisponivel";
+        }
+        if (!executionSupported) {
+            return "Restrito";
+        }
+        return configured ? "Ativo" : "Credenciais pendentes";
+    }
+
+    private String resolveAvailability(ProviderDefinition provider) {
+        if (provider == null) {
+            return "unavailable";
+        }
+        if (!provider.executionSupported()) {
+            return "restricted";
+        }
+        return providerCatalogService.isConfigured(provider) ? "live" : "attention";
+    }
+
+    private String buildRuntimeNote(AgentProfileJpaEntity profile, ProviderDefinition provider) {
+        if (provider == null) {
+            return profile.getNote();
+        }
+        List<String> missingCredentials = providerCatalogService.missingCredentialEnvVars(provider);
+        if (missingCredentials.isEmpty()) {
+            return profile.getNote();
+        }
+        return "Conecte as credenciais do provedor para ativar este agente.";
+    }
+}

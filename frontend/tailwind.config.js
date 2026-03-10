@@ -35,7 +35,12 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI Variable Display"', '"Segoe UI"', 'Helvetica', '"Apple Color Emoji"', 'Arial', 'sans-serif'],
+        display: ['"Libre Baskerville"', 'Georgia', 'serif'],
+      },
+      boxShadow: {
+        panel: '0 5px 16px 0 var(--shadow-surface), 0 0 1.25px 0 var(--shadow-surface)',
+        shell: '0 7px 16px 0 var(--shadow-surface)',
       },
     },
   },

@@ -1,334 +1,567 @@
 # Lume
 
-Aplicação full-stack moderna construída com **React 18**, **Java 21 (Spring Boot 3)** e **PostgreSQL 16**, seguindo rigorosamente os princípios de **Clean Architecture**, **Clean Code**, **SOLID**, **Design Patterns** e **Microservices Patterns**.
+Aplicacao full-stack com React 18, Spring Boot 3, Java 21 e PostgreSQL.
 
----
+O repositorio hoje tem duas naturezas arquiteturais convivendo no mesmo monolito:
 
-## Sumário
+- `users` segue um desenho mais proximo de Clean Architecture com CQRS e ACL.
+- `workspace/ai` e os modulos de shell/workspace seguem um monolito modularizado em transicao, com ports e adapters em partes do runtime de IA, mas ainda sem a mesma separacao do modulo legado de usuarios.
 
-1. [Arquitetura](#arquitetura)
-2. [Padrões e Princípios Aplicados](#padrões-e-princípios-aplicados)
-3. [Tecnologias](#tecnologias)
-4. [Estrutura do Projeto](#estrutura-do-projeto)
-5. [Pré-requisitos](#pré-requisitos)
-6. [Como Executar](#como-executar)
-7. [Endpoints da API](#endpoints-da-api)
-8. [Testes e Cobertura](#testes-e-cobertura)
-9. [Análise Assintótica (Big O)](#análise-assintótica-big-o)
+O objetivo desta documentacao e descrever o estado real da solucao, sem atribuir patterns ou garantias que o codigo ainda nao sustenta de ponta a ponta.
 
----
+## Sumario
 
-## Arquitetura
+1. Arquitetura real
+2. Patterns e principios realmente presentes
+3. Estrutura do projeto
+4. Execucao local
+5. Variaveis de ambiente
+6. Endpoints principais
+7. Runtime multi-provider de IA
+8. Testes e cobertura
+9. Analise Big O honesta
+10. Seguranca operacional
+11. Fonte de verdade e governanca
 
-O backend segue a **Clean Architecture** (Robert C. Martin), organizando o código em quatro camadas com regra de dependência unidirecional de fora para dentro:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    PRESENTATION                         │
-│  Controllers REST (CQRS: Command + Query Controllers)   │
-│  GlobalExceptionHandler, ApiResponse                    │
-├─────────────────────────────────────────────────────────┤
-│                    APPLICATION                          │
-│  Use Cases (Ports), Command/Query Handlers (CQRS)       │
-│  DTOs (ACL), Mappers, Commands, Queries                 │
-├─────────────────────────────────────────────────────────┤
-│                      DOMAIN                             │
-│  Entidades, Exceções, Interfaces de Repositório         │
-│  Factory, Strategy (Validação), PasswordEncoder         │
-├─────────────────────────────────────────────────────────┤
-│                   INFRASTRUCTURE                        │
-│  JPA Entities, Repository Adapters, BCrypt Adapter      │
-│  Bean Configuration (Singleton), CORS, OpenAPI          │
-└─────────────────────────────────────────────────────────┘
-```
-
-A **regra de dependência** garante que camadas internas nunca conhecem camadas externas. O domínio é puro e livre de frameworks.
-
-O frontend segue uma arquitetura baseada em **separação de concerns**: componentes de apresentação, custom hooks para lógica de estado, serviços para comunicação HTTP, e tipos centralizados.
-
----
-
-## Padrões e Princípios Aplicados
-
-### Clean Architecture
-
-A solução implementa as quatro camadas da Clean Architecture com separação rigorosa de responsabilidades. A camada de **Domain** contém entidades puras sem dependências de frameworks. A camada de **Application** define os use cases através de ports (interfaces) e handlers. A camada de **Infrastructure** fornece implementações concretas (JPA, BCrypt). A camada de **Presentation** expõe os endpoints REST.
-
-### SOLID
-
-| Princípio | Aplicação na Solução |
-|---|---|
-| **SRP** (Single Responsibility) | Cada classe tem uma única responsabilidade: `CreateUserCommandHandler` apenas cria, `UserMapper` apenas mapeia, `EmailValidationStrategy` apenas valida e-mail |
-| **OCP** (Open/Closed) | Novas validações são adicionadas criando novas implementações de `ValidationStrategy<T>` sem modificar código existente |
-| **LSP** (Liskov Substitution) | Todas as implementações de `ValidationStrategy<T>` e `UserRepositoryPort` são substituíveis sem alterar o comportamento |
-| **ISP** (Interface Segregation) | `UserCommandUseCase` e `UserQueryUseCase` são interfaces segregadas; controllers dependem apenas da interface que utilizam |
-| **DIP** (Dependency Inversion) | O domínio define `PasswordEncoder` e `UserRepositoryPort` como abstrações; a infraestrutura implementa com `BCryptPasswordEncoderAdapter` e `UserRepositoryAdapter` |
-
-### Design Patterns
-
-| Pattern | Implementação |
-|---|---|
-| **Factory** | `UserFactory` centraliza a criação de entidades `User` com validação e codificação de senha. `User.Builder` implementa o padrão Builder para construção fluente |
-| **Strategy** | `ValidationStrategy<T>` define a interface; `EmailValidationStrategy`, `NameValidationStrategy` e `PasswordValidationStrategy` são implementações intercambiáveis |
-| **Singleton** | Todos os beans Spring são Singletons por padrão, configurados em `BeanConfig`. Uma única instância de cada handler, factory e adapter é compartilhada |
-| **Adapter** | `UserRepositoryAdapter` adapta Spring Data JPA para `UserRepositoryPort`. `BCryptPasswordEncoderAdapter` adapta BCrypt para `PasswordEncoder` do domínio |
-| **Facade** | `UserCommandService` e `UserQueryService` simplificam a interface para os controllers, delegando para handlers especializados |
-
-### Microservices Patterns
-
-| Pattern | Implementação |
-|---|---|
-| **CQRS** (Command Query Responsibility Segregation) | Operações de escrita (`CreateUserCommand`, `UpdateUserCommand`) e leitura (`GetUserByIdQuery`, `ListUsersQuery`) são completamente separadas em handlers, services e controllers distintos |
-| **ACL** (Anti-Corruption Layer) | DTOs (`UserRequestDTO`, `UserResponseDTO`) isolam o modelo de domínio da representação externa. `UserMapper` e `UserPersistenceMapper` traduzem entre camadas, evitando contaminação |
-
-### Clean Code
-
-O código segue as práticas de Clean Code: nomes significativos e descritivos em todas as classes e métodos; funções pequenas com responsabilidade única; ausência de comentários desnecessários (o código é autoexplicativo); uso de Java Records (Java 21) para imutabilidade de DTOs e Commands; tratamento adequado de exceções com hierarquia clara (`DomainException` → `BusinessRuleException`, `ResourceNotFoundException`).
-
-### Abstração, Acoplamento, Extensibilidade e Coesão
-
-A solução maximiza **coesão** agrupando responsabilidades relacionadas (cada pacote tem um propósito claro) e minimiza **acoplamento** através de interfaces e inversão de dependência. A **extensibilidade** é garantida pelo padrão Strategy (novas validações) e pela Clean Architecture (novas funcionalidades não afetam o domínio). A **abstração** é aplicada em todos os contratos entre camadas via interfaces.
-
----
-
-## Tecnologias
+## Arquitetura real
 
 ### Backend
 
-| Tecnologia | Versão | Finalidade |
-|---|---|---|
-| Java | 21 | Linguagem principal (Records, Pattern Matching) |
-| Spring Boot | 3.3.5 | Framework web e IoC Container |
-| Spring Data JPA | 3.3.x | Persistência de dados |
-| PostgreSQL | 16 | Banco de dados relacional |
-| Flyway | 10.x | Migrações de banco de dados |
-| SpringDoc OpenAPI | 2.6.0 | Documentação Swagger/OpenAPI |
-| Spring Security Crypto | 6.x | BCrypt para hash de senhas |
-| JaCoCo | 0.8.12 | Cobertura de testes (Code Coverage) |
-| JUnit 5 | 5.10.x | Framework de testes |
-| Mockito | 5.x | Mocking para testes unitários |
-| Maven | 3.9.x | Build e gerenciamento de dependências |
+O backend continua um monolito Spring Boot unico.
+
+Partes principais:
+
+- `domain`, `application`, `infrastructure` e `presentation`: base legada mais forte no modulo de usuarios.
+- `workspace/*`: shell, settings, tenancy, members, providers, agents e capability API.
+- `workspace/inference/*`: runtime multi-provider textual, catalogo, orquestracao, health, conectividade, seguranca de segredos e resiliência local.
+
+Estado atual por area:
+
+- `users`: mais aderente a Clean Architecture/CQRS/ACL.
+- `workspace/ai`: monolito modularizado com Strategy/Registry/Adapter, ainda em transicao de acoplamento e separacao de responsabilidades.
+- `research` e `threat-intel`: superficies separadas, com compliance explicito para threat-intel.
 
 ### Frontend
 
-| Tecnologia | Versão | Finalidade |
-|---|---|---|
-| React | 18.3 | Biblioteca de UI |
-| TypeScript | 5.6 | Tipagem estática |
-| Vite | 5.4 | Build tool |
-| Tailwind CSS | 3.4 | Framework de estilos utilitários |
-| React Router | 6.28 | Roteamento SPA |
-| Axios | 1.7 | Cliente HTTP |
-| React Hot Toast | 2.4 | Notificações |
-| React Icons | 5.3 | Biblioteca de ícones |
+O frontend e uma SPA React com:
 
----
+- componentes reutilizaveis
+- paginas por rota
+- services HTTP por dominio
+- tipos TypeScript centralizados
+- smoke e2e com Playwright
+- unit tests com Vitest
 
-## Estrutura do Projeto
+O shell atual prioriza:
 
-```
+- tema `light/dark`
+- shell estilo control-room
+- command palette
+- agents com runtime versionado
+- settings com catalogo de providers e health/readiness
+
+## Fonte de verdade e governanca
+
+O Lume agora trata a governanca de providers e capabilities como parte do produto, nao como nota de rodape.
+
+Ordem de precedencia quando houver conflito entre prompt, roadmap e runtime:
+
+1. codigo executavel + testes verdes
+2. `backend/src/main/resources/provider-governance-metadata.json`
+3. `docs/ai-providers.md`, `docs/requirements-matrix.md`, `docs/provider-status-matrix.md` e `docs/provider-docs-matrix.md`
+4. prompts e anexos de descoberta usados como insumo
+5. documentacao oficial do fornecedor para fechar lacunas
+
+Estados oficiais por provider:
+
+- `live`
+- `implemented_with_restrictions`
+- `catalog_only`
+- `blocked`
+- `out_of_scope`
+
+Niveis de evidencia:
+
+- `offline_verified`
+- `integration_verified`
+- `online_verified`
+
+## Patterns e principios realmente presentes
+
+### Presentes e visiveis no codigo
+
+- `Strategy`: `AiProviderAdapter`, `AuthStrategy`, `RequestShapeStrategy`, `ResponseExtractionStrategy`.
+- `Registry`: `AiProviderRegistry`, `AiCircuitBreakerRegistry`, `AiBulkheadRegistry`, `AiRateLimiterRegistry`.
+- `Adapter`: adapters por provider e adapters de persistencia/seguranca.
+- `Factory/Builder`: factories e builders no modulo legado; construcao centralizada de catalogo/modelos no runtime.
+- `Facade`: services de alto nivel como `InferenceGatewayService`, `ProviderConnectivityService`, `ProviderHealthService`.
+- `ACL`: DTOs e mapeamentos no modulo legado e nos contratos versionados de workspace.
+
+### Presentes apenas em parte do sistema
+
+- `Clean Architecture`: forte no modulo legado de usuarios; parcial no runtime de workspace/ai.
+- `CQRS`: real no modulo de usuarios; nao aplicado de forma global ao produto.
+- `Ports and Adapters`: presente no runtime de IA e em partes do backend, mas nao uniforme em todo o repositorio.
+
+### Nao devem ser assumidos como implementados globalmente
+
+- microservices patterns como Saga
+- event-driven architecture global
+- CQRS global
+- ACL global
+
+## Estrutura do projeto
+
+```text
 Lume/
-├── backend/
-│   ├── src/main/java/com/lume/
-│   │   ├── domain/                    # Camada de Domínio (núcleo puro)
-│   │   │   ├── model/                 #   Entidades de domínio
-│   │   │   ├── exception/             #   Exceções de domínio
-│   │   │   ├── service/               #   Interfaces de serviço (DIP)
-│   │   │   ├── validation/            #   Strategy Pattern (validações)
-│   │   │   └── factory/               #   Factory Pattern (criação)
-│   │   ├── application/               # Camada de Aplicação (use cases)
-│   │   │   ├── command/               #   CQRS Commands
-│   │   │   ├── query/                 #   CQRS Queries
-│   │   │   ├── handler/command/       #   Command Handlers
-│   │   │   ├── handler/query/         #   Query Handlers
-│   │   │   ├── dto/request/           #   ACL - DTOs de entrada
-│   │   │   ├── dto/response/          #   ACL - DTOs de saída
-│   │   │   ├── mapper/                #   ACL - Mappers
-│   │   │   └── port/input|output/     #   Ports (interfaces)
-│   │   ├── infrastructure/            # Camada de Infraestrutura
-│   │   │   ├── persistence/           #   JPA Entities, Adapters, Mappers
-│   │   │   ├── config/                #   Bean Config (Singleton), CORS
-│   │   │   └── security/              #   BCrypt Adapter
-│   │   └── presentation/              # Camada de Apresentação
-│   │       ├── controller/            #   REST Controllers (CQRS)
-│   │       ├── advice/                #   Exception Handlers
-│   │       └── response/              #   Respostas padronizadas
-│   ├── src/main/resources/
-│   │   ├── db/migration/              # Scripts Flyway
-│   │   ├── application.yml            # Configuração principal
-│   │   ├── application-dev.yml        # Perfil de desenvolvimento
-│   │   └── application-test.yml       # Perfil de testes (H2)
-│   ├── src/test/java/com/lume/
-│   │   ├── domain/                    # Testes unitários do domínio
-│   │   ├── application/               # Testes unitários dos handlers
-│   │   ├── infrastructure/            # Testes dos mappers de persistência
-│   │   └── presentation/              # Testes de integração (controllers)
-│   ├── Dockerfile
-│   └── pom.xml
-├── frontend/
-│   ├── src/
-│   │   ├── components/                # Componentes React reutilizáveis
-│   │   │   ├── common/                #   Loading, EmptyState
-│   │   │   ├── layout/                #   Header, Footer, Layout
-│   │   │   └── users/                 #   UserForm, UserTable
-│   │   ├── hooks/                     # Custom Hooks (lógica de estado)
-│   │   ├── pages/                     # Páginas da aplicação
-│   │   ├── routes/                    # Configuração de rotas
-│   │   ├── services/                  # Serviços HTTP (API)
-│   │   ├── styles/                    # Estilos globais (Tailwind)
-│   │   ├── types/                     # Tipos TypeScript
-│   │   └── utils/                     # Utilitários (formatação)
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml
-└── README.md
+|-- backend/
+|   |-- src/main/java/com/lume/
+|   |   |-- domain/
+|   |   |-- application/
+|   |   |-- infrastructure/
+|   |   |-- presentation/
+|   |   `-- workspace/
+|   |       |-- controller/
+|   |       |-- dto/
+|   |       |-- inference/
+|   |       `-- service/
+|   |-- src/main/resources/
+|   |   |-- application.yml
+|   |   `-- db/migration/
+|   `-- pom.xml
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- pages/
+|   |   |-- routes/
+|   |   |-- services/
+|   |   |-- test/
+|   |   `-- types/
+|   |-- tests/
+|   `-- package.json
+|-- docs/
+|   `-- ai-providers.md
+`-- docker-compose.yml
 ```
 
----
+## Execucao local
 
-## Pré-requisitos
+### Pre-requisitos
 
-Para execução com **Docker** (recomendado): Docker e Docker Compose instalados.
+- Docker + Docker Compose
+- Java 21
+- Maven 3.9+
+- Node.js 22+
+- pnpm
 
-Para desenvolvimento local: Java 21 (JDK), Maven 3.9+, Node.js 22+ com pnpm, e PostgreSQL 16+.
-
----
-
-## Como Executar
-
-### Com Docker Compose (recomendado)
+### Subir o banco
 
 ```bash
-git clone https://github.com/FELIPEACASTRO/Lume.git
-cd Lume
-docker compose up -d
-```
-
-Após a inicialização, os serviços estarão disponíveis nos seguintes endereços:
-
-| Serviço | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8080/api |
-| Swagger UI | http://localhost:8080/api/swagger-ui.html |
-| PostgreSQL | localhost:5432 |
-
-### Desenvolvimento Local
-
-```bash
-# 1. Subir apenas o PostgreSQL
 docker compose up -d postgres
+```
 
-# 2. Backend
+### Backend
+
+```bash
 cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
-# 3. Frontend (em outro terminal)
+Backend:
+
+- API base: `http://localhost:8080/api`
+- Health: `http://localhost:8080/api/health`
+- Swagger UI: `http://localhost:8080/api/swagger-ui.html`
+
+### Frontend
+
+```bash
 cd frontend
 pnpm install
-pnpm dev
+pnpm dev --host 127.0.0.1 --port 4173
 ```
 
----
+Frontend:
 
-## Endpoints da API
+- `http://127.0.0.1:4173`
 
-### Comandos (Escrita) - CQRS
+## Variaveis de ambiente
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `POST` | `/api/users` | Criar novo usuário |
-| `PUT` | `/api/users/{id}` | Atualizar usuário existente |
-| `DELETE` | `/api/users/{id}` | Desativar usuário (soft delete) |
+Use `.env.example` como referencia. `.env` deve continuar fora do git.
 
-### Queries (Leitura) - CQRS
+### Infra
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `GET` | `/api/users` | Listar usuários (paginado) |
-| `GET` | `/api/users/{id}` | Buscar usuário por ID |
+| Variavel | Descricao |
+|---|---|
+| `DB_HOST` | host do PostgreSQL |
+| `DB_PORT` | porta do PostgreSQL |
+| `DB_NAME` | nome do banco |
+| `DB_USERNAME` | usuario do banco |
+| `DB_PASSWORD` | senha do banco |
+| `SPRING_PROFILES_ACTIVE` | perfil Spring |
+| `VITE_API_URL` | base URL da API no frontend |
 
-### Utilitários
+### IA textual e research
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `GET` | `/api/health` | Health check da API |
+| Variavel | Descricao |
+|---|---|
+| `OPENAI_API_KEY` | OpenAI |
+| `GEMINI_API_KEY` | Gemini |
+| `DEEPSEEK_API_KEY` | DeepSeek |
+| `ANTHROPIC_API_KEY` | Anthropic |
+| `XAI_API_KEY` | xAI |
+| `PERPLEXITY_API_KEY` | Perplexity |
+| `GROQ_API_KEY` | Groq |
+| `OPENROUTER_API_KEY` | OpenRouter |
+| `TOGETHER_API_KEY` | Together |
+| `FIREWORKS_API_KEY` | Fireworks |
+| `DEEPINFRA_API_KEY` | DeepInfra |
+| `MISTRAL_API_KEY` | Mistral |
+| `COHERE_API_KEY` | Cohere |
+| `EXA_API_KEY` | Exa |
+| `NEWSCATCHER_API_KEY` | NewsCatcher |
+| `VOYAGE_API_KEY` | Voyage AI |
+| `TAVILY_API_KEY` | Tavily |
+| `SERPAPI_API_KEY` | SerpApi |
 
-A documentação interativa completa está disponível via **Swagger UI** em `http://localhost:8080/api/swagger-ui.html`.
+Governanca por provider:
 
----
+- `provider-governance-metadata.json` centraliza status de implementacao, nivel de evidencia, prioridade de negocio, sync mode, pricing summary, rate-limit summary e modos de roteamento
+- `ProviderCatalogService` continua dono do contrato publico da API
 
-## Testes e Cobertura
+### Threat-intel e compliance
 
-### Executar Testes
+| Variavel | Descricao |
+|---|---|
+| `SECURITY_COMPLIANCE_DARK_WEB_ENABLED` | habilita execucao threat-intel |
+| `DARKOWL_PUBLIC_KEY` | credencial DarkOwl |
+| `DARKOWL_PRIVATE_KEY` | credencial DarkOwl |
+| `FULLHUNT_API_KEY` | FullHunt |
+| `FLARE_API_KEY` | Flare |
+| `FLARE_TENANT_ID` | tenant opcional Flare |
+
+### Testes reais opcionais
+
+| Variavel | Descricao |
+|---|---|
+| `RUN_REAL_AI_TESTS` | ativa smoke tests reais opt-in |
+| `DEEPGRAM_TEST_AUDIO_URL` | audio remoto usado no smoke real de STT |
+| `ASSEMBLYAI_TEST_AUDIO_URL` | audio remoto usado no smoke real de STT com AssemblyAI |
+| `MISTRAL_OCR_DOCUMENT_URL` | documento remoto usado no smoke real de OCR |
+| `IDEOGRAM_EDIT_IMAGE_URL` | imagem remota opcional para smoke real de edit |
+| `IDEOGRAM_EDIT_MASK_URL` | mask remota opcional para smoke real de edit |
+| `RUNWAY_TEST_IMAGE_URL` | frame remoto usado no smoke real de video |
+
+## Endpoints principais
+
+### Base da shell/workspace
+
+| Metodo | Endpoint |
+|---|---|
+| `GET` | `/api/health` |
+| `GET` | `/api/v1/home/overview` |
+| `GET` | `/api/v1/shell/navigation` |
+| `GET` | `/api/workspace/summary` |
+| `GET` | `/api/usage/summary` |
+| `GET` | `/api/notifications` |
+| `GET` | `/api/search` |
+| `GET` | `/api/v1/search/results` |
+
+### Sessao, tenancy e members
+
+| Metodo | Endpoint |
+|---|---|
+| `GET` | `/api/v1/auth/session` |
+| `GET` | `/api/v1/workspaces` |
+| `POST` | `/api/v1/workspaces/{id}/activate` |
+| `GET` | `/api/v1/members` |
+| `POST` | `/api/v1/members` |
+| `PATCH` | `/api/v1/members/{id}` |
+
+### Settings e providers
+
+| Metodo | Endpoint |
+|---|---|
+| `GET` | `/api/settings/overview` |
+| `GET` | `/api/v1/budgets/current` |
+| `PATCH` | `/api/v1/budgets/current` |
+| `GET` | `/api/v1/settings/preferences` |
+| `PATCH` | `/api/v1/settings/preferences` |
+| `GET` | `/api/v1/providers` |
+| `GET` | `/api/v1/providers/{provider}` |
+| `GET` | `/api/v1/models` |
+| `GET` | `/api/v1/providers/{provider}/models` |
+| `GET` | `/api/v1/provider-credentials` |
+| `GET` | `/api/v1/providers/status` |
+| `GET` | `/api/v1/providers/health` |
+| `POST` | `/api/v1/providers/{code}/connectivity-test` |
+| `GET` | `/api/v1/shell/catalog` |
+| `PATCH` | `/api/v1/shell/catalog/navigation-items/{id}` |
+| `PATCH` | `/api/v1/shell/catalog/task-types/{taskType}` |
+
+### Inference e capability API
+
+| Metodo | Endpoint |
+|---|---|
+| `POST` | `/api/v1/inference/execute` |
+| `POST` | `/api/v1/inference/stream` |
+| `POST` | `/api/v1/chat` |
+| `POST` | `/api/v1/responses` |
+| `POST` | `/api/v1/embeddings` |
+| `POST` | `/api/v1/rerank` |
+| `POST` | `/api/v1/images/generate` |
+| `POST` | `/api/v1/images/edit` |
+| `GET` | `/api/v1/images/jobs/{providerCode}/{jobId}` |
+| `POST` | `/api/v1/videos/generate` |
+| `GET` | `/api/v1/videos/jobs/{providerCode}/{jobId}` |
+| `POST` | `/api/v1/audio/stt` |
+| `POST` | `/api/v1/audio/tts` |
+| `POST` | `/api/v1/ocr` |
+| `POST` | `/api/v1/search` |
+| `POST` | `/api/v1/web-grounded-chat` |
+| `POST` | `/api/v1/threat-intel/search` |
+
+Contratos capability-first nesta fase:
+
+- requests de `chat`, `responses` e `web-grounded-chat` aceitam `provider`, `model`, `fallbackProviderCodes`, `requestId`, `routingMode`, `stream`, `tags` e `workspaceId`
+- `web-grounded-chat` tambem aceita `researchProviderCode` e `searchLimit` para grounding explicito
+- responses textuais agora retornam `requestedProviderCode`, `providerUsed`, `modelUsed`, `attemptChain` e `streamingMode`
+
+### Agents
+
+| Metodo | Endpoint |
+|---|---|
+| `GET` | `/api/agents/profiles` |
+| `GET` | `/api/agents/threads` |
+| `POST` | `/api/agents/threads` |
+| `GET` | `/api/agents/threads/{id}/messages` |
+| `POST` | `/api/agents/threads/{id}/messages` |
+| `PATCH` | `/api/v1/agents/profiles/{id}/runtime` |
+
+## Runtime multi-provider de IA
+
+## Home e navegacao operacional
+
+O shell principal foi simplificado para seis areas de trabalho:
+
+- `Inicio`
+- `Tarefas`
+- `Projetos`
+- `Biblioteca`
+- `Equipe`
+- `Configuracoes`
+
+Comportamento atual da home:
+
+- o composer principal abre em modo `Buscar`
+- enviar no modo `Buscar` leva para `/search/results` usando busca real no banco
+- `Nova tarefa` continua disponivel, mas como modo explicito
+- `Agents`, `Uso` e `Inbox` deixaram de competir como area primaria; aparecem no contexto das areas principais
+
+Catalogo administravel da shell:
+
+- admins com `settings.manage` podem editar labels, rotas, icones, descricoes, ordem, grupo e disponibilidade da navegacao
+- admins com `settings.manage` podem editar labels, descricoes, ordem e disponibilidade dos tipos de tarefa
+- as alteracoes sao persistidas no banco e auditadas
+- a shell e a home passam a refletir o catalogo sem deploy
+
+Providers com runtime textual realmente ligado nesta fase:
+
+- `openai`
+- `google-gemini`
+- `deepseek`
+- `anthropic`
+- `xai`
+- `perplexity`
+- `groq`
+- `openrouter`
+- `cohere`
+- `together`
+- `fireworks`
+- `deepinfra`
+- `mistral`
+
+Providers com capability runtime real adicional nesta fase:
+
+- `voyage-ai` para `embeddings` e `rerank`
+- `exa`, `newscatcher`, `tavily` e `serpapi` para `search`
+- `deepgram` para `speech-to-text`
+- `assemblyai` para `speech-to-text`
+- `elevenlabs` para `text-to-speech`
+- `mistral` para `ocr`
+- `stability-ai` para `image generation`
+- `replicate` para `image generation`, `image editing` e `video generation` assincronos com polling
+- `ideogram` para `image generation` e `image editing`
+- `bfl` para `image generation` e `image editing` assincronos com polling
+- `runway` para `video generation` assincrona com polling interno
+
+Providers em catalogo/manual/skeleton:
+
+- `cloudflare-workers-ai`
+- `azure-openai`
+- `aws-bedrock`
+- `hugging-face`
+- `ai21`
+- `cerebras`
+- `nvidia-nim`
+- `sambanova`
+- `siliconflow`
+- media/audio providers ainda fora desta rodada, exceto `deepgram`, `assemblyai`, `elevenlabs`, `mistral` OCR, `stability-ai`, `replicate`, `ideogram`, `bfl` e `runway`
+- threat-intel providers que ainda nao tem adapter live
+
+Overlay de governanca:
+
+- `implementationStatus` diferencia `live` de `implemented_with_restrictions`, `catalog_only` e `blocked`
+- `evidenceLevel` deixa explicito o nivel de prova disponivel
+- `pricingSummary` e `rateLimitSummary` ficam em metadata externa, nao em constantes espalhadas no codigo
+
+### Streaming
+
+O endpoint SSE existe em `/api/v1/inference/stream`, mas a semantica agora e honesta:
+
+- `native`: somente quando o adapter implementar streaming real
+- `unsupported`: quando nao ha streaming real para o provider/modelo
+
+Nao existe mais o comportamento de executar a resposta completa e fatiar localmente como se fosse stream real.
+
+### Fallback
+
+Fallback e sempre explicito por chamada.
+
+Se `fallbackProviderCodes` estiver vazio:
+
+- apenas o provider pedido e tentado
+
+Se `fallbackProviderCodes` vier preenchido:
+
+- a ordem enviada e respeitada
+- cada tentativa gera metricas e logs separados
+
+## Testes e cobertura
+
+### Backend
 
 ```bash
 cd backend
-
-# Testes unitários
-./mvnw test
-
-# Testes de integração
-./mvnw verify
-
-# Gerar relatório de cobertura (JaCoCo)
-./mvnw test jacoco:report
-# Relatório em: target/site/jacoco/index.html
+mvn test
+mvn verify
 ```
 
-### Estrutura de Testes
+Relatorio JaCoCo:
 
-| Tipo | Localização | Descrição |
+- `backend/target/site/jacoco/index.html`
+
+Gate atualmente enforceado no build:
+
+- linhas do bundle >= `70%`
+
+Observacao:
+
+- o repositorio ainda nao atingiu os thresholds arquiteturais mais altos discutidos no double-check.
+- branch coverage do backend continua abaixo da meta aspiracional e precisa de mais testes de servico/orquestracao.
+
+### Frontend
+
+```bash
+cd frontend
+pnpm lint
+pnpm test:unit
+pnpm test:e2e
+pnpm build
+```
+
+Estado atual:
+
+- unit tests: componentes base, provider service, settings e agents
+- e2e smoke: shell, search, workspace switch, tasks, library, users, settings, providers, agents e mobile sidebar
+
+### Smoke tests reais opcionais
+
+```bash
+set RUN_REAL_AI_TESTS=true
+mvn -Dtest=AiCapabilityRealSmokeIT test
+```
+
+Os testes reais:
+
+- so rodam com `RUN_REAL_AI_TESTS=true`
+- so exercitam providers com env var presente
+- usam prompts minimos e baratos
+- podem exercitar `cohere`, `voyage-ai`, `tavily`, `serpapi`, `deepgram`, `assemblyai`, `elevenlabs`, `mistral`, `stability-ai`, `ideogram`, `bfl` e `runway` quando as credenciais e URLs auxiliares estiverem presentes
+
+## Auditoria read-only das integracoes
+
+Existe uma ferramenta separada do runtime do produto para auditar cobertura real de providers, drift entre catalogos/docs/codigo e readiness de teste integrado.
+
+### Rodar a auditoria
+
+```bash
+python tools/integration_audit/run_audit.py
+```
+
+### Rodar com checks seguros
+
+```bash
+python tools/integration_audit/run_audit.py --run-safe-checks
+```
+
+### Saidas geradas
+
+Os relatorios derivados sao gerados em `reports/integration-audit/`:
+
+- `auditoria_integracoes_ia.md`
+- `matriz_integracoes_ia.csv`
+- `gaps_priorizados_integracoes_ia.md`
+
+Esses artefatos nao sao versionados e podem ser regenerados a qualquer momento.
+
+## Analise Big O honesta
+
+As operacoes do runtime de IA sao dominadas por I/O de rede. Ainda assim, a complexidade local relevante e:
+
+| Operacao | Complexidade | Observacao |
 |---|---|---|
-| **Unitário** | `domain/UserTest` | Entidade User, Builder, validações de domínio |
-| **Unitário** | `domain/ValidationStrategyTest` | Strategy Pattern (Email, Name, Password) |
-| **Unitário** | `domain/UserFactoryTest` | Factory Pattern com mock de PasswordEncoder |
-| **Unitário** | `application/CreateUserCommandHandlerTest` | Handler de criação com mocks |
-| **Unitário** | `application/UpdateUserCommandHandlerTest` | Handler de atualização com mocks |
-| **Unitário** | `application/DeleteUserCommandHandlerTest` | Handler de exclusão com mocks |
-| **Unitário** | `application/QueryHandlersTest` | Handlers de consulta com mocks |
-| **Unitário** | `application/UserMapperTest` | Mapper ACL entre camadas |
-| **Unitário** | `infrastructure/UserPersistenceMapperTest` | Mapper entre domínio e JPA |
-| **Integração** | `presentation/UserControllerIT` | Fluxo completo Controller → Service → Repository → H2 |
+| lookup de provider por codigo | `O(1)` | mapa indexado |
+| lookup de modelo por codigo | `O(1)` | mapa indexado |
+| listagem de modelos por provider | `O(k)` | `k` = modelos daquele provider, apos indexacao dedicada |
+| cadeia de fallback | `O(F)` | `F` = numero de providers tentados |
+| health agregado | `O(P)` | `P` = providers catalogados |
+| connectivity snapshot lookup | `O(1)` | mapa em memoria |
 
-### Cobertura de Código (JaCoCo)
+Pontos importantes:
 
-O plugin JaCoCo está configurado para gerar relatórios de cobertura automaticamente na fase de testes. O threshold mínimo configurado é de **70% de cobertura de linhas**. Classes de configuração e a classe principal são excluídas da análise.
+- o custo dominante de `sendPrompt`, `search` e `connectivity test` nao e CPU local; e latencia/upstream.
+- snapshots de connectivity hoje sao efemeros e mantidos em memoria.
 
----
+## Seguranca operacional
 
-## Análise Assintótica (Big O)
+- segredos somente por env vars ou resolvedor de segredos
+- `.env` fora do git
+- nenhum provider deve hardcodar API key
+- headers sensiveis nao devem ser logados
+- prompts nao devem ser logados em claro em `INFO/WARN/ERROR`
+- threat-intel continua `admin-only`, opt-in e dependente de compliance flag
+- health agregado nao deve ser tratado como prova forte de disponibilidade externa; o snapshot atual e em memoria
 
-A tabela abaixo documenta a complexidade computacional das operações principais, considerando n como o número total de registros no banco de dados e p como o tamanho da página.
+## Documentacao adicional
 
-| Operação | Complexidade | Justificativa |
-|---|---|---|
-| Criar usuário | O(log n) | Verificação de unicidade de e-mail via índice B-tree + inserção |
-| Buscar por ID | O(log n) | Busca por chave primária (índice B-tree) |
-| Buscar por e-mail | O(log n) | Busca por índice no campo email |
-| Listar paginado | O(p + log n) | OFFSET/LIMIT com índice; p itens retornados por página |
-| Atualizar usuário | O(log n) | Busca por ID + verificação de e-mail + atualização |
-| Desativar usuário | O(log n) | Busca por ID + atualização de flag |
-| Validação (Strategy) | O(k) | k = número de caracteres do campo validado (regex matching) |
-| Mapeamento (ACL) | O(1) | Conversão direta campo a campo |
-| Hash de senha (BCrypt) | O(1) | Custo fixo do algoritmo (fator 12) |
+- [AI Providers](docs/ai-providers.md)
+- [Requirements Matrix](docs/requirements-matrix.md)
+- [Provider Status Matrix](docs/provider-status-matrix.md)
+- [Provider Docs Matrix](docs/provider-docs-matrix.md)
+- [Official Sources](docs/official-sources.md)
+- [Implementation Roadmap](docs/implementation-roadmap.md)
+- [Architecture Overview](docs/architecture-overview.md)
+- [Test Strategy](docs/test-strategy.md)
+- [Test Evidence](docs/test-evidence.md)
+- [Live Validation Matrix](docs/live-validation-matrix.md)
+- [Audit Playbook](docs/audit-playbook.md)
+- [Audit Schema](docs/audit-schema.md)
+- [FinOps](docs/finops.md)
+- [500 TPS Report](docs/performance/500tps-report.md)
+- [Provider-by-provider](docs/provider-by-provider/README.md)
+- [ADRs](docs/adr/README.md)
 
----
+## Licenca
 
-## Variáveis de Ambiente
-
-| Variável | Padrão | Descrição |
-|---|---|---|
-| `DB_HOST` | `localhost` | Host do PostgreSQL |
-| `DB_PORT` | `5432` | Porta do PostgreSQL |
-| `DB_NAME` | `lume_db` | Nome do banco de dados |
-| `DB_USERNAME` | `lume_user` | Usuário do banco |
-| `DB_PASSWORD` | `lume_pass` | Senha do banco |
-| `SPRING_PROFILES_ACTIVE` | `dev` | Perfil ativo do Spring |
-| `VITE_API_URL` | `/api` | URL base da API no frontend |
-
----
-
-## Licença
-
-Este projeto é privado e de uso exclusivo.
+Repositorio privado.

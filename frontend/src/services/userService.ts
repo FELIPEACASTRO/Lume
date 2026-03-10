@@ -1,5 +1,5 @@
 import api from './api';
-import { User, UserRequest, Page } from '../types';
+import { Page, User, UserCreateRequest, UserUpdateRequest } from '../types';
 
 const BASE_PATH = '/users';
 
@@ -16,12 +16,12 @@ export const userService = {
     return response.data;
   },
 
-  async create(data: UserRequest): Promise<User> {
+  async create(data: UserCreateRequest): Promise<User> {
     const response = await api.post<User>(BASE_PATH, data);
     return response.data;
   },
 
-  async update(id: number, data: UserRequest): Promise<User> {
+  async update(id: number, data: UserUpdateRequest): Promise<User> {
     const response = await api.put<User>(`${BASE_PATH}/${id}`, data);
     return response.data;
   },

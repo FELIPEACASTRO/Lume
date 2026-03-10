@@ -1,9 +1,7 @@
 package com.lume.domain.exception;
 
 /**
- * Exceção lançada quando um recurso solicitado não é encontrado.
- *
- * <p>Mapeada para HTTP 404 na camada de apresentação.</p>
+ * Excecao lancada quando um recurso solicitado nao e encontrado.
  */
 public class ResourceNotFoundException extends DomainException {
 
@@ -12,6 +10,10 @@ public class ResourceNotFoundException extends DomainException {
     }
 
     public ResourceNotFoundException(String resource, Long id) {
-        super(String.format("%s não encontrado(a) com id: %d", resource, id));
+        super(String.format("%s nao encontrado(a) com id: %d", resource, id));
+    }
+
+    public ResourceNotFoundException(String resource, String id) {
+        super(String.format("%s nao encontrado(a) com id: %s", resource, id));
     }
 }
