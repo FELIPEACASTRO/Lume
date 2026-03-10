@@ -186,6 +186,7 @@ class AudioDocumentCapabilityServiceTest {
                 catalogService,
                 new TestWorkspaceContextService(),
                 new NoOpAuditLogService(),
+                new GoogleCloudSupportService(catalogService, objectMapper),
                 builder,
                 objectMapper
         );

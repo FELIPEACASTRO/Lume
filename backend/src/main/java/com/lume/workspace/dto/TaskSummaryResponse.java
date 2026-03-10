@@ -15,6 +15,9 @@ public record TaskSummaryResponse(
         String ownerName,
         String updatedAt,
         String scheduledFor,
-        String shareSlug
+        String shareSlug,
+        String providerCode,
+        String modelCode,
+        String versionLabel
 ) {
 }

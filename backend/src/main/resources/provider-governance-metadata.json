@@ -113,9 +113,10 @@
       "notes": "Runtime de chat, embeddings e rerank ligado; tiers gratuitos e non-commercial devem ser avaliados fora do core."
     },
     "cloudflare-workers-ai": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified",
-      "businessPriority": "contract_dependent"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "contract_dependent",
+      "notes": "Compatibilidade OpenAI inicial para chat via conta e token do tenant Cloudflare."
     },
     "together": {
       "implementationStatus": "implemented_with_restrictions",
@@ -145,21 +146,42 @@
       "evidenceLevel": "offline_verified"
     },
     "siliconflow": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi",
+      "freeTierRecurring": true,
+      "freeTierScope": "selected_models",
+      "billingWarning": "A gratuidade depende do modelo escolhido; acompanhe o console do fornecedor antes de promover para uso amplo.",
+      "freeModels": ["Qwen/Qwen2.5-7B-Instruct", "BAAI/bge-m3", "BAAI/bge-reranker-v2-m3"],
+      "regionConstraints": ["global"],
+      "notes": "Chat OpenAI-compatible e camada vetorial dedicada para embeddings e rerank de modelos gratuitos selecionados."
+    },
+    "dashscope-qwen": {
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "high_roi",
+      "freeTierRecurring": true,
+      "freeTierScope": "mainland_beijing_only",
+      "billingWarning": "A gratuidade vale para modelos elegiveis na regiao China continental (Beijing); a regiao Singapore e outras podem gerar cobranca.",
+      "freeModels": ["qwen-plus", "text-embedding-v4", "gte-rerank-v2"],
+      "regionConstraints": ["cn-beijing"],
+      "notes": "Qwen via DashScope/Bailian com endpoint Beijing e metadata explicita de restricao regional."
     },
     "aws-bedrock": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified",
-      "businessPriority": "contract_dependent"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "contract_dependent",
+      "notes": "Adapter Bedrock via AWS SDK e auth AWS; promove para live apenas com smoke real por conta/regiao."
     },
     "hugging-face": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Chat via router OpenAI-compatible e embeddings via Inference API."
     },
     "ai21": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Chat inicial para Jamba via rota compatível com chat completions."
     },
     "github-models": {
       "implementationStatus": "catalog_only",
@@ -199,8 +221,10 @@
       "notes": "Stable Image Core ligado para image generation com retorno em base64; image editing, video e audio seguem fora desta fase."
     },
     "fal-ai": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "syncMode": "async",
+      "notes": "Jobs assincronos reais para imagem, edicao e image-to-video via submit + polling."
     },
     "replicate": {
       "implementationStatus": "implemented_with_restrictions",
@@ -224,24 +248,24 @@
       "notes": "Text-to-speech ligado via capability API; selecao de voz pode ser explicita ou descoberta on-demand."
     },
     "google-vision": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified"
     },
     "google-speech-to-text": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified"
     },
     "google-natural-language": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified"
     },
     "google-translation": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified"
     },
     "google-text-to-speech": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified"
     },
     "bfl": {
       "implementationStatus": "implemented_with_restrictions",
@@ -262,36 +286,40 @@
       "notes": "Image generation e edit v3 ligadas; a integracao atual trabalha com assets remotos e edicao via mask obrigatoria."
     },
     "azure-openai": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified",
-      "businessPriority": "contract_dependent"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "businessPriority": "contract_dependent",
+      "notes": "Gateway enterprise separado do OpenAI publico, com deployment e api-version proprios."
     },
     "darkowl": {
-      "implementationStatus": "blocked",
-      "evidenceLevel": "offline_verified",
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
       "notes": "Requer compliance, contrato e assinatura especifica antes de qualquer declaracao de runtime live."
     },
     "onion-search-engine": {
-      "implementationStatus": "blocked",
-      "evidenceLevel": "offline_verified",
-      "notes": "Documentacao publica insuficiente para execucao segura como runtime do produto."
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Busca inicial via API oficial api.php, sempre admin-only e sob compliance."
     },
     "twingly": {
-      "implementationStatus": "blocked",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Busca inicial via Dark Web Search API oficial, sempre admin-only e sob compliance."
     },
     "fullhunt": {
-      "implementationStatus": "blocked",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Busca inicial focada em credenciais comprometidas de dark web, sempre sob compliance."
     },
     "darknetsearch": {
-      "implementationStatus": "blocked",
-      "evidenceLevel": "offline_verified",
-      "notes": "Mantido apenas como referencia catalogada enquanto faltarem docs oficiais fortes e fluxo de compliance."
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Busca inicial em leaks via OAuth password flow e API client, sempre admin-only e sob compliance."
     },
     "flare": {
-      "implementationStatus": "blocked",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Fluxo real com token transitório e busca global, sempre admin-only e sob compliance."
     }
   }
 }

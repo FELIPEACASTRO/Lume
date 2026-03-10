@@ -10,6 +10,8 @@ Este diretorio concentra perfis curtos dos providers prioritarios do Lume.
 - `xai.md`
 - `perplexity.md`
 - `cohere.md`
+- `siliconflow.md`
+- `dashscope-qwen.md`
 - `mistral.md`
 - `voyage-ai.md`
 - `exa.md`

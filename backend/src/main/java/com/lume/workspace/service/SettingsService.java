@@ -21,6 +21,7 @@ public class SettingsService {
     private final KnowledgeSourceService knowledgeSourceService;
     private final UserPreferenceJpaRepository userPreferenceRepository;
     private final AuditLogService auditLogService;
+    private final WorkspaceCommercialService workspaceCommercialService;
 
     public SettingsService(
             WorkspaceContextService workspaceContextService,
@@ -28,7 +29,8 @@ public class SettingsService {
             UsageService usageService,
             KnowledgeSourceService knowledgeSourceService,
             UserPreferenceJpaRepository userPreferenceRepository,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            WorkspaceCommercialService workspaceCommercialService
     ) {
         this.workspaceContextService = workspaceContextService;
         this.notificationService = notificationService;
@@ -36,6 +38,7 @@ public class SettingsService {
         this.knowledgeSourceService = knowledgeSourceService;
         this.userPreferenceRepository = userPreferenceRepository;
         this.auditLogService = auditLogService;
+        this.workspaceCommercialService = workspaceCommercialService;
     }
 
     public SettingsOverviewResponse getOverview() {
@@ -43,7 +46,7 @@ public class SettingsService {
         List<SettingsSectionResponse> sections = new ArrayList<>(List.of(
                 new SettingsSectionResponse("conta", "Perfil e preferencias", "Dados pessoais e escolhas basicas da operacao.", "live"),
                 new SettingsSectionResponse("configuracoes", "Workspace", "Idioma, aparencia e avisos do workspace.", "live"),
-                new SettingsSectionResponse("uso", "Resumo de uso", "Consumo, limites e leituras principais do workspace.", "live")
+                new SettingsSectionResponse("uso", "Uso", "Consumo, limites e leituras principais do workspace.", "live")
         ));
         if (permissions.contains(WorkspaceContextService.PERMISSION_KNOWLEDGE_READ)) {
             sections.add(new SettingsSectionResponse(
@@ -64,8 +67,8 @@ public class SettingsService {
         if (permissions.contains(WorkspaceContextService.PERMISSION_PROVIDERS_READ)) {
             sections.add(new SettingsSectionResponse(
                     "providers-runtime",
-                    "Modelos e integracoes",
-                    "Modelos disponiveis, acesso e estado de cada integracao.",
+                    "Modelos e acesso",
+                    "Modelos disponiveis, acesso e situacao de cada integracao.",
                     "live"
             ));
         }
@@ -78,8 +81,8 @@ public class SettingsService {
             ));
             sections.add(new SettingsSectionResponse(
                     "workspace-catalog",
-                    "Menu e tarefas",
-                    "Ajuste a navegacao principal e os tipos de tarefa sem novo deploy.",
+                    "Navegacao e tarefas",
+                    "Ajuste o menu principal e os tipos de tarefa sem novo deploy.",
                     "live"
             ));
         }
@@ -90,6 +93,7 @@ public class SettingsService {
                 notificationService.unreadCount(),
                 knowledgeSourceService.countSources(),
                 usageService.getSummary(),
+                workspaceCommercialService.getCurrentSummary(),
                 getPreferences(),
                 sections
         );

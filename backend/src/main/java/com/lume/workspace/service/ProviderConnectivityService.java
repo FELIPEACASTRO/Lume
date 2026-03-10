@@ -5,6 +5,7 @@ import com.lume.workspace.dto.ResearchQueryRequest;
 import com.lume.workspace.dto.ThreatIntelQueryRequest;
 import com.lume.workspace.dto.UnifiedInferenceRequest;
 import com.lume.workspace.dto.UnifiedInferenceResponse;
+import com.lume.workspace.dto.AiPlatformModels;
 import com.lume.workspace.inference.ProviderDefinition;
 import com.lume.workspace.inference.catalog.ProviderGovernanceMetadata;
 import com.lume.workspace.inference.orchestration.ProviderConnectivitySnapshot;
@@ -24,6 +25,7 @@ public class ProviderConnectivityService {
     private final VectorCapabilityService vectorCapabilityService;
     private final AudioDocumentCapabilityService audioDocumentCapabilityService;
     private final MediaCapabilityService mediaCapabilityService;
+    private final LanguageCapabilityService languageCapabilityService;
     private final ResearchService researchService;
     private final ThreatIntelService threatIntelService;
     private final Map<String, ProviderConnectivitySnapshot> snapshots;
@@ -35,6 +37,7 @@ public class ProviderConnectivityService {
             VectorCapabilityService vectorCapabilityService,
             AudioDocumentCapabilityService audioDocumentCapabilityService,
             MediaCapabilityService mediaCapabilityService,
+            LanguageCapabilityService languageCapabilityService,
             ResearchService researchService,
             ThreatIntelService threatIntelService
     ) {
@@ -44,6 +47,7 @@ public class ProviderConnectivityService {
         this.vectorCapabilityService = vectorCapabilityService;
         this.audioDocumentCapabilityService = audioDocumentCapabilityService;
         this.mediaCapabilityService = mediaCapabilityService;
+        this.languageCapabilityService = languageCapabilityService;
         this.researchService = researchService;
         this.threatIntelService = threatIntelService;
         this.snapshots = new ConcurrentHashMap<>();
@@ -99,9 +103,9 @@ public class ProviderConnectivityService {
         }
 
         ProviderConnectivityResponse response = switch (provider.category()) {
-            case "text-runtime" -> fromInference(provider, metadata, inferenceGatewayService.execute(new UnifiedInferenceRequest(
+            case "text-runtime", "enterprise-gateway" -> fromInference(provider, metadata, inferenceGatewayService.execute(new UnifiedInferenceRequest(
                     provider.code(),
-                    provider.defaultModelCode(),
+                    connectivityModelCode(provider),
                     "Responda com a palavra OK.",
                     "ping",
                     null,
@@ -226,6 +230,130 @@ public class ProviderConnectivityService {
                             providerCatalogService.missingCredentialEnvVars(provider)
                     );
                 }
+                if ("google-speech-to-text".equals(provider.code())) {
+                    var sttResponse = audioDocumentCapabilityService.speechToText(new AiPlatformModels.SpeechToTextRequest(
+                            provider.code(),
+                            null,
+                            "https://storage.googleapis.com/cloud-samples-data/speech/brooklyn.flac",
+                            "en-US"
+                    ));
+                    yield new ProviderConnectivityResponse(
+                            provider.code(),
+                            provider.name(),
+                            provider.category(),
+                            provider.apiStyle(),
+                            sttResponse.status(),
+                            providerCatalogService.isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            providerCatalogService.streamingMode(provider),
+                            providerCatalogService.runtimeMaturity(provider),
+                            null,
+                            sttResponse.error() == null ? "Connectivity test concluido." : sttResponse.error(),
+                            providerCatalogService.missingCredentialEnvVars(provider)
+                    );
+                }
+                if ("google-text-to-speech".equals(provider.code())) {
+                    var ttsResponse = audioDocumentCapabilityService.textToSpeech(new AiPlatformModels.TextToSpeechRequest(
+                            provider.code(),
+                            null,
+                            "ping",
+                            "pt-BR",
+                            "mp3"
+                    ));
+                    yield new ProviderConnectivityResponse(
+                            provider.code(),
+                            provider.name(),
+                            provider.category(),
+                            provider.apiStyle(),
+                            ttsResponse.status(),
+                            providerCatalogService.isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            providerCatalogService.streamingMode(provider),
+                            providerCatalogService.runtimeMaturity(provider),
+                            null,
+                            ttsResponse.error() == null ? "Connectivity test concluido." : ttsResponse.error(),
+                            providerCatalogService.missingCredentialEnvVars(provider)
+                    );
+                }
+                if ("google-vision".equals(provider.code())) {
+                    var ocrResponse = audioDocumentCapabilityService.ocr(new AiPlatformModels.OcrRequest(
+                            provider.code(),
+                            null,
+                            "https://cloud.google.com/vision/docs/images/fulltext.png",
+                            null,
+                            "pt-BR"
+                    ));
+                    yield new ProviderConnectivityResponse(
+                            provider.code(),
+                            provider.name(),
+                            provider.category(),
+                            provider.apiStyle(),
+                            ocrResponse.status(),
+                            providerCatalogService.isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            providerCatalogService.streamingMode(provider),
+                            providerCatalogService.runtimeMaturity(provider),
+                            null,
+                            ocrResponse.error() == null ? "Connectivity test concluido." : ocrResponse.error(),
+                            providerCatalogService.missingCredentialEnvVars(provider)
+                    );
+                }
+                if ("google-translation".equals(provider.code())) {
+                    var translationResponse = languageCapabilityService.translate(new AiPlatformModels.TranslationRequest(
+                            provider.code(),
+                            null,
+                            "ping",
+                            "pt-BR",
+                            "en"
+                    ));
+                    yield new ProviderConnectivityResponse(
+                            provider.code(),
+                            provider.name(),
+                            provider.category(),
+                            provider.apiStyle(),
+                            translationResponse.status(),
+                            providerCatalogService.isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            providerCatalogService.streamingMode(provider),
+                            providerCatalogService.runtimeMaturity(provider),
+                            null,
+                            translationResponse.error() == null ? "Connectivity test concluido." : translationResponse.error(),
+                            providerCatalogService.missingCredentialEnvVars(provider)
+                    );
+                }
+                if ("google-natural-language".equals(provider.code())) {
+                    var nlpResponse = languageCapabilityService.analyze(new AiPlatformModels.NlpAnalysisRequest(
+                            provider.code(),
+                            null,
+                            "O Lume ajuda equipes a operar com mais clareza e velocidade.",
+                            "entities",
+                            "pt"
+                    ));
+                    yield new ProviderConnectivityResponse(
+                            provider.code(),
+                            provider.name(),
+                            provider.category(),
+                            provider.apiStyle(),
+                            nlpResponse.status(),
+                            providerCatalogService.isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            providerCatalogService.streamingMode(provider),
+                            providerCatalogService.runtimeMaturity(provider),
+                            null,
+                            nlpResponse.error() == null ? "Connectivity test concluido." : nlpResponse.error(),
+                            providerCatalogService.missingCredentialEnvVars(provider)
+                    );
+                }
                 if ("ideogram".equals(provider.code())) {
                     var imageResponse = mediaCapabilityService.generateImage(new com.lume.workspace.dto.AiPlatformModels.ImageGenerationRequest(
                             provider.code(),
@@ -334,6 +462,33 @@ public class ProviderConnectivityService {
                             providerCatalogService.missingCredentialEnvVars(provider)
                     );
                 }
+                if ("fal-ai".equals(provider.code())) {
+                    var imageResponse = mediaCapabilityService.generateImage(new AiPlatformModels.ImageGenerationRequest(
+                            provider.code(),
+                            null,
+                            "Connectivity test image for Lume.",
+                            "1:1",
+                            null,
+                            1,
+                            null
+                    ));
+                    yield new ProviderConnectivityResponse(
+                            provider.code(),
+                            provider.name(),
+                            provider.category(),
+                            provider.apiStyle(),
+                            imageResponse.status(),
+                            providerCatalogService.isConfigured(provider),
+                            provider.executionSupported(),
+                            metadata.implementationStatus(),
+                            metadata.evidenceLevel(),
+                            providerCatalogService.streamingMode(provider),
+                            providerCatalogService.runtimeMaturity(provider),
+                            null,
+                            imageResponse.error() == null ? "Connectivity test concluiu o submit do job de imagem." : imageResponse.error(),
+                            providerCatalogService.missingCredentialEnvVars(provider)
+                    );
+                }
                 if ("runway".equals(provider.code())) {
                     yield new ProviderConnectivityResponse(
                             provider.code(),
@@ -407,6 +562,15 @@ public class ProviderConnectivityService {
         };
         remember(response);
         return response;
+    }
+
+    private String connectivityModelCode(ProviderDefinition provider) {
+        return switch (provider.code()) {
+            case "ai21" -> "ai21:jamba-large";
+            case "cerebras" -> "cerebras:llama3.1-8b";
+            case "sambanova" -> "sambanova:Meta-Llama-3.3-70B-Instruct";
+            default -> provider.defaultModelCode();
+        };
     }
 
     private ProviderConnectivityResponse fromInference(

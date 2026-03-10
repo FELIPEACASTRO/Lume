@@ -229,22 +229,22 @@ public class AiRuntimeProperties {
     }
 
     public static class PricingProperties {
-        private double inputPer1kUsd = 0.0d;
-        private double outputPer1kUsd = 0.0d;
+        private Double inputPer1kUsd;
+        private Double outputPer1kUsd;
 
-        public double getInputPer1kUsd() {
+        public Double getInputPer1kUsd() {
             return inputPer1kUsd;
         }
 
-        public void setInputPer1kUsd(double inputPer1kUsd) {
+        public void setInputPer1kUsd(Double inputPer1kUsd) {
             this.inputPer1kUsd = inputPer1kUsd;
         }
 
-        public double getOutputPer1kUsd() {
+        public Double getOutputPer1kUsd() {
             return outputPer1kUsd;
         }
 
-        public void setOutputPer1kUsd(double outputPer1kUsd) {
+        public void setOutputPer1kUsd(Double outputPer1kUsd) {
             this.outputPer1kUsd = outputPer1kUsd;
         }
 

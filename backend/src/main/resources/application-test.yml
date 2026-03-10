@@ -6,6 +6,7 @@ spring:
     driver-class-name: org.h2.Driver
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: create-drop
     show-sql: true
@@ -20,6 +21,8 @@ logging:
   level:
     com.lume: DEBUG
 
+BILLING_WEBHOOK_SECRET: test-billing-webhook-secret
+
 lume:
   auth:
     allow-test-header: true
@@ -27,3 +30,6 @@ lume:
   workspace:
     bootstrap:
       enabled: true
+  finops:
+    reconciliation:
+      enabled: false

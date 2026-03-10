@@ -44,6 +44,11 @@ public final class DotenvFileLoader {
     }
 
     public static void register(ConfigurableEnvironment environment) {
+        if (!isEnabled()) {
+            log.info("Bootstrap local de .env desabilitado para este processo.");
+            return;
+        }
+
         Map<String, Object> values = load();
         if (values.isEmpty()) {
             log.debug("Nenhum arquivo .env local encontrado para bootstrap.");
@@ -84,6 +89,20 @@ public final class DotenvFileLoader {
             log.info("Arquivo .env local detectado em {}.", path.toAbsolutePath());
         }
         return values;
+    }
+
+    private static boolean isEnabled() {
+        String systemProperty = System.getProperty("lume.dotenv.enabled");
+        if (StringUtils.hasText(systemProperty)) {
+            return Boolean.parseBoolean(systemProperty);
+        }
+
+        String environmentVariable = System.getenv("LUME_DOTENV_ENABLED");
+        if (StringUtils.hasText(environmentVariable)) {
+            return Boolean.parseBoolean(environmentVariable);
+        }
+
+        return true;
     }
 
     private static java.util.Optional<Map.Entry<String, String>> parseLine(String rawLine) {

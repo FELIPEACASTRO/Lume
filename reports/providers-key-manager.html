@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lume - Controle de API Keys</title>
+  <style>
+    :root {
+      --bg: #eef3f8;
+      --panel: #fff;
+      --line: #d8e1ec;
+      --text: #132238;
+      --muted: #5f7288;
+      --blue: #1f6feb;
+      --green: #12715b;
+      --amber: #b26a00;
+      --red: #b42318;
+      --violet: #6941c6;
+      --shadow: 0 14px 32px rgba(15, 39, 66, 0.08);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(31,111,235,0.09), transparent 28%),
+        radial-gradient(circle at top right, rgba(18,113,91,0.07), transparent 22%),
+        var(--bg);
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button, input, select, textarea { font: inherit; }
+    .app { width: min(1500px, calc(100vw - 32px)); margin: 20px auto 36px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero, .summary, .toolbar, .import-panel, .section { padding: 18px; }
+    .hero h1 { margin: 0 0 8px; font-size: 30px; }
+    .hero p { margin: 0; color: var(--muted); line-height: 1.5; max-width: 1050px; }
+    .stack { display: grid; gap: 16px; }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .summary-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: linear-gradient(180deg, #fff, #f8fbff);
+    }
+    .summary-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .summary-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .summary-note { font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: end;
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: #fff;
+    }
+    .field textarea { min-height: 120px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: 2px solid rgba(31,111,235,.15);
+      border-color: var(--blue);
+    }
+    .toolbar-flag { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; }
+    .toolbar-flag input { width: 16px; height: 16px; accent-color: var(--blue); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #10243e;
+      color: #fff;
+    }
+    .btn.secondary { background: #eef3f8; color: var(--text); border: 1px solid var(--line); }
+    .btn.ghost { background: transparent; color: var(--blue); border: 1px solid rgba(31,111,235,.18); }
+    .import-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .import-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+    }
+    .import-help { color: var(--muted); line-height: 1.55; font-size: 14px; }
+    .import-help ul { margin: 10px 0 0 18px; padding: 0; }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .section-title { font-size: 20px; font-weight: 700; }
+    .section-meta { font-size: 13px; color: var(--muted); }
+    .provider-list { display: grid; gap: 12px; }
+    .provider-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fff, #fbfdff);
+      overflow: hidden;
+    }
+    .provider-summary {
+      list-style: none;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.6fr) auto;
+      gap: 12px;
+      align-items: center;
+      cursor: pointer;
+    }
+    .provider-summary::-webkit-details-marker { display: none; }
+    .provider-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .provider-code { font-family: Consolas, "Courier New", monospace; font-size: 12px; color: var(--muted); }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .priority-alta { background: rgba(180,35,24,.1); color: var(--red); border-color: rgba(180,35,24,.18); }
+    .priority-media { background: rgba(178,106,0,.1); color: var(--amber); border-color: rgba(178,106,0,.18); }
+    .priority-restrita { background: rgba(105,65,198,.12); color: var(--violet); border-color: rgba(105,65,198,.18); }
+    .state-empty { background: rgba(95,114,136,.12); color: var(--muted); border-color: rgba(95,114,136,.18); }
+    .state-partial { background: rgba(178,106,0,.1); color: var(--amber); border-color: rgba(178,106,0,.18); }
+    .state-ready { background: rgba(18,113,91,.12); color: var(--green); border-color: rgba(18,113,91,.18); }
+    .provider-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: var(--muted);
+      font-size: 13px;
+      align-items: center;
+    }
+    .provider-body {
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 14px;
+    }
+    .provider-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 14px; }
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+    }
+    .box-title {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .env-list { display: grid; gap: 12px; }
+    .env-row {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+    .env-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .env-name { font-family: Consolas, "Courier New", monospace; font-size: 12px; font-weight: 700; }
+    .env-help { font-size: 12px; color: var(--muted); line-height: 1.4; margin-top: 6px; }
+    .env-input { display: flex; gap: 8px; align-items: center; }
+    .env-input input { flex: 1; }
+    .check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+    .check-grid label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .check-grid input { width: 16px; height: 16px; accent-color: var(--blue); }
+    .note-field textarea { min-height: 88px; }
+    .env-preview {
+      margin: 0;
+      padding: 12px;
+      background: #10243e;
+      color: #f4f8fd;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow: auto;
+      min-height: 82px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      padding: 26px;
+      background: rgba(255,255,255,.72);
+    }
+    @media (max-width: 1180px) {
+      .summary, .toolbar, .import-grid, .provider-grid, .provider-summary { grid-template-columns: 1fr; }
+      .provider-meta { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app stack">
+    <section class="panel hero">
+      <h1>Controle local de API keys pendentes</h1>
+      <p>Use este painel para acompanhar quais credenciais ja foram criadas, inserir valores localmente, montar o bloco <code>.env</code> e marcar o teste concluido. O navegador salva apenas checklist e observacoes. Os segredos digitados ficam somente nesta sessao.</p>
+    </section>
+
+    <section class="panel summary" id="summary"></section>
+
+    <section class="panel toolbar">
+      <div class="field">
+        <label for="search">Buscar provider</label>
+        <input id="search" type="search" placeholder="Ex.: Groq, Google, Tavily..." />
+      </div>
+      <div class="field">
+        <label for="category">Categoria</label>
+        <select id="category"></select>
+      </div>
+      <div class="field">
+        <label for="state">Preenchimento</label>
+        <select id="state">
+          <option value="all">Todos</option>
+          <option value="empty">Vazio</option>
+          <option value="partial">Parcial</option>
+          <option value="ready">Pronto para .env</option>
+        </select>
+      </div>
+      <div class="toolbar-flag">
+        <input id="onlyUntested" type="checkbox" />
+        <label for="onlyUntested">Mostrar so sem teste</label>
+      </div>
+    </section>
+
+    <section class="panel import-panel">
+      <div class="import-top">
+        <div>Importe um <code>.env</code> atual ou cole pares <code>ENV=valor</code>.</div>
+        <div>Os segredos digitados nao vao para <code>localStorage</code>.</div>
+      </div>
+      <div class="import-grid">
+        <div class="import-help">
+          <strong>Fluxo recomendado</strong>
+          <ul>
+            <li>Abrir o portal do provider.</li>
+            <li>Gerar a credencial e marcar <em>Chave criada</em>.</li>
+            <li>Preencher os campos ou importar o <code>.env</code>.</li>
+            <li>Revisar ou baixar o bloco consolidado.</li>
+            <li>Executar o teste no backend e marcar <em>Teste OK</em>.</li>
+          </ul>
+        </div>
+        <div class="field">
+          <label for="envText">Colar texto .env</label>
+          <textarea id="envText" placeholder="OPENROUTER_API_KEY=...\nMISTRAL_API_KEY=..."></textarea>
+          <div class="actions">
+            <button class="btn" id="importText">Importar texto</button>
+            <label class="btn secondary" for="envFile">Importar arquivo .env</label>
+            <input id="envFile" type="file" accept=".env,text/plain" hidden />
+            <button class="btn secondary" id="downloadEnv">Baixar .env</button>
+            <button class="btn ghost" id="copyEnv">Copiar .env</button>
+            <button class="btn secondary" id="clearSession">Limpar sessao</button>
+            <button class="btn secondary" id="clearProgress">Limpar progresso</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="content" class="stack"></div>
+  </div>
+
+  <script src="./providers-key-manager-data.js"></script>
+  <script>
+    const DATA = window.LUME_PROVIDER_KEY_DATA || [];
+    const STORAGE_KEY = "lume.provider.key.manager.progress.v1";
+    const CATEGORY_LABEL = {
+      "text-runtime": "Texto e chat",
+      "vector-runtime": "Embeddings e rerank",
+      "research-search": "Busca e pesquisa",
+      "media-audio": "Midia, audio e OCR",
+      "enterprise-gateway": "Gateways enterprise",
+      "threat-intel": "Threat intel"
+    };
+    const PRIORITY = {
+      "text-runtime": "Alta",
+      "vector-runtime": "Alta",
+      "research-search": "Alta",
+      "media-audio": "Media",
+      "enterprise-gateway": "Media",
+      "threat-intel": "Restrita"
+    };
+    const state = { search: "", category: "all", fill: "all", onlyUntested: false, expanded: {}, values: {}, progress: loadProgress() };
+    const summaryEl = document.getElementById("summary");
+    const contentEl = document.getElementById("content");
+    const searchEl = document.getElementById("search");
+    const categoryEl = document.getElementById("category");
+    const fillEl = document.getElementById("state");
+    const onlyUntestedEl = document.getElementById("onlyUntested");
+    const envTextEl = document.getElementById("envText");
+    const envFileEl = document.getElementById("envFile");
+    function loadProgress() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+      catch { return {}; }
+    }
+    function saveProgress() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
+    }
+    function esc(v) {
+      return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+    }
+    function noteFor(code, category) {
+      if (code.startsWith("google-")) return "Uma credencial shared cobre os servicos Google Cloud desta familia.";
+      if (code === "aws-bedrock") return "Requer IAM access key e regiao. Nao e uma API key unica.";
+      if (code === "azure-openai") return "Precisa endpoint, deployment e api-version alem da chave.";
+      if (["darkowl","darknetsearch","flare","fullhunt","onion-search-engine","twingly"].includes(code)) return "Fluxo restrito. Exige compliance, aprovacao e smoke separado.";
+      if (code === "github-models") return "O PAT precisa escopo compativel com GitHub Models.";
+      if (code === "dashscope-qwen") return "Valide a regiao gratuita antes de promover para uso live.";
+      return category === "threat-intel" ? "Bloquear ate compliance e autorizacao estarem fechados." : "Criar credencial, preencher o .env e executar connectivity-test.";
+    }
+    function progress(code) {
+      return state.progress[code] || { portal:false, created:false, env:false, tested:false, note:"" };
+    }
+    function completion(item) {
+      const total = item.e.length;
+      const filled = item.e.filter(([name]) => (state.values[name] || "").trim()).length;
+      if (filled === 0) return { filled, total, cls:"state-empty", label:"Vazio" };
+      if (filled < total) return { filled, total, cls:"state-partial", label:`Parcial ${filled}/${total}` };
+      return { filled, total, cls:"state-ready", label:"Pronto para .env" };
+    }
+    function parseEnv(text) {
+      const result = {};
+      text.split(/\r?\n/).forEach((raw) => {
+        const line = raw.trim();
+        if (!line || line.startsWith("#")) return;
+        const i = line.indexOf("=");
+        if (i < 1) return;
+        result[line.slice(0,i).trim()] = line.slice(i+1);
+      });
+      return result;
+    }
+    function buildEnv(provider) {
+      return provider.e.map(([name]) => `${name}=${state.values[name] || ""}`).join("\n");
+    }
+    function buildAllEnv() {
+      const map = new Map();
+      DATA.forEach((item) => item.e.forEach(([name]) => { if ((state.values[name] || "").length) map.set(name, state.values[name]); }));
+      return Array.from(map.entries()).sort((a,b) => a[0].localeCompare(b[0])).map(([k,v]) => `${k}=${v}`).join("\n");
+    }
+    function card(label, value, note) {
+      return `<div class="summary-card"><div class="summary-label">${esc(label)}</div><div class="summary-value">${esc(value)}</div><div class="summary-note">${esc(note)}</div></div>`;
+    }
+    function filtered() {
+      const s = state.search.trim().toLowerCase();
+      return DATA.filter((item) => {
+        const c = completion(item);
+        const p = progress(item.c);
+        const hay = `${item.c} ${item.n} ${CATEGORY_LABEL[item.g]} ${item.u} ${item.e.map(([n]) => n).join(" ")} ${noteFor(item.c,item.g)}`.toLowerCase();
+        if (state.category !== "all" && item.g !== state.category) return false;
+        if (state.fill === "empty" && c.filled !== 0) return false;
+        if (state.fill === "partial" && !(c.filled > 0 && c.filled < c.total)) return false;
+        if (state.fill === "ready" && c.filled !== c.total) return false;
+        if (state.onlyUntested && p.tested) return false;
+        if (s && !hay.includes(s)) return false;
+        return true;
+      });
+    }
+    function renderSummary(items) {
+      const ready = items.filter((x) => completion(x).filled === completion(x).total).length;
+      const created = items.filter((x) => progress(x.c).created).length;
+      const tested = items.filter((x) => progress(x.c).tested).length;
+      summaryEl.innerHTML = [
+        card("Providers visiveis", items.length, "Aplicando os filtros atuais."),
+        card("Prontos para .env", ready, "Todos os campos obrigatorios preenchidos nesta sessao."),
+        card("Chave criada", created, "Controle manual salvo no navegador."),
+        card("Teste OK", tested, "Connectivity ou smoke validado manualmente.")
+      ].join("");
+    }
+    function renderProvider(item) {
+      const p = progress(item.c);
+      const c = completion(item);
+      const open = state.expanded[item.c] || c.cls === "state-ready" || p.created;
+      return `
+        <details class="provider-card" data-code="${esc(item.c)}" ${open ? "open" : ""}>
+          <summary class="provider-summary">
+            <div>
+              <div class="provider-name">${esc(item.n)}</div>
+              <div class="provider-code">${esc(item.c)}</div>
+            </div>
+            <div class="badges">
+              <span class="badge priority-${PRIORITY[item.g].toLowerCase()}">${esc(PRIORITY[item.g])}</span>
+              <span class="badge ${c.cls}">${esc(c.label)}</span>
+              <span class="badge ${p.tested ? "state-ready" : "state-empty"}">${p.tested ? "Teste OK" : "Sem teste"}</span>
+            </div>
+            <div class="provider-meta">
+              <span>${item.e.length} env(s)</span>
+              <a href="${esc(item.u)}" target="_blank" rel="noreferrer">Abrir portal</a>
+            </div>
+          </summary>
+          <div class="provider-body">
+            <div class="provider-grid">
+              <div class="box">
+                <div class="box-title">Credenciais obrigatorias</div>
+                <div class="env-list">
+                  ${item.e.map(([name,secret]) => `
+                    <div class="env-row">
+                      <div class="env-head">
+                        <div class="env-name">${esc(name)}</div>
+                        <a href="${esc(item.u)}" target="_blank" rel="noreferrer">Portal</a>
+                      </div>
+                      <div class="env-input">
+                        <input data-role="env" data-env="${esc(name)}" data-code="${esc(item.c)}" id="${esc(item.c)}__${esc(name)}" type="${secret ? "password" : "text"}" value="${esc(state.values[name] || "")}" autocomplete="off" spellcheck="false" />
+                        ${secret ? `<button class="btn secondary" data-role="toggle" data-target="${esc(item.c)}__${esc(name)}" type="button">Mostrar</button>` : ``}
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+              <div class="box">
+                <div class="box-title">Controle operacional</div>
+                <div class="check-grid">
+                  ${check(item.c,"portal","Portal acessado",p.portal)}
+                  ${check(item.c,"created","Chave criada",p.created)}
+                  ${check(item.c,"env",".env aplicado",p.env)}
+                  ${check(item.c,"tested","Teste OK",p.tested)}
+                </div>
+                <div class="field note-field" style="margin-top:14px;">
+                  <label for="note-${esc(item.c)}">Observacao</label>
+                  <textarea id="note-${esc(item.c)}" data-role="note" data-code="${esc(item.c)}">${esc(p.note || "")}</textarea>
+                </div>
+                <div class="actions" style="margin-top:12px;">
+                  <button class="btn secondary" data-role="copy-provider" data-code="${esc(item.c)}" type="button">Copiar bloco do provider</button>
+                  <button class="btn ghost" data-role="clear-provider" data-code="${esc(item.c)}" type="button">Limpar valores deste provider</button>
+                </div>
+                <div class="env-help" style="margin-top:12px;">${esc(noteFor(item.c,item.g))}</div>
+              </div>
+            </div>
+            <div class="box">
+              <div class="box-title">Bloco .env do provider</div>
+              <pre class="env-preview">${esc(buildEnv(item))}</pre>
+            </div>
+          </div>
+        </details>
+      `;
+    }
+    function check(code,key,label,value) {
+      return `<label><input type="checkbox" data-role="check" data-code="${esc(code)}" data-key="${esc(key)}" ${value ? "checked" : ""} /><span>${esc(label)}</span></label>`;
+    }
+    function render() {
+      const items = filtered();
+      renderSummary(items);
+      const groups = {};
+      items.forEach((item) => { (groups[item.g] ||= []).push(item); });
+      const categories = Object.keys(groups);
+      if (!categories.length) {
+        contentEl.innerHTML = `<div class="panel empty">Nenhum provider corresponde ao filtro atual.</div>`;
+        return;
+      }
+      contentEl.innerHTML = categories.map((group) => `
+        <section class="panel section">
+          <div class="section-header">
+            <div class="section-title">${esc(CATEGORY_LABEL[group])}</div>
+            <div class="section-meta">${groups[group].length} provider(s)</div>
+          </div>
+          <div class="provider-list">${groups[group].map(renderProvider).join("")}</div>
+        </section>
+      `).join("");
+    }
+    function fillCategories() {
+      const groups = [...new Set(DATA.map((x) => x.g))];
+      categoryEl.innerHTML = `<option value="all">Todas</option>${groups.map((g) => `<option value="${esc(g)}">${esc(CATEGORY_LABEL[g])}</option>`).join("")}`;
+    }
+    async function copyText(value) {
+      if (!navigator.clipboard || !window.isSecureContext) {
+        alert("Clipboard nao esta disponivel neste contexto. Use o download do .env.");
+        return;
+      }
+      await navigator.clipboard.writeText(value);
+      alert("Conteudo copiado.");
+    }
+    function downloadText(name, value) {
+      const blob = new Blob([value], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    searchEl.addEventListener("input", (e) => { state.search = e.target.value; render(); });
+    categoryEl.addEventListener("change", (e) => { state.category = e.target.value; render(); });
+    fillEl.addEventListener("change", (e) => { state.fill = e.target.value; render(); });
+    onlyUntestedEl.addEventListener("change", (e) => { state.onlyUntested = e.target.checked; render(); });
+    document.getElementById("importText").addEventListener("click", () => { if (envTextEl.value.trim()) { state.values = { ...state.values, ...parseEnv(envTextEl.value) }; render(); } });
+    envFileEl.addEventListener("change", async (e) => { const f = e.target.files?.[0]; if (f) { state.values = { ...state.values, ...parseEnv(await f.text()) }; render(); } e.target.value = ""; });
+    document.getElementById("downloadEnv").addEventListener("click", () => {
+      const content = buildAllEnv();
+      if (!content) return alert("Nao ha valores preenchidos na sessao.");
+      downloadText("providers-generated.env", content);
+    });
+    document.getElementById("copyEnv").addEventListener("click", async () => {
+      const content = buildAllEnv();
+      if (!content) return alert("Nao ha valores preenchidos na sessao.");
+      try { await copyText(content); } catch { alert("Falha ao copiar o .env."); }
+    });
+    document.getElementById("clearSession").addEventListener("click", () => { state.values = {}; render(); });
+    document.getElementById("clearProgress").addEventListener("click", () => { state.progress = {}; saveProgress(); render(); });
+    contentEl.addEventListener("toggle", (e) => {
+      const d = e.target.closest("details[data-code]");
+      if (d) state.expanded[d.dataset.code] = d.open;
+    }, true);
+    contentEl.addEventListener("input", (e) => {
+      const t = e.target;
+      if (t.dataset.role === "note") { state.progress[t.dataset.code] = { ...progress(t.dataset.code), note: t.value }; saveProgress(); }
+    });
+    contentEl.addEventListener("change", (e) => {
+      const t = e.target;
+      if (t.dataset.role === "env") {
+        state.values[t.dataset.env] = t.value;
+        render();
+      }
+      if (t.dataset.role === "check") {
+        state.progress[t.dataset.code] = { ...progress(t.dataset.code), [t.dataset.key]: t.checked };
+        saveProgress();
+        render();
+      }
+    });
+    contentEl.addEventListener("click", async (e) => {
+      const t = e.target.closest("[data-role]");
+      if (!t) return;
+      if (t.dataset.role === "toggle") {
+        const input = document.getElementById(t.dataset.target);
+        if (!input) return;
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        t.textContent = show ? "Ocultar" : "Mostrar";
+      }
+      if (t.dataset.role === "copy-provider") {
+        const item = DATA.find((x) => x.c === t.dataset.code);
+        if (!item) return;
+        try { await copyText(buildEnv(item)); } catch { alert("Falha ao copiar o bloco do provider."); }
+      }
+      if (t.dataset.role === "clear-provider") {
+        const item = DATA.find((x) => x.c === t.dataset.code);
+        if (!item) return;
+        item.e.forEach(([name]) => delete state.values[name]);
+        render();
+      }
+    });
+    fillCategories();
+    render();
+  </script>
+</body>
+</html>

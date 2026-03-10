@@ -39,6 +39,7 @@ import com.lume.workspace.repository.WorkspaceJpaRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
+@Profile({"dev", "test"})
 @ConditionalOnProperty(prefix = "lume.workspace.bootstrap", name = "enabled", havingValue = "true")
 public class WorkspaceBootstrapDataInitializer implements ApplicationRunner {
 

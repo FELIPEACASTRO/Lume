@@ -18,9 +18,13 @@
 | Inicio | O que voce quer fazer? | Buscar informacoes, retomar pendencias e iniciar trabalho novo | Buscar | Nova tarefa |
 | Tarefas | Tarefas | Acompanhar execucao e prioridades | Nova tarefa | Filtrar tarefas |
 | Projetos | Projetos | Organizar contexto, responsaveis e prioridades | Novo projeto | Ver tarefas |
-| Biblioteca | Arquivos e entregas | Consultar arquivos, versoes e historico | Registrar versao | Buscar |
+| Biblioteca | Biblioteca | Consultar arquivos, versoes e historico | Registrar versao | Buscar |
 | Equipe | Equipe | Gerir acessos e papeis | Convidar pessoa | Ajustar funcao |
 | Configuracoes | Configuracoes do workspace | Ajustar preferencias, limites, conhecimento e provedores | Salvar alteracoes | Ver docs |
+
+## Componentes de cabecalho
+- `PageHeader`: cabecalho padrao das areas principais.
+- `WorkspaceNotice`: reservado para avisos, contexto ou erro, e nao como cabecalho padrao de pagina.
 
 ## Regras de copy
 - Evitar termos como `shell`, `runtime`, `preview honesto`, `catalog-only`, `backend-first` na UI principal.
@@ -59,4 +63,4 @@
 - Areas restritas aparecem apenas com permissao e estado real no backend.
 - O campo principal de `Inicio` usa `Buscar` como modo padrao.
 - `Nova tarefa` continua disponivel, mas nao e mais o comportamento implicito do composer principal.
-- O catalogo da shell e dos tipos de tarefa agora e administravel por banco e refletido na UI sem deploy.
+- O menu principal e os tipos de tarefa agora sao administraveis por banco e refletidos na UI sem deploy.

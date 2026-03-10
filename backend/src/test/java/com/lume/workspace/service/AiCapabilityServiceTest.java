@@ -59,7 +59,8 @@ class AiCapabilityServiceTest {
                 new NoOpAudioDocumentCapabilityService(catalogService),
                 new NoOpMediaCapabilityService(catalogService),
                 new NoOpResearchService(catalogService),
-                new NoOpThreatIntelService(catalogService)
+                new NoOpThreatIntelService(catalogService),
+                new NoOpLanguageCapabilityService(catalogService)
         );
 
         AiPlatformModels.ChatResponse response = service.chat(new AiPlatformModels.ChatRequest(
@@ -145,7 +146,8 @@ class AiCapabilityServiceTest {
                 new NoOpAudioDocumentCapabilityService(catalogService),
                 new NoOpMediaCapabilityService(catalogService),
                 researchService,
-                new NoOpThreatIntelService(catalogService)
+                new NoOpThreatIntelService(catalogService),
+                new NoOpLanguageCapabilityService(catalogService)
         );
 
         AiPlatformModels.WebGroundedChatResponse response = service.webGroundedChat(new AiPlatformModels.WebGroundedChatRequest(
@@ -225,7 +227,8 @@ class AiCapabilityServiceTest {
                 new NoOpAudioDocumentCapabilityService(catalogService),
                 new NoOpMediaCapabilityService(catalogService),
                 researchService,
-                new NoOpThreatIntelService(catalogService)
+                new NoOpThreatIntelService(catalogService),
+                new NoOpLanguageCapabilityService(catalogService)
         );
 
         AiPlatformModels.WebGroundedChatResponse response = service.webGroundedChat(new AiPlatformModels.WebGroundedChatRequest(
@@ -276,7 +279,14 @@ class AiCapabilityServiceTest {
         private ResearchQueryRequest lastRequest;
 
         private StubResearchService(ProviderCatalogService providerCatalogService, ResearchQueryResponse response) {
-            super(providerCatalogService, new TestWorkspaceContextService(), new NoOpAuditLogService(), RestClient.builder(), new ObjectMapper());
+            super(
+                    providerCatalogService,
+                    new TestWorkspaceContextService(),
+                    new NoOpAuditLogService(),
+                    new NoOpWorkspaceLedgerService(),
+                    RestClient.builder(),
+                    new ObjectMapper()
+            );
             this.response = response;
         }
 
@@ -299,7 +309,7 @@ class AiCapabilityServiceTest {
 
     private static final class NoOpThreatIntelService extends ThreatIntelService {
         private NoOpThreatIntelService(ProviderCatalogService providerCatalogService) {
-            super(providerCatalogService, new TestWorkspaceContextService(), new NoOpAuditLogService(), new SecurityComplianceProperties());
+            super(providerCatalogService, new TestWorkspaceContextService(), new NoOpAuditLogService(), new SecurityComplianceProperties(), RestClient.builder(), new ObjectMapper());
         }
 
         @Override
@@ -310,7 +320,7 @@ class AiCapabilityServiceTest {
 
     private static final class NoOpAudioDocumentCapabilityService extends AudioDocumentCapabilityService {
         private NoOpAudioDocumentCapabilityService(ProviderCatalogService providerCatalogService) {
-            super(providerCatalogService, new TestWorkspaceContextService(), new NoOpAuditLogService(), RestClient.builder(), new ObjectMapper());
+            super(providerCatalogService, new TestWorkspaceContextService(), new NoOpAuditLogService(), new GoogleCloudSupportService(providerCatalogService, new ObjectMapper()), RestClient.builder(), new ObjectMapper());
         }
     }
 
@@ -377,7 +387,30 @@ class AiCapabilityServiceTest {
 
     private static final class NoOpResearchService extends ResearchService {
         private NoOpResearchService(ProviderCatalogService providerCatalogService) {
-            super(providerCatalogService, new TestWorkspaceContextService(), new NoOpAuditLogService(), RestClient.builder(), new ObjectMapper());
+            super(
+                    providerCatalogService,
+                    new TestWorkspaceContextService(),
+                    new NoOpAuditLogService(),
+                    new NoOpWorkspaceLedgerService(),
+                    RestClient.builder(),
+                    new ObjectMapper()
+            );
+        }
+    }
+
+    private static final class NoOpLanguageCapabilityService extends LanguageCapabilityService {
+        private NoOpLanguageCapabilityService(ProviderCatalogService providerCatalogService) {
+            super(providerCatalogService, new TestWorkspaceContextService(), new NoOpAuditLogService(), new GoogleCloudSupportService(providerCatalogService, new ObjectMapper()), RestClient.builder(), new ObjectMapper());
+        }
+
+        @Override
+        public AiPlatformModels.TranslationResponse translate(AiPlatformModels.TranslationRequest request) {
+            throw new UnsupportedOperationException("Nao usado neste teste.");
+        }
+
+        @Override
+        public AiPlatformModels.NlpAnalysisResponse analyze(AiPlatformModels.NlpAnalysisRequest request) {
+            throw new UnsupportedOperationException("Nao usado neste teste.");
         }
     }
 }

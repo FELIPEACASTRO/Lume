@@ -20,7 +20,6 @@ class IntegratedTestStatus(str, Enum):
     READY_IF_SECRETS_PRESENT = "READY_IF_SECRETS_PRESENT"
     BLOCKED_BY_CONFIG = "BLOCKED_BY_CONFIG"
     BLOCKED_BY_BACKEND = "BLOCKED_BY_BACKEND"
-    BLOCKED_BY_FRONTEND = "BLOCKED_BY_FRONTEND"
     BLOCKED_BY_FEATURE_FLAG = "BLOCKED_BY_FEATURE_FLAG"
     BLOCKED_BY_INFRA = "BLOCKED_BY_INFRA"
     BLOCKED_BY_TEST_HARNESS = "BLOCKED_BY_TEST_HARNESS"
@@ -68,7 +67,6 @@ class RepoEvidence:
     governance: dict[str, Any] | None = None
     backend_runtime_files: list[str] = field(default_factory=list)
     backend_controller_files: list[str] = field(default_factory=list)
-    frontend_files: list[str] = field(default_factory=list)
     test_files: list[str] = field(default_factory=list)
     docs_files: list[str] = field(default_factory=list)
     config_files: list[str] = field(default_factory=list)
@@ -83,10 +81,6 @@ class RepoEvidence:
     @property
     def has_backend_runtime(self) -> bool:
         return bool(self.backend_runtime_files or self.backend_controller_files)
-
-    @property
-    def has_frontend(self) -> bool:
-        return bool(self.frontend_files)
 
     @property
     def has_tests(self) -> bool:

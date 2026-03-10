@@ -41,8 +41,8 @@ def _write_markdown(path: Path, bundle: AuditBundle) -> None:
     records = bundle.records
     by_status = Counter(record.implementationStatus for record in records)
     by_test_status = Counter(record.integratedTestStatus for record in records)
-    ui_without_backend = _records_with(
-        lambda item: "frontend" in item.exposure and item.coverageType in {"NOT_IMPLEMENTED", "PARTIAL"},
+    docs_without_backend = _records_with(
+        lambda item: "docs" in item.exposure and "backend" not in item.exposure and item.coverageType in {"NOT_IMPLEMENTED", "PARTIAL"},
         records,
     )
     blocked = sorted(
@@ -64,7 +64,7 @@ def _write_markdown(path: Path, bundle: AuditBundle) -> None:
 
 - A auditoria privilegia codigo executavel e testes antes de metadata e docs.
 - `provider-governance-metadata.json` foi tratado como overlay operacional principal.
-- O scanner foi executado em modo read-only sobre backend, frontend, docs, config e testes.
+- O scanner foi executado em modo read-only sobre backend, docs, config e testes.
 
 ## 3. Matriz completa por servico
 
@@ -76,9 +76,9 @@ def _write_markdown(path: Path, bundle: AuditBundle) -> None:
 
 {as_markdown_bullets([f"{record.service}: {record.primaryBlocker}" for record in records if record.implementationStatus in {'live', 'implemented_with_restrictions'} and record.integratedTestStatus not in {'READY_FOR_INTEGRATED_TEST', 'READY_IF_SECRETS_PRESENT'}])}
 
-## 5. Servicos expostos na UI/docs sem runtime comprovado
+## 5. Servicos expostos em docs/config sem runtime comprovado
 
-{as_markdown_bullets([f"{record.service}: {record.coverageType}" for record in ui_without_backend])}
+{as_markdown_bullets([f"{record.service}: {record.coverageType}" for record in docs_without_backend])}
 
 ## 6. Top 20 bloqueadores
 

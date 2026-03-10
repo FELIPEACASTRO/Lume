@@ -6,6 +6,7 @@ import com.lume.workspace.inference.adapter.OpenAiAdapter;
 import com.lume.workspace.inference.config.AiRuntimeProperties;
 import com.lume.workspace.inference.port.AiStreamObserver;
 import com.lume.workspace.inference.security.EnvironmentSecretResolver;
+import com.lume.workspace.service.NoOpWorkspaceLedgerService;
 import com.lume.workspace.service.ProviderCatalogService;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +38,8 @@ class AiInferenceOrchestratorStreamingTest {
                 new AiCircuitBreakerRegistry(),
                 new AiBulkheadRegistry(),
                 new AiRateLimiterRegistry(),
-                new com.lume.workspace.inference.metrics.AiMetricsRecorder(new SimpleMeterRegistry())
+                new com.lume.workspace.inference.metrics.AiMetricsRecorder(new SimpleMeterRegistry()),
+                new NoOpWorkspaceLedgerService()
         );
 
         CapturingObserver observer = new CapturingObserver();

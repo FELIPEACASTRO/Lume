@@ -18,7 +18,17 @@ public enum ProviderKey {
     TOGETHER("together"),
     FIREWORKS("fireworks"),
     DEEPINFRA("deepinfra"),
-    MISTRAL("mistral");
+    MISTRAL("mistral"),
+    CLOUDFLARE_WORKERS_AI("cloudflare-workers-ai", "cloudflare"),
+    AWS_BEDROCK("aws-bedrock", "bedrock"),
+    HUGGING_FACE("hugging-face", "huggingface", "hf"),
+    AI21("ai21"),
+    AZURE_OPENAI("azure-openai", "azure"),
+    CEREBRAS("cerebras"),
+    NVIDIA_NIM("nvidia-nim", "nvidia"),
+    SAMBANOVA("sambanova"),
+    SILICONFLOW("siliconflow"),
+    DASHSCOPE_QWEN("dashscope-qwen", "dashscope");
 
     private final String code;
     private final Set<String> aliases;

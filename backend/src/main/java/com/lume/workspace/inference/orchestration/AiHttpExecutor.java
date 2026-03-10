@@ -120,6 +120,7 @@ public class AiHttpExecutor {
             if (statusCode == 429) {
                 throw new AiRateLimitException("Rate limit recebido de " + providerCode + ".");
             }
+            String summarizedProviderError = summarizeProviderError(sanitizedMessage);
             LOGGER.warn(
                     "Provider {} respondeu com erro HTTP {}. headers={} mensagem={}",
                     providerCode,
@@ -127,7 +128,11 @@ public class AiHttpExecutor {
                     SecretMasker.sanitizeHeaders(headers),
                     sanitizedMessage
             );
-            throw new AiProviderException("Erro HTTP " + statusCode + " ao consultar " + providerCode + ".", responseException, statusCode >= 500);
+            throw new AiProviderException(
+                    "Erro HTTP " + statusCode + " ao consultar " + providerCode + ": " + summarizedProviderError,
+                    responseException,
+                    statusCode >= 500
+            );
         } catch (ResourceAccessException accessException) {
             throw new AiTimeoutException("Falha de acesso de rede ao consultar " + providerCode + ".", accessException);
         } catch (RuntimeException genericException) {
@@ -141,6 +146,46 @@ public class AiHttpExecutor {
 
     public JsonNode toJsonNode(Object value) {
         return objectMapper.valueToTree(value);
+    }
+
+    private String summarizeProviderError(String sanitizedBody) {
+        if (sanitizedBody == null || sanitizedBody.isBlank()) {
+            return "erro sem detalhes";
+        }
+
+        String trimmed = sanitizedBody.trim();
+        try {
+            JsonNode json = objectMapper.readTree(trimmed);
+            String candidate = firstNonBlank(
+                    json.path("error").path("message").asText(null),
+                    json.path("error").path("detail").asText(null),
+                    json.path("detail").asText(null),
+                    json.path("message").asText(null),
+                    json.path("error").asText(null)
+            );
+            if (candidate != null && !candidate.isBlank()) {
+                return truncate(candidate.trim());
+            }
+        } catch (Exception ignored) {
+            // Non-JSON provider payload; fallback below.
+        }
+        return truncate(trimmed);
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private String truncate(String text) {
+        if (text.length() <= 280) {
+            return text;
+        }
+        return text.substring(0, 280) + "...";
     }
 
     @PreDestroy

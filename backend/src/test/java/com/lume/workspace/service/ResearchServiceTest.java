@@ -87,6 +87,7 @@ class ResearchServiceTest {
                 catalogService,
                 new TestWorkspaceContextService(),
                 new NoOpAuditLogService(),
+                new NoOpWorkspaceLedgerService(),
                 builder,
                 new ObjectMapper()
         );
@@ -120,6 +121,21 @@ class ResearchServiceTest {
 
         @Override
         public void requirePermission(String permission) {
+        }
+
+        @Override
+        public Long getOrganizationId() {
+            return 1L;
+        }
+
+        @Override
+        public Long getWorkspaceId() {
+            return 1L;
+        }
+
+        @Override
+        public Long getActorUserIdOrNull() {
+            return 1L;
         }
     }
 

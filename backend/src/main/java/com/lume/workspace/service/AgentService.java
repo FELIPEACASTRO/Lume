@@ -32,6 +32,7 @@ public class AgentService {
     private final AuditLogService auditLogService;
     private final ProviderCatalogService providerCatalogService;
     private final InferenceGatewayService inferenceGatewayService;
+    private final WorkspaceLedgerService workspaceLedgerService;
 
     public AgentService(
             AgentProfileJpaRepository agentProfileRepository,
@@ -40,7 +41,8 @@ public class AgentService {
             WorkspaceContextService workspaceContextService,
             AuditLogService auditLogService,
             ProviderCatalogService providerCatalogService,
-            InferenceGatewayService inferenceGatewayService
+            InferenceGatewayService inferenceGatewayService,
+            WorkspaceLedgerService workspaceLedgerService
     ) {
         this.agentProfileRepository = agentProfileRepository;
         this.agentThreadRepository = agentThreadRepository;
@@ -49,6 +51,7 @@ public class AgentService {
         this.auditLogService = auditLogService;
         this.providerCatalogService = providerCatalogService;
         this.inferenceGatewayService = inferenceGatewayService;
+        this.workspaceLedgerService = workspaceLedgerService;
     }
 
     public List<AgentProfileResponse> listProfiles() {
@@ -145,7 +148,13 @@ public class AgentService {
                 null,
                 List.of(new UnifiedMessageRequest("user", initialMessage)),
                 0.3,
-                700
+                700,
+                List.of(),
+                "thread-" + threadId,
+                "quality",
+                false,
+                List.of("agents", "thread_create"),
+                String.valueOf(workspaceContextService.getWorkspaceId())
         ));
         if (!isSuccessfulInference(inference)) {
             applyThreadFailure(thread, inference.error());
@@ -160,6 +169,12 @@ public class AgentService {
                             "modelCode", profile.getModelCode(),
                             "error", thread.getLastError()
                     )
+            );
+            workspaceLedgerService.recordUsageEvent(
+                    "agents.thread_failed",
+                    "agent_thread",
+                    threadId,
+                    "Falha na execucao inicial da thread do agente."
             );
             throw new AiProviderException(thread.getLastError(), false);
         }
@@ -180,6 +195,12 @@ public class AgentService {
                         "modelCode", profile.getModelCode(),
                         "runtimeState", thread.getRuntimeState()
                 )
+        );
+        workspaceLedgerService.recordUsageEvent(
+                "agents.thread_created",
+                "agent_thread",
+                threadId,
+                "Thread criada com resposta inicial concluida."
         );
 
         return new AgentConversationResponse(
@@ -206,7 +227,13 @@ public class AgentService {
                 null,
                 history,
                 0.3,
-                700
+                700,
+                List.of(),
+                "thread-" + threadId + "-append",
+                "quality",
+                false,
+                List.of("agents", "thread_append"),
+                String.valueOf(workspaceContextService.getWorkspaceId())
         ));
         if (!isSuccessfulInference(inference)) {
             applyThreadFailure(thread, inference.error());
@@ -222,6 +249,12 @@ public class AgentService {
                             "modelCode", profile.getModelCode(),
                             "error", thread.getLastError()
                     )
+            );
+            workspaceLedgerService.recordUsageEvent(
+                    "agents.message_failed",
+                    "agent_thread",
+                    threadId,
+                    "Falha ao processar mensagem em thread de agente."
             );
             throw new AiProviderException(thread.getLastError(), false);
         }
@@ -246,6 +279,12 @@ public class AgentService {
                         "modelCode", profile.getModelCode(),
                         "runtimeState", thread.getRuntimeState()
                 )
+        );
+        workspaceLedgerService.recordUsageEvent(
+                "agents.message_appended",
+                "agent_thread",
+                threadId,
+                "Mensagem anexada e resposta concluida na thread."
         );
 
         return new AgentConversationResponse(toThreadResponse(thread, profile), messages);

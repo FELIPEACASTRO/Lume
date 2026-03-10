@@ -109,6 +109,18 @@ public class VersionedAiPlatformController {
         return ResponseEntity.ok(aiCapabilityService.ocr(request));
     }
 
+    @PostMapping("/translation/text")
+    public ResponseEntity<AiPlatformModels.TranslationResponse> translate(@Valid @RequestBody AiPlatformModels.TranslationRequest request) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_WORKSPACE_READ);
+        return ResponseEntity.ok(aiCapabilityService.translate(request));
+    }
+
+    @PostMapping("/nlp/analyze")
+    public ResponseEntity<AiPlatformModels.NlpAnalysisResponse> analyze(@Valid @RequestBody AiPlatformModels.NlpAnalysisRequest request) {
+        workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_WORKSPACE_READ);
+        return ResponseEntity.ok(aiCapabilityService.analyzeText(request));
+    }
+
     @PostMapping("/search")
     public ResponseEntity<AiPlatformModels.AiSearchResponse> search(@Valid @RequestBody AiPlatformModels.AiSearchRequest request) {
         workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_RESEARCH_RUN);
@@ -126,4 +138,5 @@ public class VersionedAiPlatformController {
         workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_THREAT_INTEL_RUN);
         return ResponseEntity.ok(aiCapabilityService.threatIntelSearch(request));
     }
+
 }

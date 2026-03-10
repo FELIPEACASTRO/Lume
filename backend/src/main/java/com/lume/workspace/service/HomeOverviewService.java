@@ -11,6 +11,7 @@ import com.lume.workspace.entity.NotificationJpaEntity;
 import com.lume.workspace.entity.TaskJpaEntity;
 import com.lume.workspace.repository.NotificationJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -52,17 +53,21 @@ public class HomeOverviewService {
         int recentLimit = blockLimit(blocks, "recent");
         int teamContextLimit = blockLimit(blocks, "team_context");
 
-        List<HomeFocusItemResponse> inProgress = taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)
+        List<HomeFocusItemResponse> inProgress = taskRepository.findByWorkspaceIdAndRuntimeStateInOrderByUpdatedAtDesc(
+                        workspaceId,
+                        List.of("running", "queued", "ready"),
+                        PageRequest.of(0, inProgressLimit)
+                )
                 .stream()
-                .filter(task -> "running".equalsIgnoreCase(task.getRuntimeState()) || "queued".equalsIgnoreCase(task.getRuntimeState()))
                 .limit(inProgressLimit)
                 .map(this::toFocusItem)
                 .toList();
 
-        List<HomeAlertResponse> alerts = notificationRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceId)
+        List<HomeAlertResponse> alerts = notificationRepository.findByWorkspaceIdAndReadFalseOrderByCreatedAtDesc(
+                        workspaceId,
+                        PageRequest.of(0, alertLimit)
+                )
                 .stream()
-                .filter(notification -> !notification.isRead())
-                .limit(alertLimit)
                 .map(this::toAlertResponse)
                 .toList();
 
@@ -96,7 +101,7 @@ public class HomeOverviewService {
         return new HomeFocusItemResponse(
                 task.getId(),
                 task.getTitle(),
-                task.getSummary(),
+                task.getSummary() == null || task.getSummary().isBlank() ? task.getPrompt() : task.getSummary(),
                 task.getStatusLabel(),
                 task.getRuntimeState(),
                 task.getOwnerName(),

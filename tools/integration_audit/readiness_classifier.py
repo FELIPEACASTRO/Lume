@@ -33,8 +33,6 @@ def classify_readiness(record: ServiceAuditRecord, evidence: RepoEvidence) -> In
         return IntegratedTestStatus.BLOCKED_BY_BACKEND
     if coverage == CoverageType.LEGACY_OR_DISABLED:
         return IntegratedTestStatus.BLOCKED_BY_FEATURE_FLAG if implementation_status == "blocked" else IntegratedTestStatus.BLOCKED_BY_BACKEND
-    if evidence.has_frontend and not evidence.has_backend_runtime:
-        return IntegratedTestStatus.BLOCKED_BY_BACKEND
     if evidence.has_docs or evidence.governance:
         return IntegratedTestStatus.BLOCKED_BY_BACKEND
     return IntegratedTestStatus.UNKNOWN
@@ -49,8 +47,6 @@ def apply_readiness(record: ServiceAuditRecord, evidence: RepoEvidence) -> Servi
         record.primaryBlocker = "configuracao/env vars nao comprovadas"
     elif readiness == IntegratedTestStatus.BLOCKED_BY_BACKEND:
         record.primaryBlocker = "wiring de backend nao comprovado"
-    elif readiness == IntegratedTestStatus.BLOCKED_BY_FRONTEND:
-        record.primaryBlocker = "superficie de frontend nao pronta"
     elif readiness == IntegratedTestStatus.BLOCKED_BY_FEATURE_FLAG:
         record.primaryBlocker = "bloqueado por feature flag/compliance"
     elif readiness == IntegratedTestStatus.BLOCKED_BY_INFRA:

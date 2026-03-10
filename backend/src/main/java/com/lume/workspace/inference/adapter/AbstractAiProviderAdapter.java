@@ -86,11 +86,12 @@ public abstract class AbstractAiProviderAdapter implements AiProviderAdapter {
         int inputTokens = estimateInputTokens(command);
         int outputTokens = Math.max(estimatedOutputTokens, 0);
         AiRuntimeProperties.ProviderRuntimeProperties settings = runtimeProperties.forProvider(provider().code());
-        double inputCostPer1k = settings.getPricing().getInputPer1kUsd();
-        double outputCostPer1k = settings.getPricing().getOutputPer1kUsd();
+        Double inputCostPer1k = settings.getPricing().getInputPer1kUsd();
+        Double outputCostPer1k = settings.getPricing().getOutputPer1kUsd();
         Double totalCost = null;
-        if (inputCostPer1k > 0 || outputCostPer1k > 0) {
-            totalCost = ((inputTokens / 1000.0d) * inputCostPer1k) + ((outputTokens / 1000.0d) * outputCostPer1k);
+        if ((inputCostPer1k != null && inputCostPer1k > 0) || (outputCostPer1k != null && outputCostPer1k > 0)) {
+            totalCost = ((inputTokens / 1000.0d) * (inputCostPer1k == null ? 0.0d : inputCostPer1k))
+                    + ((outputTokens / 1000.0d) * (outputCostPer1k == null ? 0.0d : outputCostPer1k));
         }
         return new AiCostEstimate(inputTokens, outputTokens, totalCost);
     }

@@ -12,9 +12,9 @@ O objetivo desta matriz e registrar **proveniencia documental**, modo de operaca
 
 | Familia | Providers | Fonte documental dominante | Sync mode dominante | Observacao operacional |
 |---|---|---|---|---|
-| `text-runtime` | OpenAI, Anthropic, Gemini, DeepSeek, xAI, Perplexity, Groq, OpenRouter, Cohere, Together, Fireworks, DeepInfra, Mistral | `primary_docs` | `sync` | catalogo usa docs oficiais e runtime ja ligado para a maioria |
+| `text-runtime` | OpenAI, Anthropic, Gemini, DeepSeek, xAI, Perplexity, Groq, OpenRouter, Cohere, Together, Fireworks, DeepInfra, Mistral, DashScope / Qwen, SiliconFlow | `primary_docs` | `sync` | catalogo usa docs oficiais e runtime ja ligado para a maioria |
 | `research-search` | Exa, NewsCatcher, Tavily, SerpApi | `primary_docs` | `sync` | providers com alto ROI para grounding e busca |
-| `vector-runtime` | Cohere, Voyage AI | `primary_docs` | `sync` | embeddings e rerank devem continuar capability-first |
+| `vector-runtime` | Cohere, Voyage AI, DashScope / Qwen, SiliconFlow | `primary_docs` | `sync` | embeddings e rerank devem continuar capability-first |
 | `media-audio` | Stability, fal.ai, Replicate, Deepgram, AssemblyAI, ElevenLabs, Google Cloud media/audio, BFL, Runway, Ideogram | `primary_docs` | `both` | familia mais sensivel a jobs assincronos e custo de artifacts |
 | `enterprise-gateway` | Azure OpenAI, AWS Bedrock, Cloudflare Workers AI | `primary_docs` | `sync` | onboarding depende de tenant, conta, deployment ou contrato |
 | `threat-intel` | DarkOwl, Onion Search Engine, Twingly, FullHunt, DarknetSearch, Flare | `mixed_sources` | `manual` | exige compliance, justificativa, auditoria e redaction |
@@ -31,14 +31,13 @@ O objetivo desta matriz e registrar **proveniencia documental**, modo de operaca
 
 | Grupo | Politica |
 |---|---|
-| self-service | OpenAI, Anthropic, Gemini, xAI, Perplexity, Groq, OpenRouter, Cohere, Together, Fireworks, DeepInfra, Mistral, Voyage, Tavily, SerpApi |
-| self-service com ressalvas | DeepSeek, NewsCatcher, Exa |
+| self-service | OpenAI, Anthropic, Gemini, xAI, Perplexity, Groq, OpenRouter, Cohere, Together, Fireworks, DeepInfra, Mistral, Voyage, Tavily, SerpApi, SiliconFlow |
+| self-service com ressalvas | DeepSeek, NewsCatcher, Exa, DashScope / Qwen (gratuidade restrita a Beijing) |
 | enterprise/manual | Azure OpenAI, Bedrock, Cloudflare Workers AI, Twingly, DarkOwl, Flare, FullHunt |
-| blocked por compliance/docs | Onion Search Engine, DarknetSearch e correlatos sem fluxo seguro |
+| implemented_with_restrictions sob compliance | Twingly, DarkOwl, Flare, FullHunt, Onion Search Engine e DarknetSearch |
 
 ## Regras de reconciliacao
 
 1. se a URL do provider no catalogo divergir da documentacao viva, corrigir o catalogo e a matriz na mesma PR
 2. se o provider mudar de `primary_docs` para `mixed_sources`, rebaixar a evidencia antes de anunciar suporte
 3. `threat-intel` so pode usar links e portais que passem por revisao de compliance
-

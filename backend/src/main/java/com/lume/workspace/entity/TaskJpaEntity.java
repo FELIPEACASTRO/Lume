@@ -56,6 +56,15 @@ public class TaskJpaEntity {
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
 
+    @Column(name = "provider_code", length = 80)
+    private String providerCode;
+
+    @Column(name = "model_code", length = 160)
+    private String modelCode;
+
+    @Column(name = "version_label", length = 120)
+    private String versionLabel;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -187,6 +196,30 @@ public class TaskJpaEntity {
 
     public void setLastError(String lastError) {
         this.lastError = lastError;
+    }
+
+    public String getProviderCode() {
+        return providerCode;
+    }
+
+    public void setProviderCode(String providerCode) {
+        this.providerCode = providerCode;
+    }
+
+    public String getModelCode() {
+        return modelCode;
+    }
+
+    public void setModelCode(String modelCode) {
+        this.modelCode = modelCode;
+    }
+
+    public String getVersionLabel() {
+        return versionLabel;
+    }
+
+    public void setVersionLabel(String versionLabel) {
+        this.versionLabel = versionLabel;
     }
 
     public LocalDateTime getCreatedAt() {

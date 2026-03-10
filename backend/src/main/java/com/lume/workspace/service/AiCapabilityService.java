@@ -25,6 +25,7 @@ public class AiCapabilityService {
     private final MediaCapabilityService mediaCapabilityService;
     private final ResearchService researchService;
     private final ThreatIntelService threatIntelService;
+    private final LanguageCapabilityService languageCapabilityService;
 
     public AiCapabilityService(
             InferenceGatewayService inferenceGatewayService,
@@ -33,7 +34,8 @@ public class AiCapabilityService {
             AudioDocumentCapabilityService audioDocumentCapabilityService,
             MediaCapabilityService mediaCapabilityService,
             ResearchService researchService,
-            ThreatIntelService threatIntelService
+            ThreatIntelService threatIntelService,
+            LanguageCapabilityService languageCapabilityService
     ) {
         this.inferenceGatewayService = inferenceGatewayService;
         this.providerCatalogService = providerCatalogService;
@@ -42,6 +44,7 @@ public class AiCapabilityService {
         this.mediaCapabilityService = mediaCapabilityService;
         this.researchService = researchService;
         this.threatIntelService = threatIntelService;
+        this.languageCapabilityService = languageCapabilityService;
     }
 
     public AiPlatformModels.ChatResponse chat(AiPlatformModels.ChatRequest request) {
@@ -160,6 +163,14 @@ public class AiCapabilityService {
 
     public AiPlatformModels.OcrResponse ocr(AiPlatformModels.OcrRequest request) {
         return audioDocumentCapabilityService.ocr(request);
+    }
+
+    public AiPlatformModels.TranslationResponse translate(AiPlatformModels.TranslationRequest request) {
+        return languageCapabilityService.translate(request);
+    }
+
+    public AiPlatformModels.NlpAnalysisResponse analyzeText(AiPlatformModels.NlpAnalysisRequest request) {
+        return languageCapabilityService.analyze(request);
     }
 
     public AiPlatformModels.AiSearchResponse search(AiPlatformModels.AiSearchRequest request) {

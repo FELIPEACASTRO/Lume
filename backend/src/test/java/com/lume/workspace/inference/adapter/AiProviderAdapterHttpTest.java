@@ -93,6 +93,48 @@ class AiProviderAdapterHttpTest {
     }
 
     @Test
+    @DisplayName("DashScope Qwen adapter should call compatible chat completions endpoint")
+    void shouldCallDashScopeQwenChatCompletions() {
+        MockEnvironment environment = new MockEnvironment().withProperty("DASHSCOPE_API_KEY", "test-dashscope");
+        ProviderCatalogService catalogService = catalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-dashscope"))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"Resposta Qwen"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        DashScopeQwenAdapter adapter = new DashScopeQwenAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("dashscope-qwen", "Resuma em uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("dashscope-qwen");
+        assertThat(result.content()).isEqualTo("Resposta Qwen");
+    }
+
+    @Test
+    @DisplayName("SiliconFlow adapter should call chat completions endpoint")
+    void shouldCallSiliconFlowChatCompletions() {
+        MockEnvironment environment = new MockEnvironment().withProperty("SILICONFLOW_API_KEY", "test-sf");
+        ProviderCatalogService catalogService = catalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://api.siliconflow.cn/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-sf"))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"Resposta SiliconFlow"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        SiliconFlowAdapter adapter = new SiliconFlowAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("siliconflow", "Resuma em uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("siliconflow");
+        assertThat(result.content()).isEqualTo("Resposta SiliconFlow");
+    }
+
+    @Test
     @DisplayName("Anthropic adapter should call Messages API")
     void shouldCallAnthropicMessagesApi() {
         MockEnvironment environment = new MockEnvironment().withProperty("ANTHROPIC_API_KEY", "test-anthropic");
@@ -216,6 +258,96 @@ class AiProviderAdapterHttpTest {
 
         assertThat(result.providerCode()).isEqualTo("cohere");
         assertThat(result.content()).isEqualTo("Resposta Cohere");
+    }
+
+    @Test
+    @DisplayName("Cloudflare Workers AI adapter should call chat completions endpoint")
+    void shouldCallCloudflareWorkersAiChatApi() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("CLOUDFLARE_API_TOKEN", "test-cf-token")
+                .withProperty("CLOUDFLARE_ACCOUNT_ID", "acc-123");
+        ProviderCatalogService catalogService = catalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://api.cloudflare.com/client/v4/accounts/acc-123/ai/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-cf-token"))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"Resposta Cloudflare"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        CloudflareWorkersAiAdapter adapter = new CloudflareWorkersAiAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("cloudflare-workers-ai", "Responda com uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("cloudflare-workers-ai");
+        assertThat(result.content()).isEqualTo("Resposta Cloudflare");
+    }
+
+    @Test
+    @DisplayName("AI21 adapter should call chat completions endpoint")
+    void shouldCallAi21ChatApi() {
+        MockEnvironment environment = new MockEnvironment().withProperty("AI21_API_KEY", "test-ai21");
+        ProviderCatalogService catalogService = catalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://api.ai21.com/studio/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-ai21"))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"Resposta AI21"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        Ai21Adapter adapter = new Ai21Adapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("ai21", "Resuma em uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("ai21");
+        assertThat(result.content()).isEqualTo("Resposta AI21");
+    }
+
+    @Test
+    @DisplayName("Azure OpenAI adapter should call deployment chat completions endpoint")
+    void shouldCallAzureOpenAiChatApi() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("AZURE_OPENAI_ENDPOINT", "https://lume-openai.openai.azure.com")
+                .withProperty("AZURE_OPENAI_API_KEY", "test-azure")
+                .withProperty("AZURE_OPENAI_API_VERSION", "2024-10-21")
+                .withProperty("AZURE_OPENAI_DEPLOYMENT", "gpt-4o-mini");
+        ProviderCatalogService catalogService = catalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://lume-openai.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-10-21"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("api-key", "test-azure"))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"Resposta Azure"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        AzureOpenAiAdapter adapter = new AzureOpenAiAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("azure-openai", "Resuma em uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("azure-openai");
+        assertThat(result.content()).isEqualTo("Resposta Azure");
+    }
+
+    @Test
+    @DisplayName("Hugging Face adapter should call router chat completions endpoint")
+    void shouldCallHuggingFaceChatApi() {
+        MockEnvironment environment = new MockEnvironment().withProperty("HF_TOKEN", "test-hf");
+        ProviderCatalogService catalogService = catalogService(environment);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://router.huggingface.co/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer test-hf"))
+                .andRespond(withSuccess("""
+                        {"choices":[{"message":{"content":"Resposta HF"}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        HuggingFaceAdapter adapter = new HuggingFaceAdapter(catalogService, new AiHttpExecutor(builder, objectMapper), new AiRuntimeProperties(), objectMapper);
+        AiPromptResult result = adapter.sendPrompt(command("hugging-face", "Resuma em uma linha."));
+
+        assertThat(result.providerCode()).isEqualTo("hugging-face");
+        assertThat(result.content()).isEqualTo("Resposta HF");
     }
 
     private AiPromptCommand command(String providerCode, String prompt) {

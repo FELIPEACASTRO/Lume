@@ -72,7 +72,8 @@ class InferenceGatewayServiceTest {
                 new AiCircuitBreakerRegistry(),
                 new AiBulkheadRegistry(),
                 new AiRateLimiterRegistry(),
-                new AiMetricsRecorder(new SimpleMeterRegistry())
+                new AiMetricsRecorder(new SimpleMeterRegistry()),
+                new NoOpWorkspaceLedgerService()
         );
         InferenceGatewayService service = new InferenceGatewayService(orchestrator);
 
@@ -112,7 +113,8 @@ class InferenceGatewayServiceTest {
                 new AiCircuitBreakerRegistry(),
                 new AiBulkheadRegistry(),
                 new AiRateLimiterRegistry(),
-                new AiMetricsRecorder(new SimpleMeterRegistry())
+                new AiMetricsRecorder(new SimpleMeterRegistry()),
+                new NoOpWorkspaceLedgerService()
         );
         InferenceGatewayService service = new InferenceGatewayService(orchestrator);
 

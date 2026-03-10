@@ -1,0 +1,1238 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns='http://www.w3.org/2000/svg' width='1772' height='4390' viewBox='0 0 1772 4390' role='img' aria-labelledby='title desc'>
+  <title id='title'>Painel de controle de criacao de API keys pendentes</title>
+  <desc id='desc'>Dashboard SVG para acompanhar criacao de credenciais faltantes, preenchimento do .env e validacao tecnica provider por provider.</desc>
+  <style>
+    .bg { fill: #f5f7fb; }
+    .frame { fill: #ffffff; stroke: #d6dde7; stroke-width: 1; }
+    .title { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #10243e; }
+    .subtitle { font: 400 13px 'Segoe UI', Arial, sans-serif; fill: #587086; }
+    .card-title { font: 700 12px 'Segoe UI', Arial, sans-serif; fill: #5b6f84; text-transform: uppercase; }
+    .card-value { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #10243e; }
+    .card-note { font: 400 12px 'Segoe UI', Arial, sans-serif; fill: #587086; }
+    .section-title { font: 700 16px 'Segoe UI', Arial, sans-serif; fill: #10243e; }
+    .header-cell { font: 700 12px 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+    .body-text { font: 12px 'Segoe UI', Arial, sans-serif; fill: #132238; }
+    .mono { font: 11px 'Consolas', 'Courier New', monospace; fill: #132238; }
+    .link { font: 11px 'Consolas', 'Courier New', monospace; fill: #0a4ea3; }
+    .muted { font: 11px 'Segoe UI', Arial, sans-serif; fill: #587086; }
+    .priority { font: 700 10px 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+    .check-box { fill: #ffffff; stroke: #8da2b8; stroke-width: 1; }
+    .check-label { font: 11px 'Segoe UI', Arial, sans-serif; fill: #29435b; }
+    .grid { stroke: #dce4ee; stroke-width: 1; }
+  </style>
+  <rect class='bg' x='0' y='0' width='1772' height='4390' />
+  <text class='title' x='36' y='44'>Controle de criacao de API keys pendentes</text>
+  <text class='subtitle' x='36' y='68'>Leitura do ambiente local atual. Use esta tabela para controlar portal, criacao da chave, preenchimento do .env e teste por provider.</text>
+  <text class='subtitle' x='36' y='88'>Regra pratica: so promova um provider depois de concluir os quatro passos do bloco Controle.</text>
+  <rect class='frame' x='36' y='104' width='270' height='88' rx='14' />
+  <text class='card-title' x='52' y='128'>Pendentes</text>
+  <text class='card-value' x='52' y='162'>43</text>
+  <text class='card-note' x='52' y='184'>Providers sem credencial obrigatoria.</text>
+  <rect class='frame' x='322' y='104' width='270' height='88' rx='14' />
+  <text class='card-title' x='338' y='128'>Prioridade alta</text>
+  <text class='card-value' x='338' y='162'>22</text>
+  <text class='card-note' x='338' y='184'>Texto, vetorial e busca.</text>
+  <rect class='frame' x='608' y='104' width='270' height='88' rx='14' />
+  <text class='card-title' x='624' y='128'>Google shared</text>
+  <text class='card-value' x='624' y='162'>5</text>
+  <text class='card-note' x='624' y='184'>Uma credencial cobre 5 produtos.</text>
+  <rect class='frame' x='894' y='104' width='270' height='88' rx='14' />
+  <text class='card-title' x='910' y='128'>Restritos</text>
+  <text class='card-value' x='910' y='162'>6</text>
+  <text class='card-note' x='910' y='184'>Threat intel e fluxos sensiveis.</text>
+  <rect x='36' y='154' width='1700' height='34' rx='12' fill='#d9ecff' />
+  <text class='section-title' x='52' y='176'>Texto e chat</text>
+  <rect x='36' y='188' width='1700' height='34' rx='0' fill='#16324f' />
+  <text class='header-cell' x='46' y='210'>#</text>
+  <text class='header-cell' x='86' y='210'>Produto</text>
+  <text class='header-cell' x='336' y='210'>ENV obrigatoria</text>
+  <text class='header-cell' x='666' y='210'>Portal / criacao</text>
+  <text class='header-cell' x='1046' y='210'>Controle</text>
+  <text class='header-cell' x='1326' y='210'>Observacao</text>
+  <rect class='frame' x='36' y='222' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='222' x2='76' y2='306' />
+  <line class='grid' x1='326' y1='222' x2='326' y2='306' />
+  <line class='grid' x1='656' y1='222' x2='656' y2='306' />
+  <line class='grid' x1='1036' y1='222' x2='1036' y2='306' />
+  <line class='grid' x1='1316' y1='222' x2='1316' y2='306' />
+  <line class='grid' x1='36' y1='306' x2='1736' y2='306' />
+  <text class='mono' x='46' y='246'>1</text>
+  <text class='body-text' x='86' y='246'>AI21 Labs</text>
+  <text class='muted' x='86' y='292'>ai21</text>
+  <rect x='258' y='234' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='247'>Alta</text>
+  <text class='mono' x='336' y='246'>AI21_API_KEY</text>
+  <text class='link' x='666' y='246'>https://studio.ai21.com</text>
+  <text class='muted' x='1050' y='246'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='256' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='267'>Portal</text>
+  <rect class='check-box' x='1130' y='256' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='267'>Criar</text>
+  <rect class='check-box' x='1204' y='256' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='267'>.env</text>
+  <rect class='check-box' x='1264' y='256' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='267'>Teste</text>
+  <text class='muted' x='1050' y='292'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='246'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='261'>criar a credencial.</text>
+  <rect class='frame' x='36' y='306' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='306' x2='76' y2='390' />
+  <line class='grid' x1='326' y1='306' x2='326' y2='390' />
+  <line class='grid' x1='656' y1='306' x2='656' y2='390' />
+  <line class='grid' x1='1036' y1='306' x2='1036' y2='390' />
+  <line class='grid' x1='1316' y1='306' x2='1316' y2='390' />
+  <line class='grid' x1='36' y1='390' x2='1736' y2='390' />
+  <text class='mono' x='46' y='330'>2</text>
+  <text class='body-text' x='86' y='330'>Alibaba DashScope / Qwen</text>
+  <text class='muted' x='86' y='376'>dashscope-qwen</text>
+  <rect x='258' y='318' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='331'>Alta</text>
+  <text class='mono' x='336' y='330'>DASHSCOPE_API_KEY</text>
+  <text class='link' x='666' y='330'>https://bailian.console.aliyun.com</text>
+  <text class='muted' x='1050' y='330'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='340' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='351'>Portal</text>
+  <rect class='check-box' x='1130' y='340' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='351'>Criar</text>
+  <rect class='check-box' x='1204' y='340' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='351'>.env</text>
+  <rect class='check-box' x='1264' y='340' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='351'>Teste</text>
+  <text class='muted' x='1050' y='376'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='330'>Validar regiao gratuita antes de promover para</text>
+  <text class='body-text' x='1326' y='345'>uso live.</text>
+  <rect class='frame' x='36' y='390' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='390' x2='76' y2='474' />
+  <line class='grid' x1='326' y1='390' x2='326' y2='474' />
+  <line class='grid' x1='656' y1='390' x2='656' y2='474' />
+  <line class='grid' x1='1036' y1='390' x2='1036' y2='474' />
+  <line class='grid' x1='1316' y1='390' x2='1316' y2='474' />
+  <line class='grid' x1='36' y1='474' x2='1736' y2='474' />
+  <text class='mono' x='46' y='414'>3</text>
+  <text class='body-text' x='86' y='414'>AWS Bedrock</text>
+  <text class='muted' x='86' y='460'>aws-bedrock</text>
+  <rect x='258' y='402' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='415'>Alta</text>
+  <text class='mono' x='336' y='414'>AWS_ACCESS_KEY_ID</text>
+  <text class='mono' x='336' y='429'>AWS_SECRET_ACCESS_KEY;AWS_REGION</text>
+  <text class='link' x='666' y='414'>https://console.aws.amazon.com/bedrock/</text>
+  <text class='muted' x='1050' y='414'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='424' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='435'>Portal</text>
+  <rect class='check-box' x='1130' y='424' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='435'>Criar</text>
+  <rect class='check-box' x='1204' y='424' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='435'>.env</text>
+  <rect class='check-box' x='1264' y='424' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='435'>Teste</text>
+  <text class='muted' x='1050' y='460'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='414'>Nao e API key unica. Requer IAM access key e</text>
+  <text class='body-text' x='1326' y='429'>regiao valida.</text>
+  <rect class='frame' x='36' y='474' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='474' x2='76' y2='558' />
+  <line class='grid' x1='326' y1='474' x2='326' y2='558' />
+  <line class='grid' x1='656' y1='474' x2='656' y2='558' />
+  <line class='grid' x1='1036' y1='474' x2='1036' y2='558' />
+  <line class='grid' x1='1316' y1='474' x2='1316' y2='558' />
+  <line class='grid' x1='36' y1='558' x2='1736' y2='558' />
+  <text class='mono' x='46' y='498'>4</text>
+  <text class='body-text' x='86' y='498'>Cerebras</text>
+  <text class='muted' x='86' y='544'>cerebras</text>
+  <rect x='258' y='486' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='499'>Alta</text>
+  <text class='mono' x='336' y='498'>CEREBRAS_API_KEY</text>
+  <text class='link' x='666' y='498'>https://cloud.cerebras.ai/platform/api-key</text>
+  <text class='link' x='666' y='513'>s</text>
+  <text class='muted' x='1050' y='498'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='508' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='519'>Portal</text>
+  <rect class='check-box' x='1130' y='508' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='519'>Criar</text>
+  <rect class='check-box' x='1204' y='508' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='519'>.env</text>
+  <rect class='check-box' x='1264' y='508' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='519'>Teste</text>
+  <text class='muted' x='1050' y='544'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='498'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='513'>criar a credencial.</text>
+  <rect class='frame' x='36' y='558' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='558' x2='76' y2='642' />
+  <line class='grid' x1='326' y1='558' x2='326' y2='642' />
+  <line class='grid' x1='656' y1='558' x2='656' y2='642' />
+  <line class='grid' x1='1036' y1='558' x2='1036' y2='642' />
+  <line class='grid' x1='1316' y1='558' x2='1316' y2='642' />
+  <line class='grid' x1='36' y1='642' x2='1736' y2='642' />
+  <text class='mono' x='46' y='582'>5</text>
+  <text class='body-text' x='86' y='582'>Cloudflare Workers AI</text>
+  <text class='muted' x='86' y='628'>cloudflare-workers-ai</text>
+  <rect x='258' y='570' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='583'>Alta</text>
+  <text class='mono' x='336' y='582'>CLOUDFLARE_API_TOKEN</text>
+  <text class='mono' x='336' y='597'>CLOUDFLARE_ACCOUNT_ID</text>
+  <text class='link' x='666' y='582'>https://dash.cloudflare.com/profile/api-to</text>
+  <text class='link' x='666' y='597'>kens</text>
+  <text class='muted' x='1050' y='582'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='592' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='603'>Portal</text>
+  <rect class='check-box' x='1130' y='592' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='603'>Criar</text>
+  <rect class='check-box' x='1204' y='592' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='603'>.env</text>
+  <rect class='check-box' x='1264' y='592' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='603'>Teste</text>
+  <text class='muted' x='1050' y='628'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='582'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='597'>criar a credencial.</text>
+  <rect class='frame' x='36' y='642' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='642' x2='76' y2='726' />
+  <line class='grid' x1='326' y1='642' x2='326' y2='726' />
+  <line class='grid' x1='656' y1='642' x2='656' y2='726' />
+  <line class='grid' x1='1036' y1='642' x2='1036' y2='726' />
+  <line class='grid' x1='1316' y1='642' x2='1316' y2='726' />
+  <line class='grid' x1='36' y1='726' x2='1736' y2='726' />
+  <text class='mono' x='46' y='666'>6</text>
+  <text class='body-text' x='86' y='666'>Cohere</text>
+  <text class='muted' x='86' y='712'>cohere</text>
+  <rect x='258' y='654' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='667'>Alta</text>
+  <text class='mono' x='336' y='666'>COHERE_API_KEY</text>
+  <text class='link' x='666' y='666'>https://dashboard.cohere.com/api-keys</text>
+  <text class='muted' x='1050' y='666'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='676' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='687'>Portal</text>
+  <rect class='check-box' x='1130' y='676' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='687'>Criar</text>
+  <rect class='check-box' x='1204' y='676' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='687'>.env</text>
+  <rect class='check-box' x='1264' y='676' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='687'>Teste</text>
+  <text class='muted' x='1050' y='712'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='666'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='681'>criar a credencial.</text>
+  <rect class='frame' x='36' y='726' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='726' x2='76' y2='810' />
+  <line class='grid' x1='326' y1='726' x2='326' y2='810' />
+  <line class='grid' x1='656' y1='726' x2='656' y2='810' />
+  <line class='grid' x1='1036' y1='726' x2='1036' y2='810' />
+  <line class='grid' x1='1316' y1='726' x2='1316' y2='810' />
+  <line class='grid' x1='36' y1='810' x2='1736' y2='810' />
+  <text class='mono' x='46' y='750'>7</text>
+  <text class='body-text' x='86' y='750'>DeepInfra</text>
+  <text class='muted' x='86' y='796'>deepinfra</text>
+  <rect x='258' y='738' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='751'>Alta</text>
+  <text class='mono' x='336' y='750'>DEEPINFRA_API_KEY</text>
+  <text class='link' x='666' y='750'>https://deepinfra.com/dash/api_keys</text>
+  <text class='muted' x='1050' y='750'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='760' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='771'>Portal</text>
+  <rect class='check-box' x='1130' y='760' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='771'>Criar</text>
+  <rect class='check-box' x='1204' y='760' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='771'>.env</text>
+  <rect class='check-box' x='1264' y='760' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='771'>Teste</text>
+  <text class='muted' x='1050' y='796'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='750'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='765'>criar a credencial.</text>
+  <rect class='frame' x='36' y='810' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='810' x2='76' y2='894' />
+  <line class='grid' x1='326' y1='810' x2='326' y2='894' />
+  <line class='grid' x1='656' y1='810' x2='656' y2='894' />
+  <line class='grid' x1='1036' y1='810' x2='1036' y2='894' />
+  <line class='grid' x1='1316' y1='810' x2='1316' y2='894' />
+  <line class='grid' x1='36' y1='894' x2='1736' y2='894' />
+  <text class='mono' x='46' y='834'>8</text>
+  <text class='body-text' x='86' y='834'>Fireworks AI</text>
+  <text class='muted' x='86' y='880'>fireworks</text>
+  <rect x='258' y='822' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='835'>Alta</text>
+  <text class='mono' x='336' y='834'>FIREWORKS_API_KEY</text>
+  <text class='link' x='666' y='834'>https://fireworks.ai/account/api-keys</text>
+  <text class='muted' x='1050' y='834'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='855'>Portal</text>
+  <rect class='check-box' x='1130' y='844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='855'>Criar</text>
+  <rect class='check-box' x='1204' y='844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='855'>.env</text>
+  <rect class='check-box' x='1264' y='844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='855'>Teste</text>
+  <text class='muted' x='1050' y='880'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='834'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='849'>criar a credencial.</text>
+  <rect class='frame' x='36' y='894' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='894' x2='76' y2='978' />
+  <line class='grid' x1='326' y1='894' x2='326' y2='978' />
+  <line class='grid' x1='656' y1='894' x2='656' y2='978' />
+  <line class='grid' x1='1036' y1='894' x2='1036' y2='978' />
+  <line class='grid' x1='1316' y1='894' x2='1316' y2='978' />
+  <line class='grid' x1='36' y1='978' x2='1736' y2='978' />
+  <text class='mono' x='46' y='918'>9</text>
+  <text class='body-text' x='86' y='918'>GitHub Models</text>
+  <text class='muted' x='86' y='964'>github-models</text>
+  <rect x='258' y='906' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='919'>Alta</text>
+  <text class='mono' x='336' y='918'>GITHUB_MODELS_PAT</text>
+  <text class='link' x='666' y='918'>https://github.com/settings/personal-acces</text>
+  <text class='link' x='666' y='933'>s-tokens</text>
+  <text class='muted' x='1050' y='918'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='928' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='939'>Portal</text>
+  <rect class='check-box' x='1130' y='928' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='939'>Criar</text>
+  <rect class='check-box' x='1204' y='928' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='939'>.env</text>
+  <rect class='check-box' x='1264' y='928' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='939'>Teste</text>
+  <text class='muted' x='1050' y='964'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='918'>PAT precisa escopo compatvel com GitHub Models.</text>
+  <rect class='frame' x='36' y='978' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='978' x2='76' y2='1062' />
+  <line class='grid' x1='326' y1='978' x2='326' y2='1062' />
+  <line class='grid' x1='656' y1='978' x2='656' y2='1062' />
+  <line class='grid' x1='1036' y1='978' x2='1036' y2='1062' />
+  <line class='grid' x1='1316' y1='978' x2='1316' y2='1062' />
+  <line class='grid' x1='36' y1='1062' x2='1736' y2='1062' />
+  <text class='mono' x='46' y='1002'>10</text>
+  <text class='body-text' x='86' y='1002'>Groq</text>
+  <text class='muted' x='86' y='1048'>groq</text>
+  <rect x='258' y='990' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1003'>Alta</text>
+  <text class='mono' x='336' y='1002'>GROQ_API_KEY</text>
+  <text class='link' x='666' y='1002'>https://console.groq.com/keys</text>
+  <text class='muted' x='1050' y='1002'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1012' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1023'>Portal</text>
+  <rect class='check-box' x='1130' y='1012' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1023'>Criar</text>
+  <rect class='check-box' x='1204' y='1012' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1023'>.env</text>
+  <rect class='check-box' x='1264' y='1012' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1023'>Teste</text>
+  <text class='muted' x='1050' y='1048'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1002'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1017'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1062' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1062' x2='76' y2='1146' />
+  <line class='grid' x1='326' y1='1062' x2='326' y2='1146' />
+  <line class='grid' x1='656' y1='1062' x2='656' y2='1146' />
+  <line class='grid' x1='1036' y1='1062' x2='1036' y2='1146' />
+  <line class='grid' x1='1316' y1='1062' x2='1316' y2='1146' />
+  <line class='grid' x1='36' y1='1146' x2='1736' y2='1146' />
+  <text class='mono' x='46' y='1086'>11</text>
+  <text class='body-text' x='86' y='1086'>Hugging Face</text>
+  <text class='muted' x='86' y='1132'>hugging-face</text>
+  <rect x='258' y='1074' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1087'>Alta</text>
+  <text class='mono' x='336' y='1086'>HF_TOKEN</text>
+  <text class='link' x='666' y='1086'>https://huggingface.co/settings/tokens</text>
+  <text class='muted' x='1050' y='1086'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1096' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1107'>Portal</text>
+  <rect class='check-box' x='1130' y='1096' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1107'>Criar</text>
+  <rect class='check-box' x='1204' y='1096' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1107'>.env</text>
+  <rect class='check-box' x='1264' y='1096' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1107'>Teste</text>
+  <text class='muted' x='1050' y='1132'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1086'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1101'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1146' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1146' x2='76' y2='1230' />
+  <line class='grid' x1='326' y1='1146' x2='326' y2='1230' />
+  <line class='grid' x1='656' y1='1146' x2='656' y2='1230' />
+  <line class='grid' x1='1036' y1='1146' x2='1036' y2='1230' />
+  <line class='grid' x1='1316' y1='1146' x2='1316' y2='1230' />
+  <line class='grid' x1='36' y1='1230' x2='1736' y2='1230' />
+  <text class='mono' x='46' y='1170'>12</text>
+  <text class='body-text' x='86' y='1170'>Mistral AI</text>
+  <text class='muted' x='86' y='1216'>mistral</text>
+  <rect x='258' y='1158' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1171'>Alta</text>
+  <text class='mono' x='336' y='1170'>MISTRAL_API_KEY</text>
+  <text class='link' x='666' y='1170'>https://admin.mistral.ai/organization/api-</text>
+  <text class='link' x='666' y='1185'>keys</text>
+  <text class='muted' x='1050' y='1170'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1180' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1191'>Portal</text>
+  <rect class='check-box' x='1130' y='1180' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1191'>Criar</text>
+  <rect class='check-box' x='1204' y='1180' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1191'>.env</text>
+  <rect class='check-box' x='1264' y='1180' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1191'>Teste</text>
+  <text class='muted' x='1050' y='1216'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1170'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1185'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1230' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1230' x2='76' y2='1314' />
+  <line class='grid' x1='326' y1='1230' x2='326' y2='1314' />
+  <line class='grid' x1='656' y1='1230' x2='656' y2='1314' />
+  <line class='grid' x1='1036' y1='1230' x2='1036' y2='1314' />
+  <line class='grid' x1='1316' y1='1230' x2='1316' y2='1314' />
+  <line class='grid' x1='36' y1='1314' x2='1736' y2='1314' />
+  <text class='mono' x='46' y='1254'>13</text>
+  <text class='body-text' x='86' y='1254'>NVIDIA NIM</text>
+  <text class='muted' x='86' y='1300'>nvidia-nim</text>
+  <rect x='258' y='1242' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1255'>Alta</text>
+  <text class='mono' x='336' y='1254'>NVIDIA_NIM_API_KEY</text>
+  <text class='link' x='666' y='1254'>https://build.nvidia.com</text>
+  <text class='muted' x='1050' y='1254'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1264' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1275'>Portal</text>
+  <rect class='check-box' x='1130' y='1264' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1275'>Criar</text>
+  <rect class='check-box' x='1204' y='1264' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1275'>.env</text>
+  <rect class='check-box' x='1264' y='1264' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1275'>Teste</text>
+  <text class='muted' x='1050' y='1300'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1254'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1269'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1314' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1314' x2='76' y2='1398' />
+  <line class='grid' x1='326' y1='1314' x2='326' y2='1398' />
+  <line class='grid' x1='656' y1='1314' x2='656' y2='1398' />
+  <line class='grid' x1='1036' y1='1314' x2='1036' y2='1398' />
+  <line class='grid' x1='1316' y1='1314' x2='1316' y2='1398' />
+  <line class='grid' x1='36' y1='1398' x2='1736' y2='1398' />
+  <text class='mono' x='46' y='1338'>14</text>
+  <text class='body-text' x='86' y='1338'>OpenRouter</text>
+  <text class='muted' x='86' y='1384'>openrouter</text>
+  <rect x='258' y='1326' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1339'>Alta</text>
+  <text class='mono' x='336' y='1338'>OPENROUTER_API_KEY</text>
+  <text class='link' x='666' y='1338'>https://openrouter.ai/keys</text>
+  <text class='muted' x='1050' y='1338'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1348' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1359'>Portal</text>
+  <rect class='check-box' x='1130' y='1348' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1359'>Criar</text>
+  <rect class='check-box' x='1204' y='1348' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1359'>.env</text>
+  <rect class='check-box' x='1264' y='1348' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1359'>Teste</text>
+  <text class='muted' x='1050' y='1384'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1338'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1353'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1398' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1398' x2='76' y2='1482' />
+  <line class='grid' x1='326' y1='1398' x2='326' y2='1482' />
+  <line class='grid' x1='656' y1='1398' x2='656' y2='1482' />
+  <line class='grid' x1='1036' y1='1398' x2='1036' y2='1482' />
+  <line class='grid' x1='1316' y1='1398' x2='1316' y2='1482' />
+  <line class='grid' x1='36' y1='1482' x2='1736' y2='1482' />
+  <text class='mono' x='46' y='1422'>15</text>
+  <text class='body-text' x='86' y='1422'>SambaNova</text>
+  <text class='muted' x='86' y='1468'>sambanova</text>
+  <rect x='258' y='1410' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1423'>Alta</text>
+  <text class='mono' x='336' y='1422'>SAMBANOVA_API_KEY</text>
+  <text class='link' x='666' y='1422'>https://cloud.sambanova.ai</text>
+  <text class='muted' x='1050' y='1422'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1432' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1443'>Portal</text>
+  <rect class='check-box' x='1130' y='1432' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1443'>Criar</text>
+  <rect class='check-box' x='1204' y='1432' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1443'>.env</text>
+  <rect class='check-box' x='1264' y='1432' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1443'>Teste</text>
+  <text class='muted' x='1050' y='1468'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1422'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1437'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1482' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1482' x2='76' y2='1566' />
+  <line class='grid' x1='326' y1='1482' x2='326' y2='1566' />
+  <line class='grid' x1='656' y1='1482' x2='656' y2='1566' />
+  <line class='grid' x1='1036' y1='1482' x2='1036' y2='1566' />
+  <line class='grid' x1='1316' y1='1482' x2='1316' y2='1566' />
+  <line class='grid' x1='36' y1='1566' x2='1736' y2='1566' />
+  <text class='mono' x='46' y='1506'>16</text>
+  <text class='body-text' x='86' y='1506'>SiliconFlow</text>
+  <text class='muted' x='86' y='1552'>siliconflow</text>
+  <rect x='258' y='1494' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1507'>Alta</text>
+  <text class='mono' x='336' y='1506'>SILICONFLOW_API_KEY</text>
+  <text class='link' x='666' y='1506'>https://cloud.siliconflow.cn</text>
+  <text class='muted' x='1050' y='1506'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1516' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1527'>Portal</text>
+  <rect class='check-box' x='1130' y='1516' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1527'>Criar</text>
+  <rect class='check-box' x='1204' y='1516' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1527'>.env</text>
+  <rect class='check-box' x='1264' y='1516' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1527'>Teste</text>
+  <text class='muted' x='1050' y='1552'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1506'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1521'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1566' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1566' x2='76' y2='1650' />
+  <line class='grid' x1='326' y1='1566' x2='326' y2='1650' />
+  <line class='grid' x1='656' y1='1566' x2='656' y2='1650' />
+  <line class='grid' x1='1036' y1='1566' x2='1036' y2='1650' />
+  <line class='grid' x1='1316' y1='1566' x2='1316' y2='1650' />
+  <line class='grid' x1='36' y1='1650' x2='1736' y2='1650' />
+  <text class='mono' x='46' y='1590'>17</text>
+  <text class='body-text' x='86' y='1590'>Together AI</text>
+  <text class='muted' x='86' y='1636'>together</text>
+  <rect x='258' y='1578' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1591'>Alta</text>
+  <text class='mono' x='336' y='1590'>TOGETHER_API_KEY</text>
+  <text class='link' x='666' y='1590'>https://api.together.ai/settings/api-keys</text>
+  <text class='muted' x='1050' y='1590'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1600' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1611'>Portal</text>
+  <rect class='check-box' x='1130' y='1600' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1611'>Criar</text>
+  <rect class='check-box' x='1204' y='1600' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1611'>.env</text>
+  <rect class='check-box' x='1264' y='1600' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1611'>Teste</text>
+  <text class='muted' x='1050' y='1636'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1590'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1605'>criar a credencial.</text>
+  <rect x='36' y='1672' width='1700' height='34' rx='12' fill='#dff5e4' />
+  <text class='section-title' x='52' y='1694'>Embeddings e rerank</text>
+  <rect x='36' y='1706' width='1700' height='34' rx='0' fill='#16324f' />
+  <text class='header-cell' x='46' y='1728'>#</text>
+  <text class='header-cell' x='86' y='1728'>Produto</text>
+  <text class='header-cell' x='336' y='1728'>ENV obrigatoria</text>
+  <text class='header-cell' x='666' y='1728'>Portal / criacao</text>
+  <text class='header-cell' x='1046' y='1728'>Controle</text>
+  <text class='header-cell' x='1326' y='1728'>Observacao</text>
+  <rect class='frame' x='36' y='1740' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1740' x2='76' y2='1824' />
+  <line class='grid' x1='326' y1='1740' x2='326' y2='1824' />
+  <line class='grid' x1='656' y1='1740' x2='656' y2='1824' />
+  <line class='grid' x1='1036' y1='1740' x2='1036' y2='1824' />
+  <line class='grid' x1='1316' y1='1740' x2='1316' y2='1824' />
+  <line class='grid' x1='36' y1='1824' x2='1736' y2='1824' />
+  <text class='mono' x='46' y='1764'>18</text>
+  <text class='body-text' x='86' y='1764'>Voyage AI</text>
+  <text class='muted' x='86' y='1810'>voyage-ai</text>
+  <rect x='258' y='1752' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1765'>Alta</text>
+  <text class='mono' x='336' y='1764'>VOYAGE_API_KEY</text>
+  <text class='link' x='666' y='1764'>https://dash.voyageai.com</text>
+  <text class='muted' x='1050' y='1764'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1774' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1785'>Portal</text>
+  <rect class='check-box' x='1130' y='1774' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1785'>Criar</text>
+  <rect class='check-box' x='1204' y='1774' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1785'>.env</text>
+  <rect class='check-box' x='1264' y='1774' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1785'>Teste</text>
+  <text class='muted' x='1050' y='1810'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1764'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1779'>criar a credencial.</text>
+  <rect x='36' y='1846' width='1700' height='34' rx='12' fill='#fdf0d6' />
+  <text class='section-title' x='52' y='1868'>Busca e pesquisa</text>
+  <rect x='36' y='1880' width='1700' height='34' rx='0' fill='#16324f' />
+  <text class='header-cell' x='46' y='1902'>#</text>
+  <text class='header-cell' x='86' y='1902'>Produto</text>
+  <text class='header-cell' x='336' y='1902'>ENV obrigatoria</text>
+  <text class='header-cell' x='666' y='1902'>Portal / criacao</text>
+  <text class='header-cell' x='1046' y='1902'>Controle</text>
+  <text class='header-cell' x='1326' y='1902'>Observacao</text>
+  <rect class='frame' x='36' y='1914' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1914' x2='76' y2='1998' />
+  <line class='grid' x1='326' y1='1914' x2='326' y2='1998' />
+  <line class='grid' x1='656' y1='1914' x2='656' y2='1998' />
+  <line class='grid' x1='1036' y1='1914' x2='1036' y2='1998' />
+  <line class='grid' x1='1316' y1='1914' x2='1316' y2='1998' />
+  <line class='grid' x1='36' y1='1998' x2='1736' y2='1998' />
+  <text class='mono' x='46' y='1938'>19</text>
+  <text class='body-text' x='86' y='1938'>Exa</text>
+  <text class='muted' x='86' y='1984'>exa</text>
+  <rect x='258' y='1926' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='1939'>Alta</text>
+  <text class='mono' x='336' y='1938'>EXA_API_KEY</text>
+  <text class='link' x='666' y='1938'>https://dashboard.exa.ai/api-keys</text>
+  <text class='muted' x='1050' y='1938'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='1948' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='1959'>Portal</text>
+  <rect class='check-box' x='1130' y='1948' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='1959'>Criar</text>
+  <rect class='check-box' x='1204' y='1948' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='1959'>.env</text>
+  <rect class='check-box' x='1264' y='1948' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='1959'>Teste</text>
+  <text class='muted' x='1050' y='1984'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='1938'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='1953'>criar a credencial.</text>
+  <rect class='frame' x='36' y='1998' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='1998' x2='76' y2='2082' />
+  <line class='grid' x1='326' y1='1998' x2='326' y2='2082' />
+  <line class='grid' x1='656' y1='1998' x2='656' y2='2082' />
+  <line class='grid' x1='1036' y1='1998' x2='1036' y2='2082' />
+  <line class='grid' x1='1316' y1='1998' x2='1316' y2='2082' />
+  <line class='grid' x1='36' y1='2082' x2='1736' y2='2082' />
+  <text class='mono' x='46' y='2022'>20</text>
+  <text class='body-text' x='86' y='2022'>NewsCatcher</text>
+  <text class='muted' x='86' y='2068'>newscatcher</text>
+  <rect x='258' y='2010' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='2023'>Alta</text>
+  <text class='mono' x='336' y='2022'>NEWSCATCHER_API_KEY</text>
+  <text class='link' x='666' y='2022'>https://www.newscatcherapi.com/docs/v3/api</text>
+  <text class='link' x='666' y='2037'>-reference/overview/authentication</text>
+  <text class='muted' x='1050' y='2022'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2032' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2043'>Portal</text>
+  <rect class='check-box' x='1130' y='2032' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2043'>Criar</text>
+  <rect class='check-box' x='1204' y='2032' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2043'>.env</text>
+  <rect class='check-box' x='1264' y='2032' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2043'>Teste</text>
+  <text class='muted' x='1050' y='2068'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2022'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2037'>criar a credencial.</text>
+  <rect class='frame' x='36' y='2082' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2082' x2='76' y2='2166' />
+  <line class='grid' x1='326' y1='2082' x2='326' y2='2166' />
+  <line class='grid' x1='656' y1='2082' x2='656' y2='2166' />
+  <line class='grid' x1='1036' y1='2082' x2='1036' y2='2166' />
+  <line class='grid' x1='1316' y1='2082' x2='1316' y2='2166' />
+  <line class='grid' x1='36' y1='2166' x2='1736' y2='2166' />
+  <text class='mono' x='46' y='2106'>21</text>
+  <text class='body-text' x='86' y='2106'>SerpApi</text>
+  <text class='muted' x='86' y='2152'>serpapi</text>
+  <rect x='258' y='2094' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='2107'>Alta</text>
+  <text class='mono' x='336' y='2106'>SERPAPI_API_KEY</text>
+  <text class='link' x='666' y='2106'>https://serpapi.com/manage-api-key</text>
+  <text class='muted' x='1050' y='2106'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2116' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2127'>Portal</text>
+  <rect class='check-box' x='1130' y='2116' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2127'>Criar</text>
+  <rect class='check-box' x='1204' y='2116' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2127'>.env</text>
+  <rect class='check-box' x='1264' y='2116' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2127'>Teste</text>
+  <text class='muted' x='1050' y='2152'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2106'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2121'>criar a credencial.</text>
+  <rect class='frame' x='36' y='2166' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2166' x2='76' y2='2250' />
+  <line class='grid' x1='326' y1='2166' x2='326' y2='2250' />
+  <line class='grid' x1='656' y1='2166' x2='656' y2='2250' />
+  <line class='grid' x1='1036' y1='2166' x2='1036' y2='2250' />
+  <line class='grid' x1='1316' y1='2166' x2='1316' y2='2250' />
+  <line class='grid' x1='36' y1='2250' x2='1736' y2='2250' />
+  <text class='mono' x='46' y='2190'>22</text>
+  <text class='body-text' x='86' y='2190'>Tavily</text>
+  <text class='muted' x='86' y='2236'>tavily</text>
+  <rect x='258' y='2178' width='56' height='18' rx='9' fill='#b42318' />
+  <text class='priority' x='268' y='2191'>Alta</text>
+  <text class='mono' x='336' y='2190'>TAVILY_API_KEY</text>
+  <text class='link' x='666' y='2190'>https://app.tavily.com/home</text>
+  <text class='muted' x='1050' y='2190'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2200' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2211'>Portal</text>
+  <rect class='check-box' x='1130' y='2200' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2211'>Criar</text>
+  <rect class='check-box' x='1204' y='2200' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2211'>.env</text>
+  <rect class='check-box' x='1264' y='2200' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2211'>Teste</text>
+  <text class='muted' x='1050' y='2236'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2190'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2205'>criar a credencial.</text>
+  <rect x='36' y='2272' width='1700' height='34' rx='12' fill='#f7e0f0' />
+  <text class='section-title' x='52' y='2294'>Midia, audio e OCR</text>
+  <rect x='36' y='2306' width='1700' height='34' rx='0' fill='#16324f' />
+  <text class='header-cell' x='46' y='2328'>#</text>
+  <text class='header-cell' x='86' y='2328'>Produto</text>
+  <text class='header-cell' x='336' y='2328'>ENV obrigatoria</text>
+  <text class='header-cell' x='666' y='2328'>Portal / criacao</text>
+  <text class='header-cell' x='1046' y='2328'>Controle</text>
+  <text class='header-cell' x='1326' y='2328'>Observacao</text>
+  <rect class='frame' x='36' y='2340' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2340' x2='76' y2='2424' />
+  <line class='grid' x1='326' y1='2340' x2='326' y2='2424' />
+  <line class='grid' x1='656' y1='2340' x2='656' y2='2424' />
+  <line class='grid' x1='1036' y1='2340' x2='1036' y2='2424' />
+  <line class='grid' x1='1316' y1='2340' x2='1316' y2='2424' />
+  <line class='grid' x1='36' y1='2424' x2='1736' y2='2424' />
+  <text class='mono' x='46' y='2364'>23</text>
+  <text class='body-text' x='86' y='2364'>AssemblyAI</text>
+  <text class='muted' x='86' y='2410'>assemblyai</text>
+  <rect x='258' y='2352' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2365'>Media</text>
+  <text class='mono' x='336' y='2364'>ASSEMBLYAI_API_KEY</text>
+  <text class='link' x='666' y='2364'>https://www.assemblyai.com/dashboard</text>
+  <text class='muted' x='1050' y='2364'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2374' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2385'>Portal</text>
+  <rect class='check-box' x='1130' y='2374' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2385'>Criar</text>
+  <rect class='check-box' x='1204' y='2374' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2385'>.env</text>
+  <rect class='check-box' x='1264' y='2374' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2385'>Teste</text>
+  <text class='muted' x='1050' y='2410'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2364'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2379'>criar a credencial.</text>
+  <rect class='frame' x='36' y='2424' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2424' x2='76' y2='2508' />
+  <line class='grid' x1='326' y1='2424' x2='326' y2='2508' />
+  <line class='grid' x1='656' y1='2424' x2='656' y2='2508' />
+  <line class='grid' x1='1036' y1='2424' x2='1036' y2='2508' />
+  <line class='grid' x1='1316' y1='2424' x2='1316' y2='2508' />
+  <line class='grid' x1='36' y1='2508' x2='1736' y2='2508' />
+  <text class='mono' x='46' y='2448'>24</text>
+  <text class='body-text' x='86' y='2448'>Black Forest Labs</text>
+  <text class='muted' x='86' y='2494'>bfl</text>
+  <rect x='258' y='2436' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2449'>Media</text>
+  <text class='mono' x='336' y='2448'>BFL_API_KEY</text>
+  <text class='link' x='666' y='2448'>https://bfl.ai</text>
+  <text class='muted' x='1050' y='2448'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2458' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2469'>Portal</text>
+  <rect class='check-box' x='1130' y='2458' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2469'>Criar</text>
+  <rect class='check-box' x='1204' y='2458' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2469'>.env</text>
+  <rect class='check-box' x='1264' y='2458' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2469'>Teste</text>
+  <text class='muted' x='1050' y='2494'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2448'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2463'>criar a credencial.</text>
+  <rect class='frame' x='36' y='2508' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2508' x2='76' y2='2592' />
+  <line class='grid' x1='326' y1='2508' x2='326' y2='2592' />
+  <line class='grid' x1='656' y1='2508' x2='656' y2='2592' />
+  <line class='grid' x1='1036' y1='2508' x2='1036' y2='2592' />
+  <line class='grid' x1='1316' y1='2508' x2='1316' y2='2592' />
+  <line class='grid' x1='36' y1='2592' x2='1736' y2='2592' />
+  <text class='mono' x='46' y='2532'>25</text>
+  <text class='body-text' x='86' y='2532'>Deepgram</text>
+  <text class='muted' x='86' y='2578'>deepgram</text>
+  <rect x='258' y='2520' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2533'>Media</text>
+  <text class='mono' x='336' y='2532'>DEEPGRAM_API_KEY</text>
+  <text class='link' x='666' y='2532'>https://console.deepgram.com</text>
+  <text class='muted' x='1050' y='2532'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2542' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2553'>Portal</text>
+  <rect class='check-box' x='1130' y='2542' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2553'>Criar</text>
+  <rect class='check-box' x='1204' y='2542' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2553'>.env</text>
+  <rect class='check-box' x='1264' y='2542' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2553'>Teste</text>
+  <text class='muted' x='1050' y='2578'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2532'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2547'>criar a credencial.</text>
+  <rect class='frame' x='36' y='2592' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2592' x2='76' y2='2676' />
+  <line class='grid' x1='326' y1='2592' x2='326' y2='2676' />
+  <line class='grid' x1='656' y1='2592' x2='656' y2='2676' />
+  <line class='grid' x1='1036' y1='2592' x2='1036' y2='2676' />
+  <line class='grid' x1='1316' y1='2592' x2='1316' y2='2676' />
+  <line class='grid' x1='36' y1='2676' x2='1736' y2='2676' />
+  <text class='mono' x='46' y='2616'>26</text>
+  <text class='body-text' x='86' y='2616'>ElevenLabs</text>
+  <text class='muted' x='86' y='2662'>elevenlabs</text>
+  <rect x='258' y='2604' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2617'>Media</text>
+  <text class='mono' x='336' y='2616'>ELEVENLABS_API_KEY</text>
+  <text class='link' x='666' y='2616'>https://elevenlabs.io/app/settings/api-key</text>
+  <text class='link' x='666' y='2631'>s</text>
+  <text class='muted' x='1050' y='2616'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2626' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2637'>Portal</text>
+  <rect class='check-box' x='1130' y='2626' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2637'>Criar</text>
+  <rect class='check-box' x='1204' y='2626' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2637'>.env</text>
+  <rect class='check-box' x='1264' y='2626' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2637'>Teste</text>
+  <text class='muted' x='1050' y='2662'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2616'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2631'>criar a credencial.</text>
+  <rect class='frame' x='36' y='2676' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2676' x2='76' y2='2760' />
+  <line class='grid' x1='326' y1='2676' x2='326' y2='2760' />
+  <line class='grid' x1='656' y1='2676' x2='656' y2='2760' />
+  <line class='grid' x1='1036' y1='2676' x2='1036' y2='2760' />
+  <line class='grid' x1='1316' y1='2676' x2='1316' y2='2760' />
+  <line class='grid' x1='36' y1='2760' x2='1736' y2='2760' />
+  <text class='mono' x='46' y='2700'>27</text>
+  <text class='body-text' x='86' y='2700'>fal.ai</text>
+  <text class='muted' x='86' y='2746'>fal-ai</text>
+  <rect x='258' y='2688' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2701'>Media</text>
+  <text class='mono' x='336' y='2700'>FAL_KEY</text>
+  <text class='link' x='666' y='2700'>https://fal.ai/dashboard/keys</text>
+  <text class='muted' x='1050' y='2700'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2710' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2721'>Portal</text>
+  <rect class='check-box' x='1130' y='2710' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2721'>Criar</text>
+  <rect class='check-box' x='1204' y='2710' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2721'>.env</text>
+  <rect class='check-box' x='1264' y='2710' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2721'>Teste</text>
+  <text class='muted' x='1050' y='2746'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2700'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='2715'>criar a credencial.</text>
+  <rect class='frame' x='36' y='2760' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2760' x2='76' y2='2844' />
+  <line class='grid' x1='326' y1='2760' x2='326' y2='2844' />
+  <line class='grid' x1='656' y1='2760' x2='656' y2='2844' />
+  <line class='grid' x1='1036' y1='2760' x2='1036' y2='2844' />
+  <line class='grid' x1='1316' y1='2760' x2='1316' y2='2844' />
+  <line class='grid' x1='36' y1='2844' x2='1736' y2='2844' />
+  <text class='mono' x='46' y='2784'>28</text>
+  <text class='body-text' x='86' y='2784'>Google Cloud Natural</text>
+  <text class='body-text' x='86' y='2799'>Language</text>
+  <text class='muted' x='86' y='2830'>google-natural-language</text>
+  <rect x='258' y='2772' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2785'>Media</text>
+  <text class='mono' x='336' y='2784'>GOOGLE_CLOUD_CREDENTIALS_JSON</text>
+  <text class='link' x='666' y='2784'>https://console.cloud.google.com/apis/cred</text>
+  <text class='link' x='666' y='2799'>entials</text>
+  <text class='muted' x='1050' y='2784'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2794' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2805'>Portal</text>
+  <rect class='check-box' x='1130' y='2794' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2805'>Criar</text>
+  <rect class='check-box' x='1204' y='2794' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2805'>.env</text>
+  <rect class='check-box' x='1264' y='2794' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2805'>Teste</text>
+  <text class='muted' x='1050' y='2830'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2784'>Uma credencial shared cobre todos os servicos</text>
+  <text class='body-text' x='1326' y='2799'>Google Cloud desta familia.</text>
+  <rect class='frame' x='36' y='2844' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2844' x2='76' y2='2928' />
+  <line class='grid' x1='326' y1='2844' x2='326' y2='2928' />
+  <line class='grid' x1='656' y1='2844' x2='656' y2='2928' />
+  <line class='grid' x1='1036' y1='2844' x2='1036' y2='2928' />
+  <line class='grid' x1='1316' y1='2844' x2='1316' y2='2928' />
+  <line class='grid' x1='36' y1='2928' x2='1736' y2='2928' />
+  <text class='mono' x='46' y='2868'>29</text>
+  <text class='body-text' x='86' y='2868'>Google Cloud Speech-to-Text</text>
+  <text class='muted' x='86' y='2914'>google-speech-to-text</text>
+  <rect x='258' y='2856' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2869'>Media</text>
+  <text class='mono' x='336' y='2868'>GOOGLE_CLOUD_CREDENTIALS_JSON</text>
+  <text class='link' x='666' y='2868'>https://console.cloud.google.com/apis/cred</text>
+  <text class='link' x='666' y='2883'>entials</text>
+  <text class='muted' x='1050' y='2868'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2878' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2889'>Portal</text>
+  <rect class='check-box' x='1130' y='2878' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2889'>Criar</text>
+  <rect class='check-box' x='1204' y='2878' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2889'>.env</text>
+  <rect class='check-box' x='1264' y='2878' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2889'>Teste</text>
+  <text class='muted' x='1050' y='2914'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2868'>Uma credencial shared cobre todos os servicos</text>
+  <text class='body-text' x='1326' y='2883'>Google Cloud desta familia.</text>
+  <rect class='frame' x='36' y='2928' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='2928' x2='76' y2='3012' />
+  <line class='grid' x1='326' y1='2928' x2='326' y2='3012' />
+  <line class='grid' x1='656' y1='2928' x2='656' y2='3012' />
+  <line class='grid' x1='1036' y1='2928' x2='1036' y2='3012' />
+  <line class='grid' x1='1316' y1='2928' x2='1316' y2='3012' />
+  <line class='grid' x1='36' y1='3012' x2='1736' y2='3012' />
+  <text class='mono' x='46' y='2952'>30</text>
+  <text class='body-text' x='86' y='2952'>Google Cloud Text-to-Speech</text>
+  <text class='muted' x='86' y='2998'>google-text-to-speech</text>
+  <rect x='258' y='2940' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='2953'>Media</text>
+  <text class='mono' x='336' y='2952'>GOOGLE_CLOUD_CREDENTIALS_JSON</text>
+  <text class='link' x='666' y='2952'>https://console.cloud.google.com/apis/cred</text>
+  <text class='link' x='666' y='2967'>entials</text>
+  <text class='muted' x='1050' y='2952'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='2962' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='2973'>Portal</text>
+  <rect class='check-box' x='1130' y='2962' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='2973'>Criar</text>
+  <rect class='check-box' x='1204' y='2962' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='2973'>.env</text>
+  <rect class='check-box' x='1264' y='2962' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='2973'>Teste</text>
+  <text class='muted' x='1050' y='2998'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='2952'>Uma credencial shared cobre todos os servicos</text>
+  <text class='body-text' x='1326' y='2967'>Google Cloud desta familia.</text>
+  <rect class='frame' x='36' y='3012' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='3012' x2='76' y2='3096' />
+  <line class='grid' x1='326' y1='3012' x2='326' y2='3096' />
+  <line class='grid' x1='656' y1='3012' x2='656' y2='3096' />
+  <line class='grid' x1='1036' y1='3012' x2='1036' y2='3096' />
+  <line class='grid' x1='1316' y1='3012' x2='1316' y2='3096' />
+  <line class='grid' x1='36' y1='3096' x2='1736' y2='3096' />
+  <text class='mono' x='46' y='3036'>31</text>
+  <text class='body-text' x='86' y='3036'>Google Cloud Translation</text>
+  <text class='muted' x='86' y='3082'>google-translation</text>
+  <rect x='258' y='3024' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='3037'>Media</text>
+  <text class='mono' x='336' y='3036'>GOOGLE_CLOUD_CREDENTIALS_JSON</text>
+  <text class='link' x='666' y='3036'>https://console.cloud.google.com/apis/cred</text>
+  <text class='link' x='666' y='3051'>entials</text>
+  <text class='muted' x='1050' y='3036'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3046' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3057'>Portal</text>
+  <rect class='check-box' x='1130' y='3046' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3057'>Criar</text>
+  <rect class='check-box' x='1204' y='3046' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3057'>.env</text>
+  <rect class='check-box' x='1264' y='3046' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3057'>Teste</text>
+  <text class='muted' x='1050' y='3082'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3036'>Uma credencial shared cobre todos os servicos</text>
+  <text class='body-text' x='1326' y='3051'>Google Cloud desta familia.</text>
+  <rect class='frame' x='36' y='3096' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='3096' x2='76' y2='3180' />
+  <line class='grid' x1='326' y1='3096' x2='326' y2='3180' />
+  <line class='grid' x1='656' y1='3096' x2='656' y2='3180' />
+  <line class='grid' x1='1036' y1='3096' x2='1036' y2='3180' />
+  <line class='grid' x1='1316' y1='3096' x2='1316' y2='3180' />
+  <line class='grid' x1='36' y1='3180' x2='1736' y2='3180' />
+  <text class='mono' x='46' y='3120'>32</text>
+  <text class='body-text' x='86' y='3120'>Google Cloud Vision</text>
+  <text class='muted' x='86' y='3166'>google-vision</text>
+  <rect x='258' y='3108' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='3121'>Media</text>
+  <text class='mono' x='336' y='3120'>GOOGLE_CLOUD_CREDENTIALS_JSON</text>
+  <text class='link' x='666' y='3120'>https://console.cloud.google.com/apis/cred</text>
+  <text class='link' x='666' y='3135'>entials</text>
+  <text class='muted' x='1050' y='3120'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3130' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3141'>Portal</text>
+  <rect class='check-box' x='1130' y='3130' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3141'>Criar</text>
+  <rect class='check-box' x='1204' y='3130' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3141'>.env</text>
+  <rect class='check-box' x='1264' y='3130' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3141'>Teste</text>
+  <text class='muted' x='1050' y='3166'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3120'>Uma credencial shared cobre todos os servicos</text>
+  <text class='body-text' x='1326' y='3135'>Google Cloud desta familia.</text>
+  <rect class='frame' x='36' y='3180' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='3180' x2='76' y2='3264' />
+  <line class='grid' x1='326' y1='3180' x2='326' y2='3264' />
+  <line class='grid' x1='656' y1='3180' x2='656' y2='3264' />
+  <line class='grid' x1='1036' y1='3180' x2='1036' y2='3264' />
+  <line class='grid' x1='1316' y1='3180' x2='1316' y2='3264' />
+  <line class='grid' x1='36' y1='3264' x2='1736' y2='3264' />
+  <text class='mono' x='46' y='3204'>33</text>
+  <text class='body-text' x='86' y='3204'>Ideogram</text>
+  <text class='muted' x='86' y='3250'>ideogram</text>
+  <rect x='258' y='3192' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='3205'>Media</text>
+  <text class='mono' x='336' y='3204'>IDEOGRAM_API_KEY</text>
+  <text class='link' x='666' y='3204'>https://developer.ideogram.ai</text>
+  <text class='muted' x='1050' y='3204'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3214' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3225'>Portal</text>
+  <rect class='check-box' x='1130' y='3214' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3225'>Criar</text>
+  <rect class='check-box' x='1204' y='3214' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3225'>.env</text>
+  <rect class='check-box' x='1264' y='3214' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3225'>Teste</text>
+  <text class='muted' x='1050' y='3250'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3204'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='3219'>criar a credencial.</text>
+  <rect class='frame' x='36' y='3264' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='3264' x2='76' y2='3348' />
+  <line class='grid' x1='326' y1='3264' x2='326' y2='3348' />
+  <line class='grid' x1='656' y1='3264' x2='656' y2='3348' />
+  <line class='grid' x1='1036' y1='3264' x2='1036' y2='3348' />
+  <line class='grid' x1='1316' y1='3264' x2='1316' y2='3348' />
+  <line class='grid' x1='36' y1='3348' x2='1736' y2='3348' />
+  <text class='mono' x='46' y='3288'>34</text>
+  <text class='body-text' x='86' y='3288'>Replicate</text>
+  <text class='muted' x='86' y='3334'>replicate</text>
+  <rect x='258' y='3276' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='3289'>Media</text>
+  <text class='mono' x='336' y='3288'>REPLICATE_API_TOKEN</text>
+  <text class='link' x='666' y='3288'>https://replicate.com/account/api-tokens</text>
+  <text class='muted' x='1050' y='3288'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3298' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3309'>Portal</text>
+  <rect class='check-box' x='1130' y='3298' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3309'>Criar</text>
+  <rect class='check-box' x='1204' y='3298' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3309'>.env</text>
+  <rect class='check-box' x='1264' y='3298' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3309'>Teste</text>
+  <text class='muted' x='1050' y='3334'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3288'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='3303'>criar a credencial.</text>
+  <rect class='frame' x='36' y='3348' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='3348' x2='76' y2='3432' />
+  <line class='grid' x1='326' y1='3348' x2='326' y2='3432' />
+  <line class='grid' x1='656' y1='3348' x2='656' y2='3432' />
+  <line class='grid' x1='1036' y1='3348' x2='1036' y2='3432' />
+  <line class='grid' x1='1316' y1='3348' x2='1316' y2='3432' />
+  <line class='grid' x1='36' y1='3432' x2='1736' y2='3432' />
+  <text class='mono' x='46' y='3372'>35</text>
+  <text class='body-text' x='86' y='3372'>Runway</text>
+  <text class='muted' x='86' y='3418'>runway</text>
+  <rect x='258' y='3360' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='3373'>Media</text>
+  <text class='mono' x='336' y='3372'>RUNWAY_API_KEY</text>
+  <text class='link' x='666' y='3372'>https://app.runwayml.com/account/api-keys</text>
+  <text class='muted' x='1050' y='3372'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3382' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3393'>Portal</text>
+  <rect class='check-box' x='1130' y='3382' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3393'>Criar</text>
+  <rect class='check-box' x='1204' y='3382' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3393'>.env</text>
+  <rect class='check-box' x='1264' y='3382' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3393'>Teste</text>
+  <text class='muted' x='1050' y='3418'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3372'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='3387'>criar a credencial.</text>
+  <rect class='frame' x='36' y='3432' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='3432' x2='76' y2='3516' />
+  <line class='grid' x1='326' y1='3432' x2='326' y2='3516' />
+  <line class='grid' x1='656' y1='3432' x2='656' y2='3516' />
+  <line class='grid' x1='1036' y1='3432' x2='1036' y2='3516' />
+  <line class='grid' x1='1316' y1='3432' x2='1316' y2='3516' />
+  <line class='grid' x1='36' y1='3516' x2='1736' y2='3516' />
+  <text class='mono' x='46' y='3456'>36</text>
+  <text class='body-text' x='86' y='3456'>Stability AI</text>
+  <text class='muted' x='86' y='3502'>stability-ai</text>
+  <rect x='258' y='3444' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='3457'>Media</text>
+  <text class='mono' x='336' y='3456'>STABILITY_API_KEY</text>
+  <text class='link' x='666' y='3456'>https://platform.stability.ai/account/keys</text>
+  <text class='muted' x='1050' y='3456'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3466' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3477'>Portal</text>
+  <rect class='check-box' x='1130' y='3466' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3477'>Criar</text>
+  <rect class='check-box' x='1204' y='3466' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3477'>.env</text>
+  <rect class='check-box' x='1264' y='3466' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3477'>Teste</text>
+  <text class='muted' x='1050' y='3502'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3456'>Preencher .env e rodar connectivity-test apos</text>
+  <text class='body-text' x='1326' y='3471'>criar a credencial.</text>
+  <rect x='36' y='3538' width='1700' height='34' rx='12' fill='#e5e7ff' />
+  <text class='section-title' x='52' y='3560'>Gateways enterprise</text>
+  <rect x='36' y='3572' width='1700' height='34' rx='0' fill='#16324f' />
+  <text class='header-cell' x='46' y='3594'>#</text>
+  <text class='header-cell' x='86' y='3594'>Produto</text>
+  <text class='header-cell' x='336' y='3594'>ENV obrigatoria</text>
+  <text class='header-cell' x='666' y='3594'>Portal / criacao</text>
+  <text class='header-cell' x='1046' y='3594'>Controle</text>
+  <text class='header-cell' x='1326' y='3594'>Observacao</text>
+  <rect class='frame' x='36' y='3606' width='1700' height='114' rx='0' />
+  <line class='grid' x1='76' y1='3606' x2='76' y2='3720' />
+  <line class='grid' x1='326' y1='3606' x2='326' y2='3720' />
+  <line class='grid' x1='656' y1='3606' x2='656' y2='3720' />
+  <line class='grid' x1='1036' y1='3606' x2='1036' y2='3720' />
+  <line class='grid' x1='1316' y1='3606' x2='1316' y2='3720' />
+  <line class='grid' x1='36' y1='3720' x2='1736' y2='3720' />
+  <text class='mono' x='46' y='3630'>37</text>
+  <text class='body-text' x='86' y='3630'>Azure OpenAI</text>
+  <text class='muted' x='86' y='3706'>azure-openai</text>
+  <rect x='258' y='3618' width='56' height='18' rx='9' fill='#b54708' />
+  <text class='priority' x='268' y='3631'>Media</text>
+  <text class='mono' x='336' y='3630'>AZURE_OPENAI_ENDPOINT</text>
+  <text class='mono' x='336' y='3645'>AZURE_OPENAI_API_KEY</text>
+  <text class='mono' x='336' y='3660'>AZURE_OPENAI_API_VERSION</text>
+  <text class='mono' x='336' y='3675'>AZURE_OPENAI_DEPLOYMENT</text>
+  <text class='link' x='666' y='3630'>https://learn.microsoft.com/azure/ai-servi</text>
+  <text class='link' x='666' y='3645'>ces/openai/reference</text>
+  <text class='muted' x='1050' y='3630'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3640' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3651'>Portal</text>
+  <rect class='check-box' x='1130' y='3640' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3651'>Criar</text>
+  <rect class='check-box' x='1204' y='3640' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3651'>.env</text>
+  <rect class='check-box' x='1264' y='3640' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3651'>Teste</text>
+  <text class='muted' x='1050' y='3706'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3630'>Precisa endpoint, deployment e api-version alem</text>
+  <text class='body-text' x='1326' y='3645'>da chave.</text>
+  <rect x='36' y='3742' width='1700' height='34' rx='12' fill='#ffe0e0' />
+  <text class='section-title' x='52' y='3764'>Threat intel</text>
+  <rect x='36' y='3776' width='1700' height='34' rx='0' fill='#16324f' />
+  <text class='header-cell' x='46' y='3798'>#</text>
+  <text class='header-cell' x='86' y='3798'>Produto</text>
+  <text class='header-cell' x='336' y='3798'>ENV obrigatoria</text>
+  <text class='header-cell' x='666' y='3798'>Portal / criacao</text>
+  <text class='header-cell' x='1046' y='3798'>Controle</text>
+  <text class='header-cell' x='1326' y='3798'>Observacao</text>
+  <rect class='frame' x='36' y='3810' width='1700' height='114' rx='0' />
+  <line class='grid' x1='76' y1='3810' x2='76' y2='3924' />
+  <line class='grid' x1='326' y1='3810' x2='326' y2='3924' />
+  <line class='grid' x1='656' y1='3810' x2='656' y2='3924' />
+  <line class='grid' x1='1036' y1='3810' x2='1036' y2='3924' />
+  <line class='grid' x1='1316' y1='3810' x2='1316' y2='3924' />
+  <line class='grid' x1='36' y1='3924' x2='1736' y2='3924' />
+  <text class='mono' x='46' y='3834'>38</text>
+  <text class='body-text' x='86' y='3834'>DarknetSearch</text>
+  <text class='muted' x='86' y='3910'>darknetsearch</text>
+  <rect x='236' y='3822' width='78' height='18' rx='9' fill='#6941c6' />
+  <text class='priority' x='246' y='3835'>Restrita</text>
+  <text class='mono' x='336' y='3834'>DARKNETSEARCH_USERNAME</text>
+  <text class='mono' x='336' y='3849'>DARKNETSEARCH_PASSWORD</text>
+  <text class='mono' x='336' y='3864'>DARKNETSEARCH_CLIENT_ID</text>
+  <text class='mono' x='336' y='3879'>DARKNETSEARCH_CLIENT_SECRET</text>
+  <text class='link' x='666' y='3834'>https://kaduu.com</text>
+  <text class='muted' x='1050' y='3834'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3855'>Portal</text>
+  <rect class='check-box' x='1130' y='3844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3855'>Criar</text>
+  <rect class='check-box' x='1204' y='3844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3855'>.env</text>
+  <rect class='check-box' x='1264' y='3844' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3855'>Teste</text>
+  <text class='muted' x='1050' y='3910'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3834'>Uso restrito. Exige compliance, aprovacao e</text>
+  <text class='body-text' x='1326' y='3849'>testes separados.</text>
+  <rect class='frame' x='36' y='3924' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='3924' x2='76' y2='4008' />
+  <line class='grid' x1='326' y1='3924' x2='326' y2='4008' />
+  <line class='grid' x1='656' y1='3924' x2='656' y2='4008' />
+  <line class='grid' x1='1036' y1='3924' x2='1036' y2='4008' />
+  <line class='grid' x1='1316' y1='3924' x2='1316' y2='4008' />
+  <line class='grid' x1='36' y1='4008' x2='1736' y2='4008' />
+  <text class='mono' x='46' y='3948'>39</text>
+  <text class='body-text' x='86' y='3948'>DarkOwl</text>
+  <text class='muted' x='86' y='3994'>darkowl</text>
+  <rect x='236' y='3936' width='78' height='18' rx='9' fill='#6941c6' />
+  <text class='priority' x='246' y='3949'>Restrita</text>
+  <text class='mono' x='336' y='3948'>DARKOWL_PUBLIC_KEY</text>
+  <text class='mono' x='336' y='3963'>DARKOWL_PRIVATE_KEY</text>
+  <text class='link' x='666' y='3948'>https://www.darkowl.com</text>
+  <text class='muted' x='1050' y='3948'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='3958' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='3969'>Portal</text>
+  <rect class='check-box' x='1130' y='3958' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='3969'>Criar</text>
+  <rect class='check-box' x='1204' y='3958' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='3969'>.env</text>
+  <rect class='check-box' x='1264' y='3958' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='3969'>Teste</text>
+  <text class='muted' x='1050' y='3994'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='3948'>Uso restrito. Exige compliance, aprovacao e</text>
+  <text class='body-text' x='1326' y='3963'>testes separados.</text>
+  <rect class='frame' x='36' y='4008' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='4008' x2='76' y2='4092' />
+  <line class='grid' x1='326' y1='4008' x2='326' y2='4092' />
+  <line class='grid' x1='656' y1='4008' x2='656' y2='4092' />
+  <line class='grid' x1='1036' y1='4008' x2='1036' y2='4092' />
+  <line class='grid' x1='1316' y1='4008' x2='1316' y2='4092' />
+  <line class='grid' x1='36' y1='4092' x2='1736' y2='4092' />
+  <text class='mono' x='46' y='4032'>40</text>
+  <text class='body-text' x='86' y='4032'>Flare</text>
+  <text class='muted' x='86' y='4078'>flare</text>
+  <rect x='236' y='4020' width='78' height='18' rx='9' fill='#6941c6' />
+  <text class='priority' x='246' y='4033'>Restrita</text>
+  <text class='mono' x='336' y='4032'>FLARE_API_KEY</text>
+  <text class='link' x='666' y='4032'>https://flare.io</text>
+  <text class='muted' x='1050' y='4032'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='4042' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='4053'>Portal</text>
+  <rect class='check-box' x='1130' y='4042' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='4053'>Criar</text>
+  <rect class='check-box' x='1204' y='4042' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='4053'>.env</text>
+  <rect class='check-box' x='1264' y='4042' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='4053'>Teste</text>
+  <text class='muted' x='1050' y='4078'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='4032'>Uso restrito. Exige compliance, aprovacao e</text>
+  <text class='body-text' x='1326' y='4047'>testes separados.</text>
+  <rect class='frame' x='36' y='4092' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='4092' x2='76' y2='4176' />
+  <line class='grid' x1='326' y1='4092' x2='326' y2='4176' />
+  <line class='grid' x1='656' y1='4092' x2='656' y2='4176' />
+  <line class='grid' x1='1036' y1='4092' x2='1036' y2='4176' />
+  <line class='grid' x1='1316' y1='4092' x2='1316' y2='4176' />
+  <line class='grid' x1='36' y1='4176' x2='1736' y2='4176' />
+  <text class='mono' x='46' y='4116'>41</text>
+  <text class='body-text' x='86' y='4116'>FullHunt</text>
+  <text class='muted' x='86' y='4162'>fullhunt</text>
+  <rect x='236' y='4104' width='78' height='18' rx='9' fill='#6941c6' />
+  <text class='priority' x='246' y='4117'>Restrita</text>
+  <text class='mono' x='336' y='4116'>FULLHUNT_API_KEY</text>
+  <text class='link' x='666' y='4116'>https://fullhunt.io</text>
+  <text class='muted' x='1050' y='4116'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='4126' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='4137'>Portal</text>
+  <rect class='check-box' x='1130' y='4126' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='4137'>Criar</text>
+  <rect class='check-box' x='1204' y='4126' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='4137'>.env</text>
+  <rect class='check-box' x='1264' y='4126' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='4137'>Teste</text>
+  <text class='muted' x='1050' y='4162'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='4116'>Uso restrito. Exige compliance, aprovacao e</text>
+  <text class='body-text' x='1326' y='4131'>testes separados.</text>
+  <rect class='frame' x='36' y='4176' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='4176' x2='76' y2='4260' />
+  <line class='grid' x1='326' y1='4176' x2='326' y2='4260' />
+  <line class='grid' x1='656' y1='4176' x2='656' y2='4260' />
+  <line class='grid' x1='1036' y1='4176' x2='1036' y2='4260' />
+  <line class='grid' x1='1316' y1='4176' x2='1316' y2='4260' />
+  <line class='grid' x1='36' y1='4260' x2='1736' y2='4260' />
+  <text class='mono' x='46' y='4200'>42</text>
+  <text class='body-text' x='86' y='4200'>Onion Search Engine</text>
+  <text class='muted' x='86' y='4246'>onion-search-engine</text>
+  <rect x='236' y='4188' width='78' height='18' rx='9' fill='#6941c6' />
+  <text class='priority' x='246' y='4201'>Restrita</text>
+  <text class='mono' x='336' y='4200'>ONION_SEARCH_API_KEY</text>
+  <text class='link' x='666' y='4200'>https://onionsearchengine.com</text>
+  <text class='muted' x='1050' y='4200'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='4210' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='4221'>Portal</text>
+  <rect class='check-box' x='1130' y='4210' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='4221'>Criar</text>
+  <rect class='check-box' x='1204' y='4210' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='4221'>.env</text>
+  <rect class='check-box' x='1264' y='4210' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='4221'>Teste</text>
+  <text class='muted' x='1050' y='4246'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='4200'>Uso restrito. Exige compliance, aprovacao e</text>
+  <text class='body-text' x='1326' y='4215'>testes separados.</text>
+  <rect class='frame' x='36' y='4260' width='1700' height='84' rx='0' />
+  <line class='grid' x1='76' y1='4260' x2='76' y2='4344' />
+  <line class='grid' x1='326' y1='4260' x2='326' y2='4344' />
+  <line class='grid' x1='656' y1='4260' x2='656' y2='4344' />
+  <line class='grid' x1='1036' y1='4260' x2='1036' y2='4344' />
+  <line class='grid' x1='1316' y1='4260' x2='1316' y2='4344' />
+  <line class='grid' x1='36' y1='4344' x2='1736' y2='4344' />
+  <text class='mono' x='46' y='4284'>43</text>
+  <text class='body-text' x='86' y='4284'>Twingly</text>
+  <text class='muted' x='86' y='4330'>twingly</text>
+  <rect x='236' y='4272' width='78' height='18' rx='9' fill='#6941c6' />
+  <text class='priority' x='246' y='4285'>Restrita</text>
+  <text class='mono' x='336' y='4284'>TWINGLY_API_KEY</text>
+  <text class='link' x='666' y='4284'>https://www.twingly.com/dark-web-api/</text>
+  <text class='muted' x='1050' y='4284'>Checklist manual</text>
+  <rect class='check-box' x='1050' y='4294' width='12' height='12' rx='2' />
+  <text class='check-label' x='1068' y='4305'>Portal</text>
+  <rect class='check-box' x='1130' y='4294' width='12' height='12' rx='2' />
+  <text class='check-label' x='1148' y='4305'>Criar</text>
+  <rect class='check-box' x='1204' y='4294' width='12' height='12' rx='2' />
+  <text class='check-label' x='1222' y='4305'>.env</text>
+  <rect class='check-box' x='1264' y='4294' width='12' height='12' rx='2' />
+  <text class='check-label' x='1282' y='4305'>Teste</text>
+  <text class='muted' x='1050' y='4330'>Status atual: pendente</text>
+  <text class='body-text' x='1326' y='4284'>Uso restrito. Exige compliance, aprovacao e</text>
+  <text class='body-text' x='1326' y='4299'>testes separados.</text>
+</svg>
+

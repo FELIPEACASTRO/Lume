@@ -10,11 +10,14 @@ import com.lume.workspace.dto.SessionRoleResponse;
 import com.lume.workspace.dto.SessionUserResponse;
 import com.lume.workspace.dto.SetupStatusResponse;
 import com.lume.workspace.dto.WorkspaceResponse;
+import com.lume.workspace.entity.AgentProfileJpaEntity;
 import com.lume.workspace.entity.MembershipJpaEntity;
 import com.lume.workspace.entity.OrganizationJpaEntity;
 import com.lume.workspace.entity.RoleJpaEntity;
 import com.lume.workspace.entity.UserPreferenceJpaEntity;
 import com.lume.workspace.entity.WorkspaceJpaEntity;
+import com.lume.workspace.inference.ProviderDefinition;
+import com.lume.workspace.repository.AgentProfileJpaRepository;
 import com.lume.workspace.repository.MembershipJpaRepository;
 import com.lume.workspace.repository.OrganizationJpaRepository;
 import com.lume.workspace.repository.RoleJpaRepository;
@@ -39,9 +42,12 @@ public class ApplicationSetupService {
     private final RoleJpaRepository roleRepository;
     private final MembershipJpaRepository membershipRepository;
     private final UserPreferenceJpaRepository userPreferenceRepository;
+    private final AgentProfileJpaRepository agentProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final WorkspaceSessionService workspaceSessionService;
     private final AuditLogService auditLogService;
+    private final ProviderCatalogService providerCatalogService;
+    private final WorkspaceCommercialService workspaceCommercialService;
 
     public ApplicationSetupService(
             OrganizationJpaRepository organizationRepository,
@@ -50,9 +56,12 @@ public class ApplicationSetupService {
             RoleJpaRepository roleRepository,
             MembershipJpaRepository membershipRepository,
             UserPreferenceJpaRepository userPreferenceRepository,
+            AgentProfileJpaRepository agentProfileRepository,
             PasswordEncoder passwordEncoder,
             WorkspaceSessionService workspaceSessionService,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            ProviderCatalogService providerCatalogService,
+            WorkspaceCommercialService workspaceCommercialService
     ) {
         this.organizationRepository = organizationRepository;
         this.workspaceRepository = workspaceRepository;
@@ -60,9 +69,12 @@ public class ApplicationSetupService {
         this.roleRepository = roleRepository;
         this.membershipRepository = membershipRepository;
         this.userPreferenceRepository = userPreferenceRepository;
+        this.agentProfileRepository = agentProfileRepository;
         this.passwordEncoder = passwordEncoder;
         this.workspaceSessionService = workspaceSessionService;
         this.auditLogService = auditLogService;
+        this.providerCatalogService = providerCatalogService;
+        this.workspaceCommercialService = workspaceCommercialService;
     }
 
     public SetupStatusResponse getStatus() {
@@ -97,16 +109,8 @@ public class ApplicationSetupService {
                     return roleRepository.save(role);
                 });
 
-        OrganizationJpaEntity organization = new OrganizationJpaEntity();
-        organization.setName(request.organizationName().trim());
-        organization.setSlug(uniqueOrganizationSlug(slugify(request.organizationName())));
-        organization = organizationRepository.save(organization);
-
-        WorkspaceJpaEntity workspace = new WorkspaceJpaEntity();
-        workspace.setOrganizationId(organization.getId());
-        workspace.setName(request.workspaceName().trim());
-        workspace.setSlug(uniqueWorkspaceSlug(slugify(request.workspaceName())));
-        workspace = workspaceRepository.save(workspace);
+        OrganizationJpaEntity organization = resolveOrganizationForBootstrap(request.organizationName());
+        WorkspaceJpaEntity workspace = resolveWorkspaceForBootstrap(request.workspaceName(), organization);
 
         UserJpaEntity user = new UserJpaEntity();
         user.setName(request.adminName().trim());
@@ -131,6 +135,9 @@ public class ApplicationSetupService {
         preference.setAppearance("light");
         preference.setLanguageCode("pt-BR");
         userPreferenceRepository.save(preference);
+
+        workspaceCommercialService.initializeWorkspace(workspace.getId(), request);
+        ensureStarterAgentProfile(workspace.getId());
 
         auditLogService.recordExplicit(
                 organization.getId(),
@@ -158,7 +165,10 @@ public class ApplicationSetupService {
     }
 
     private boolean setupRequired() {
-        return organizationRepository.count() == 0L && workspaceRepository.count() == 0L && userRepository.count() == 0L;
+        return organizationRepository.count() == 0L
+                || workspaceRepository.count() == 0L
+                || userRepository.count() == 0L
+                || membershipRepository.count() == 0L;
     }
 
     private String uniqueOrganizationSlug(String baseSlug) {
@@ -179,12 +189,72 @@ public class ApplicationSetupService {
         return candidate;
     }
 
+    private OrganizationJpaEntity resolveOrganizationForBootstrap(String organizationName) {
+        String normalizedName = organizationName.trim();
+        if (organizationRepository.count() == 0L) {
+            OrganizationJpaEntity organization = new OrganizationJpaEntity();
+            organization.setName(normalizedName);
+            organization.setSlug(uniqueOrganizationSlug(slugify(normalizedName)));
+            return organizationRepository.save(organization);
+        }
+
+        if (userRepository.count() == 0L && organizationRepository.count() == 1L) {
+            OrganizationJpaEntity organization = organizationRepository.findAll().getFirst();
+            organization.setName(normalizedName);
+            return organizationRepository.save(organization);
+        }
+
+        throw new IllegalStateException("Existe um estado parcial de setup com organizacoes preexistentes. Revise o banco antes de continuar.");
+    }
+
+    private WorkspaceJpaEntity resolveWorkspaceForBootstrap(String workspaceName, OrganizationJpaEntity organization) {
+        String normalizedName = workspaceName.trim();
+        if (workspaceRepository.count() == 0L) {
+            WorkspaceJpaEntity workspace = new WorkspaceJpaEntity();
+            workspace.setOrganizationId(organization.getId());
+            workspace.setName(normalizedName);
+            workspace.setSlug(uniqueWorkspaceSlug(slugify(normalizedName)));
+            return workspaceRepository.save(workspace);
+        }
+
+        if (userRepository.count() == 0L && workspaceRepository.count() == 1L) {
+            WorkspaceJpaEntity workspace = workspaceRepository.findAll().getFirst();
+            workspace.setOrganizationId(organization.getId());
+            workspace.setName(normalizedName);
+            return workspaceRepository.save(workspace);
+        }
+
+        throw new IllegalStateException("Existe um estado parcial de setup com workspaces preexistentes. Revise o banco antes de continuar.");
+    }
+
     private String slugify(String value) {
         String normalized = Normalizer.normalize(value.trim().toLowerCase(Locale.ROOT), Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("(^-|-$)", "");
         return normalized.isBlank() ? "workspace" : normalized;
+    }
+
+    private void ensureStarterAgentProfile(Long workspaceId) {
+        if (!agentProfileRepository.findByWorkspaceIdOrderByNameAsc(workspaceId).isEmpty()) {
+            return;
+        }
+
+        ProviderDefinition provider = providerCatalogService.requireProvider("openai");
+        AgentProfileJpaEntity profile = new AgentProfileJpaEntity();
+        profile.setId("ops-" + workspaceId);
+        profile.setWorkspaceId(workspaceId);
+        profile.setName("Operador");
+        profile.setSpecialty("Execucao e resposta");
+        profile.setDescription("Conduz analises e respostas operacionais para o workspace.");
+        profile.setStatusLabel(providerCatalogService.isConfigured(provider) ? "Configurado" : "Atencao");
+        profile.setAvailability(provider.executionSupported() ? "live" : "unavailable");
+        profile.setNote("Perfil inicial do workspace para conversas operacionais.");
+        profile.setProviderCode(provider.code());
+        profile.setModelCode(provider.defaultModelCode());
+        profile.setVersionLabel("agent-v1-openai");
+        profile.setSystemPrompt("Voce atua como operador B2B. Responda de forma objetiva, clara e acionavel.");
+        agentProfileRepository.save(profile);
     }
 
     public record BootstrapSetupResult(

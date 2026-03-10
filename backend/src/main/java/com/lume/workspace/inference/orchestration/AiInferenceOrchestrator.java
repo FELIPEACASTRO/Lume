@@ -9,6 +9,7 @@ import com.lume.workspace.inference.error.AiProviderException;
 import com.lume.workspace.inference.metrics.AiMetricsRecorder;
 import com.lume.workspace.inference.port.AiProviderAdapter;
 import com.lume.workspace.inference.port.AiStreamObserver;
+import com.lume.workspace.service.WorkspaceLedgerService;
 import com.lume.workspace.service.ProviderCatalogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class AiInferenceOrchestrator {
     private final AiBulkheadRegistry bulkheadRegistry;
     private final AiRateLimiterRegistry rateLimiterRegistry;
     private final AiMetricsRecorder metricsRecorder;
+    private final WorkspaceLedgerService workspaceLedgerService;
 
     public AiInferenceOrchestrator(
             ProviderCatalogService providerCatalogService,
@@ -40,7 +42,8 @@ public class AiInferenceOrchestrator {
             AiCircuitBreakerRegistry circuitBreakerRegistry,
             AiBulkheadRegistry bulkheadRegistry,
             AiRateLimiterRegistry rateLimiterRegistry,
-            AiMetricsRecorder metricsRecorder
+            AiMetricsRecorder metricsRecorder,
+            WorkspaceLedgerService workspaceLedgerService
     ) {
         this.providerCatalogService = providerCatalogService;
         this.providerRegistry = providerRegistry;
@@ -49,6 +52,7 @@ public class AiInferenceOrchestrator {
         this.bulkheadRegistry = bulkheadRegistry;
         this.rateLimiterRegistry = rateLimiterRegistry;
         this.metricsRecorder = metricsRecorder;
+        this.workspaceLedgerService = workspaceLedgerService;
     }
 
     public UnifiedInferenceResponse execute(UnifiedInferenceRequest request) {
@@ -80,12 +84,13 @@ public class AiInferenceOrchestrator {
             AiProviderAdapter adapter = providerRegistry.require(provider.code());
             AiRuntimeProperties.ProviderRuntimeProperties settings = runtimeProperties.forProvider(provider.code());
             long startedAt = System.currentTimeMillis();
+            AiPromptCommand command = toCommand(request, provider.code(), model.versionLabel());
 
             try {
                 circuitBreakerRegistry.beforeCall(provider.code(), settings);
                 rateLimiterRegistry.beforeCall(provider.code(), settings);
                 bulkheadRegistry.acquire(provider.code(), settings);
-                AiPromptResult result = executeWithRetry(adapter, toCommand(request, provider.code(), model.versionLabel()), settings);
+                AiPromptResult result = executeWithRetry(adapter, command, settings);
                 circuitBreakerRegistry.recordSuccess(provider.code(), settings);
                 long latencyMs = System.currentTimeMillis() - startedAt;
                 boolean fallbackUsed = !provider.code().equalsIgnoreCase(requestedProviderCode);
@@ -96,6 +101,21 @@ public class AiInferenceOrchestrator {
                 if (fallbackUsed) {
                     metricsRecorder.incrementFallback(requestedProviderCode, model.code(), "sendPrompt");
                 }
+                workspaceLedgerService.recordCostEntry(new WorkspaceLedgerService.CostLedgerRecord(
+                        parseWorkspaceId(command.workspaceId()),
+                        provider.code(),
+                        model.code(),
+                        "text_inference",
+                        command.requestId(),
+                        "completed",
+                        result.costEstimate().estimatedInputTokens(),
+                        result.costEstimate().estimatedOutputTokens(),
+                        result.costEstimate().estimatedCostUsd(),
+                        latencyMs,
+                        fallbackUsed,
+                        request.routingMode(),
+                        policySummary(requestedProviderCode, provider.code(), fallbackUsed, "completed")
+                ));
                 attemptChain.add(new AiExecutionAttempt(provider.code(), "completed", null, latencyMs));
 
                 LOGGER.info(
@@ -141,6 +161,21 @@ public class AiInferenceOrchestrator {
                 if ("timeout".equals(status)) {
                     metricsRecorder.incrementTimeout(provider.code(), model.code(), "sendPrompt");
                 }
+                workspaceLedgerService.recordCostEntry(new WorkspaceLedgerService.CostLedgerRecord(
+                        parseWorkspaceId(command.workspaceId()),
+                        provider.code(),
+                        model.code(),
+                        "text_inference",
+                        command.requestId(),
+                        status,
+                        null,
+                        null,
+                        null,
+                        latencyMs,
+                        !provider.code().equalsIgnoreCase(requestedProviderCode),
+                        request.routingMode(),
+                        policySummary(requestedProviderCode, provider.code(), !provider.code().equalsIgnoreCase(requestedProviderCode), providerException.getMessage())
+                ));
 
                 LOGGER.warn(
                         "Inferencia falhou requestId={} provider={} model={} routingMode={} status={} latencyMs={} detalhe={}",
@@ -385,5 +420,23 @@ public class AiInferenceOrchestrator {
             Thread.currentThread().interrupt();
             throw new AiProviderException("Execucao interrompida durante backoff.", interruptedException, true);
         }
+    }
+
+    private Long parseWorkspaceId(String rawWorkspaceId) {
+        if (rawWorkspaceId == null || rawWorkspaceId.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(rawWorkspaceId.trim());
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private String policySummary(String requestedProviderCode, String selectedProviderCode, boolean fallbackUsed, String reason) {
+        if (fallbackUsed) {
+            return "Fallback aplicado de " + requestedProviderCode + " para " + selectedProviderCode + " (" + reason + ").";
+        }
+        return "Provider selecionado: " + selectedProviderCode + " (" + reason + ").";
     }
 }

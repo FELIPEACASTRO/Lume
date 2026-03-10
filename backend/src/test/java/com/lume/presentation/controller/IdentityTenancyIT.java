@@ -7,7 +7,11 @@ import com.lume.workspace.dto.CreateMemberRequest;
 import com.lume.workspace.dto.CreateArtifactVersionRequest;
 import com.lume.workspace.dto.CreateKnowledgeSourceRequest;
 import com.lume.workspace.dto.CreatePromptTemplateRequest;
+import com.lume.workspace.dto.BillingWebhookEventRequest;
+import com.lume.workspace.dto.FinopsReconciliationRunRequest;
 import com.lume.workspace.dto.UpdateAgentRuntimeRequest;
+import com.lume.workspace.dto.UpdateWorkspaceOnboardingRequest;
+import com.lume.workspace.dto.UpdateWorkspaceSubscriptionRequest;
 import com.lume.workspace.dto.UpdateWorkspaceBudgetRequest;
 import com.lume.workspace.dto.UpdateKnowledgeSourceRequest;
 import com.lume.workspace.dto.UpdateMemberRequest;
@@ -15,8 +19,10 @@ import com.lume.workspace.dto.UpdatePromptTemplateRequest;
 import com.lume.workspace.dto.UpdateSettingsPreferencesRequest;
 import com.lume.workspace.entity.MembershipJpaEntity;
 import com.lume.workspace.entity.WorkspaceJpaEntity;
+import com.lume.workspace.entity.WorkspaceSubscriptionJpaEntity;
 import com.lume.workspace.repository.MembershipJpaRepository;
 import com.lume.workspace.repository.WorkspaceJpaRepository;
+import com.lume.workspace.repository.WorkspaceSubscriptionJpaRepository;
 import com.lume.workspace.service.WorkspaceContextService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +41,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.hamcrest.Matchers.hasItems;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -58,6 +70,9 @@ class IdentityTenancyIT {
     @Autowired
     private MembershipJpaRepository membershipRepository;
 
+    @Autowired
+    private WorkspaceSubscriptionJpaRepository subscriptionRepository;
+
     @Test
     @DisplayName("GET /api/v1/auth/session - Deve expor role com permissoes")
     void shouldReturnVersionedSession() throws Exception {
@@ -72,6 +87,212 @@ class IdentityTenancyIT {
                         "research.run",
                         "threat_intel.read"
                 )));
+    }
+
+    @Test
+    @DisplayName("GET/PATCH /api/v1/onboarding/current - Deve ler e atualizar onboarding do workspace")
+    void shouldReadAndUpdateWorkspaceOnboarding() throws Exception {
+        mockMvc.perform(get("/api/v1/onboarding/current"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.primaryUseCase").isString())
+                .andExpect(jsonPath("$.workStyle").isString());
+
+        UpdateWorkspaceOnboardingRequest request = new UpdateWorkspaceOnboardingRequest(
+                "analysis",
+                "department_team",
+                "active",
+                "Workspace em operacao com foco em analise recorrente."
+        );
+
+        mockMvc.perform(patch("/api/v1/onboarding/current")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.primaryUseCase").value("analysis"))
+                .andExpect(jsonPath("$.workStyle").value("department_team"))
+                .andExpect(jsonPath("$.activationStatus").value("active"));
+    }
+
+    @Test
+    @DisplayName("GET/PATCH /api/v1/billing/subscription - Deve ler e atualizar plano comercial")
+    void shouldReadAndUpdateWorkspaceSubscription() throws Exception {
+        mockMvc.perform(get("/api/v1/billing/subscription"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.planCode").isString())
+                .andExpect(jsonPath("$.includedCredits").isNumber());
+
+        UpdateWorkspaceSubscriptionRequest request = new UpdateWorkspaceSubscriptionRequest(
+                "pro",
+                "active",
+                "monthly",
+                5000,
+                400,
+                null,
+                "Workspace promovido para uso recorrente com credito extra."
+        );
+
+        mockMvc.perform(patch("/api/v1/billing/subscription")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.planCode").value("pro"))
+                .andExpect(jsonPath("$.includedCredits").value(5000))
+                .andExpect(jsonPath("$.extraCredits").value(400))
+                .andExpect(jsonPath("$.totalCredits").value(5400));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/billing/webhooks/provider-event - Deve processar webhook com idempotencia")
+    void shouldProcessBillingWebhookIdempotently() throws Exception {
+        Long workspaceId = workspaceRepository.findBySlug("workspace-principal").orElseThrow().getId();
+        BillingWebhookEventRequest request = new BillingWebhookEventRequest(
+                workspaceId,
+                "evt-billing-001",
+                "invoice.paid",
+                "paid",
+                "INV-WEBHOOK-001",
+                new BigDecimal("99.90"),
+                "BRL",
+                "Pagamento da assinatura mensal",
+                "2026-04-05",
+                "2026-03-09T22:15:00",
+                "core",
+                "active",
+                "monthly",
+                1500,
+                200,
+                "2026-04-09",
+                "Atualizacao via webhook de billing.",
+                120
+        );
+
+        String signature = hmacSha256Hex(
+                "test-billing-webhook-secret",
+                canonicalSignaturePayload(request)
+        );
+
+        mockMvc.perform(post("/api/v1/billing/webhooks/provider-event")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Lume-Billing-Signature", signature)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.processingStatus").value("processed"))
+                .andExpect(jsonPath("$.duplicate").value(false))
+                .andExpect(jsonPath("$.invoiceNumber").value("INV-WEBHOOK-001"));
+
+        mockMvc.perform(post("/api/v1/billing/webhooks/provider-event")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Lume-Billing-Signature", signature)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.processingStatus").value("duplicate"))
+                .andExpect(jsonPath("$.duplicate").value(true))
+                .andExpect(jsonPath("$.invoiceNumber").value("INV-WEBHOOK-001"));
+
+        mockMvc.perform(get("/api/v1/billing/subscription"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.planCode").value("core"))
+                .andExpect(jsonPath("$.includedCredits").value(1500))
+                .andExpect(jsonPath("$.extraCredits").value(320))
+                .andExpect(jsonPath("$.totalCredits").value(1820));
+
+        mockMvc.perform(get("/api/v1/billing/invoices"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].invoiceNumber").value("INV-WEBHOOK-001"))
+                .andExpect(jsonPath("$[0].status").value("paid"));
+
+        mockMvc.perform(get("/api/v1/billing/payment-events"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].gatewayEventId").value("evt-billing-001"))
+                .andExpect(jsonPath("$[0].eventType").value("invoice_paid"))
+                .andExpect(jsonPath("$[0].status").value("processed"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/billing/webhooks/provider-event - Deve negar assinatura invalida")
+    void shouldRejectBillingWebhookWithInvalidSignature() throws Exception {
+        Long workspaceId = workspaceRepository.findBySlug("workspace-principal").orElseThrow().getId();
+        BillingWebhookEventRequest request = new BillingWebhookEventRequest(
+                workspaceId,
+                "evt-billing-invalid-signature",
+                "invoice.paid",
+                "paid",
+                "INV-WEBHOOK-INVALID",
+                new BigDecimal("49.90"),
+                "BRL",
+                "Assinatura invalida",
+                "2026-04-05",
+                "2026-03-09T22:30:00",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        mockMvc.perform(post("/api/v1/billing/webhooks/provider-event")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Lume-Billing-Signature", "invalid-signature")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Assinatura do webhook invalida."));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/finops/reconciliation - Deve retornar preview de reconciliacao")
+    void shouldPreviewFinopsReconciliation() throws Exception {
+        mockMvc.perform(get("/api/v1/finops/reconciliation"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reconciliationStatus").isString())
+                .andExpect(jsonPath("$.subscriptionCredits").isNumber())
+                .andExpect(jsonPath("$.ledgerCreditBalance").isNumber())
+                .andExpect(jsonPath("$.creditDrift").isNumber())
+                .andExpect(jsonPath("$.creditFixApplied").value(false))
+                .andExpect(jsonPath("$.generatedAt").isString());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/finops/reconciliation/run - Deve aplicar ajuste de creditos quando houver drift")
+    void shouldRunFinopsReconciliationWithCreditFix() throws Exception {
+        mockMvc.perform(post("/api/v1/finops/reconciliation/run")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new FinopsReconciliationRunRequest(true))))
+                .andExpect(status().isOk());
+
+        Long workspaceId = workspaceRepository.findBySlug("workspace-principal").orElseThrow().getId();
+        WorkspaceSubscriptionJpaEntity subscription = subscriptionRepository.findByWorkspaceId(workspaceId).orElseThrow();
+        subscription.setExtraCredits(subscription.getExtraCredits() + 37);
+        subscriptionRepository.save(subscription);
+
+        mockMvc.perform(post("/api/v1/finops/reconciliation/run")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new FinopsReconciliationRunRequest(true))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reconciliationStatus").value("balanced"))
+                .andExpect(jsonPath("$.creditFixApplied").value(true))
+                .andExpect(jsonPath("$.creditFixDelta").value(37))
+                .andExpect(jsonPath("$.creditDrift").value(0));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/finops/reconciliation/history - Deve retornar historico das execucoes de reconciliacao")
+    void shouldReturnFinopsReconciliationHistory() throws Exception {
+        mockMvc.perform(post("/api/v1/finops/reconciliation/run")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new FinopsReconciliationRunRequest(false))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/finops/reconciliation/history")
+                        .param("limit", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].runMode").value("manual"))
+                .andExpect(jsonPath("$[0].reconciliationStatus").isString())
+                .andExpect(jsonPath("$[0].subscriptionCredits").isNumber())
+                .andExpect(jsonPath("$[0].ledgerCreditBalance").isNumber())
+                .andExpect(jsonPath("$[0].executedAt").isString());
     }
 
     @Test
@@ -193,6 +414,7 @@ class IdentityTenancyIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.preferences.appearance").value("dark"))
                 .andExpect(jsonPath("$.preferences.languageCode").value("en-US"))
+                .andExpect(jsonPath("$.commercial.planCode").isString())
                 .andExpect(jsonPath("$.sections[?(@.key=='knowledge')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='providers-runtime')]").exists());
@@ -468,5 +690,32 @@ class IdentityTenancyIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isForbidden());
+    }
+
+    private String canonicalSignaturePayload(BillingWebhookEventRequest request) {
+        return String.join("|",
+                safeCanonical(request.gatewayEventId()),
+                String.valueOf(request.workspaceId()),
+                safeCanonical(request.eventType()),
+                safeCanonical(request.status()),
+                safeCanonical(request.invoiceNumber()),
+                request.amountBrl() == null ? "" : request.amountBrl().setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                safeCanonical(request.currency())
+        );
+    }
+
+    private String safeCanonical(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String hmacSha256Hex(String secret, String payload) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+        byte[] digest = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+        StringBuilder builder = new StringBuilder(digest.length * 2);
+        for (byte b : digest) {
+            builder.append(String.format(Locale.ROOT, "%02x", b));
+        }
+        return builder.toString();
     }
 }

@@ -182,6 +182,50 @@ class WorkspaceShellIT {
 
     @Test
     @Order(9)
+    @DisplayName("POST /tasks - should persist provider, model and version metadata when runtime is selected")
+    void shouldCreateTaskWithRuntimeMetadata() throws Exception {
+        CreateTaskRequest request = new CreateTaskRequest(
+                "Monte um plano de resposta para incidentes com checkpoints de aprovacao.",
+                "playbook",
+                "proj-ops",
+                "openai",
+                "openai:gpt-4.1-mini",
+                "agent-v1-openai"
+        );
+
+        mockMvc.perform(post("/tasks")
+                        .with(operatorHeader())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.task.providerCode").value("openai"))
+                .andExpect(jsonPath("$.task.modelCode").value("openai:gpt-4.1-mini"))
+                .andExpect(jsonPath("$.task.versionLabel").value("agent-v1-openai"));
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("POST /tasks - should reject model that does not belong to provider")
+    void shouldRejectTaskRuntimeWithModelFromAnotherProvider() throws Exception {
+        CreateTaskRequest request = new CreateTaskRequest(
+                "Teste de runtime invalido para tarefa.",
+                "research",
+                "proj-ops",
+                "openai",
+                "anthropic:claude-sonnet-4-5",
+                "agent-v1-claude"
+        );
+
+        mockMvc.perform(post("/tasks")
+                        .with(operatorHeader())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("O modelo selecionado nao pertence ao provedor informado."));
+    }
+
+    @Test
+    @Order(11)
     @DisplayName("GET /api/v1/search/results - should return grouped real results")
     void shouldReturnSearchResults() throws Exception {
         mockMvc.perform(get("/api/v1/search/results").with(operatorHeader()).param("q", "onboarding"))
@@ -192,7 +236,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(10)
+    @Order(12)
     @DisplayName("GET /usage/summary - should return operational usage summary")
     void shouldReturnUsageSummary() throws Exception {
         mockMvc.perform(get("/usage/summary").with(operatorHeader()))
@@ -200,13 +244,15 @@ class WorkspaceShellIT {
                 .andExpect(jsonPath("$.dailyCredits").value(300))
                 .andExpect(jsonPath("$.unreadNotifications").isNumber())
                 .andExpect(jsonPath("$.budget.costCenter").value("core_now"))
+                .andExpect(jsonPath("$.commercial.planCode").value("starter"))
+                .andExpect(jsonPath("$.commercial.includedCredits").value(500))
                 .andExpect(jsonPath("$.budget.chargebackMode").value("showback"))
                 .andExpect(jsonPath("$.budget.softLimitCredits").value(300))
                 .andExpect(jsonPath("$.budget.hardLimitCredits").value(450));
     }
 
     @Test
-    @Order(11)
+    @Order(13)
     @DisplayName("GET /notifications - should list operational inbox")
     void shouldReturnNotifications() throws Exception {
         mockMvc.perform(get("/notifications").with(operatorHeader()))
@@ -216,7 +262,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(12)
+    @Order(14)
     @DisplayName("GET /settings/overview - should return settings shell")
     void shouldReturnSettingsOverview() throws Exception {
         mockMvc.perform(get("/settings/overview").with(operatorHeader()))
@@ -224,13 +270,14 @@ class WorkspaceShellIT {
                 .andExpect(jsonPath("$.organizationName").value("Lume"))
                 .andExpect(jsonPath("$.sections").isArray())
                 .andExpect(jsonPath("$.usage.dailyCredits").value(300))
+                .andExpect(jsonPath("$.commercial.planLabel").value("Starter"))
                 .andExpect(jsonPath("$.sections[?(@.key=='knowledge')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists())
                 .andExpect(jsonPath("$.usage.budget.costCenter").value("core_now"));
     }
 
     @Test
-    @Order(13)
+    @Order(15)
     @DisplayName("GET /api/v1/knowledge-sources - should list persisted knowledge sources")
     void shouldReturnKnowledgeSources() throws Exception {
         mockMvc.perform(get("/api/v1/knowledge-sources").with(operatorHeader()))
@@ -243,7 +290,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(14)
+    @Order(16)
     @DisplayName("GET /api/v1/library/entries/{id}/versions - should return persisted artifact versions")
     void shouldReturnArtifactVersions() throws Exception {
         mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding").with(operatorHeader()))
@@ -253,7 +300,7 @@ class WorkspaceShellIT {
     }
 
     @Test
-    @Order(15)
+    @Order(17)
     @DisplayName("GET /api/v1/prompt-templates - should return persisted prompt templates")
     void shouldReturnPromptTemplates() throws Exception {
         mockMvc.perform(get("/api/v1/prompt-templates").with(operatorHeader()))

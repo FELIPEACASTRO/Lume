@@ -47,7 +47,9 @@ class ProviderCatalogIT {
                 .andExpect(jsonPath("$[?(@.code=='bfl')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='runway')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='tavily')]").exists())
-                .andExpect(jsonPath("$[?(@.code=='darkowl')]").exists());
+                .andExpect(jsonPath("$[?(@.code=='darkowl')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='dashscope-qwen')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='siliconflow')]").exists());
     }
 
     @Test

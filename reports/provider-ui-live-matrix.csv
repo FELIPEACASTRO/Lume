@@ -1,0 +1,10 @@
+provider,status,model,latencyMs,responsePreview,error
+ai21,UI_BLOCKED_MODEL,,403,,"Nenhum modelo habilitado para Agents no provider selecionado."
+cohere,PASS,Command A 03-2025,5705,"O estoicismo e uma filosofia pratica que ensina a focar no que podemos controlar, desenvolvendo virtude e resiliencia emocional. Seus principios incluem aceitar eventos externos com tranquilidade e agir com sabedoria e justica.",
+google-gemini,PASS,Gemini 2.5 Flash,5230,"O estoicismo e uma filosofia antiga que ensina a focar no que podemos controlar (nossas acoes e julgamentos) e aceitar com serenidade o que nao podemos. Seu objetivo e alcancar a tranquilidade e a virtude atraves da razao, da autodisciplina",
+groq,PASS,Llama 3.3 70B Versatile,4814,"O estoicismo e uma filosofia que busca cultivar a forca interior e a sabedoria, ajudando as pessoas a lidar com desafios e adversidades de maneira racional e equilibrada. Ele se baseia em principios como a virtude, a razao e a aceitacao do",
+mistral,PASS,Mistral Small Latest,4872,"O estoicismo e uma filosofia antiga que ensina a buscar a virtude e a resiliencia emocional, focando no que podemos controlar e aceitando com serenidade o que esta fora do nosso alcance. Seus principios incluem a razao, a autodisciplina e a",
+openai,PASS,GPT-4.1 mini,6655,"O estoicismo e uma filosofia que ensina a viver de acordo com a razao, focando no controle das proprias emocoes e aceitacao dos eventos externos que nao podemos mudar. Seu objetivo e alcancar a virtude e a tranquilidade interior por meio da",
+openrouter,PASS,GPT-4.1 mini via OpenRouter,5691,"O estoicismo e uma filosofia que ensina a focar no que esta sob nosso controle e aceitar com serenidade o que nao podemos mudar. Seu objetivo e alcancar a virtude e a paz interior por meio da razao, da autodisciplina e da resiliencia emocio",
+sambanova,UI_BLOCKED_MODEL,,379,,"Nenhum modelo habilitado para Agents no provider selecionado."
+siliconflow,UI_BLOCKED_MODEL,,371,,"Nenhum modelo habilitado para Agents no provider selecionado."

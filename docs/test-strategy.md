@@ -11,8 +11,6 @@
 - unit: services, mappers, metadata loaders, routing, retry, redaction
 - contract: request/response shape por provider e por capability
 - integration: controllers versionados, catalogo, health, connectivity e services capability-aware
-- frontend unit: services, settings, agents, estados de readiness
-- e2e: shell, providers, settings, agents, capability surfaces expostas no frontend
 - live smoke: apenas com credenciais e flag habilitada
 
 ## Suites obrigatorias por capability
@@ -21,7 +19,7 @@
 |---|---|
 | `chat/responses` | unit + integration + live smoke opt-in |
 | `embeddings/rerank` | unit + integration |
-| `search/web-grounded-chat` | unit + integration + e2e de surfaces administrativas |
+| `search/web-grounded-chat` | unit + integration |
 | `audio/ocr` | unit + integration + artifact lifecycle |
 | `image/video` | unit + integration + polling |
 | `threat-intel` | unit + integration + compliance/security |
@@ -29,7 +27,5 @@
 ## Gates
 
 - backend: `mvn verify`
-- frontend: `pnpm lint`, `pnpm test`, `pnpm build`
 - docs: matrizes e README atualizados
-- nenhum provider `online_verified` sem evidência live real
-
+- nenhum provider `online_verified` sem evidencia live real

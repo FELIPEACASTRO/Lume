@@ -362,6 +362,62 @@ public final class AiPlatformModels {
     ) {
     }
 
+    public record TranslationRequest(
+            @NotBlank String providerCode,
+            String modelCode,
+            @NotBlank String text,
+            @NotBlank String targetLanguageCode,
+            String sourceLanguageCode
+    ) {
+    }
+
+    public record TranslationResponse(
+            String providerCode,
+            String providerName,
+            String modelCode,
+            String status,
+            String translatedText,
+            String detectedLanguageCode,
+            String error
+    ) {
+    }
+
+    public record NlpEntity(
+            String name,
+            String type,
+            Double salience
+    ) {
+    }
+
+    public record NlpCategory(
+            String name,
+            Double confidence
+    ) {
+    }
+
+    public record NlpAnalysisRequest(
+            @NotBlank String providerCode,
+            String modelCode,
+            @NotBlank String text,
+            @NotBlank String analysisType,
+            String languageCode
+    ) {
+    }
+
+    public record NlpAnalysisResponse(
+            String providerCode,
+            String providerName,
+            String modelCode,
+            String status,
+            String languageCode,
+            Double sentimentScore,
+            Double sentimentMagnitude,
+            List<NlpEntity> entities,
+            List<NlpCategory> categories,
+            String error
+    ) {
+    }
+
     public record AiSearchRequest(
             @NotBlank String providerCode,
             @NotBlank String query,

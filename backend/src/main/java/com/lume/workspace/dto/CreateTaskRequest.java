@@ -9,6 +9,12 @@ public record CreateTaskRequest(
         String prompt,
         @NotBlank(message = "O tipo da tarefa e obrigatorio")
         String taskType,
-        String projectId
+        String projectId,
+        String providerCode,
+        String modelCode,
+        String versionLabel
 ) {
+    public CreateTaskRequest(String prompt, String taskType, String projectId) {
+        this(prompt, taskType, projectId, null, null, null);
+    }
 }

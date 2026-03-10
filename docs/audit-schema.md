@@ -13,7 +13,7 @@ Contrato interno usado pela ferramenta em `tools/integration_audit/`.
 | `implementationStatus` | `string` | Estado oficial reconciliado (`live`, `implemented_with_restrictions`, `catalog_only`, `blocked`, `out_of_scope`) |
 | `integratedTestStatus` | `string` | Estado de readiness para teste integrado |
 | `evidenceLevel` | `string` | Nivel de evidencia operacional |
-| `exposure` | `string` | Onde o servico aparece (`backend`, `frontend`, `docs`, `config`, `tests`) |
+| `exposure` | `string` | Onde o servico aparece (`backend`, `docs`, `config`, `tests`) |
 | `coverageType` | `string` | Classificacao conservadora da cobertura (`NATIVE_IMPLEMENTED`, `INDIRECT_VIA_GATEWAY`, `PARTIAL`, `STUB_OR_MOCK`, `NOT_IMPLEMENTED`, `LEGACY_OR_DISABLED`) |
 | `gatewayProvider` | `string?` | Evidencia textual de cobertura indireta via gateway, quando houver |
 | `evidenceFiles` | `string[]` | Arquivos que sustentam a classificacao |
@@ -27,7 +27,6 @@ Contrato interno usado pela ferramenta em `tools/integration_audit/`.
 - `READY_IF_SECRETS_PRESENT`
 - `BLOCKED_BY_CONFIG`
 - `BLOCKED_BY_BACKEND`
-- `BLOCKED_BY_FRONTEND`
 - `BLOCKED_BY_FEATURE_FLAG`
 - `BLOCKED_BY_INFRA`
 - `BLOCKED_BY_TEST_HARNESS`
@@ -41,21 +40,3 @@ Contrato interno usado pela ferramenta em `tools/integration_audit/`.
 - `STUB_OR_MOCK`
 - `NOT_IMPLEMENTED`
 - `LEGACY_OR_DISABLED`
-
-## Categorias capability-first
-
-- `CHAT`
-- `RESPONSES`
-- `EMBEDDINGS`
-- `RERANK`
-- `WEB_SEARCH`
-- `WEB_GROUNDED_CHAT`
-- `OCR`
-- `SPEECH_TO_TEXT`
-- `TEXT_TO_SPEECH`
-- `IMAGE_GENERATION`
-- `IMAGE_EDITING`
-- `VIDEO_GENERATION`
-- `THREAT_INTEL_SEARCH`
-- `gateway`
-- `workflow`

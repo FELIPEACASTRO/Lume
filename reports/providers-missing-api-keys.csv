@@ -1,0 +1,44 @@
+provider_code,product_name,required_envs,credential_portal_url
+ai21,AI21 Labs,AI21_API_KEY,https://studio.ai21.com
+assemblyai,AssemblyAI,ASSEMBLYAI_API_KEY,https://www.assemblyai.com/dashboard
+aws-bedrock,AWS Bedrock,"AWS_ACCESS_KEY_ID;AWS_SECRET_ACCESS_KEY;AWS_REGION",https://console.aws.amazon.com/bedrock/
+azure-openai,Azure OpenAI,"AZURE_OPENAI_ENDPOINT;AZURE_OPENAI_API_KEY;AZURE_OPENAI_API_VERSION;AZURE_OPENAI_DEPLOYMENT",https://learn.microsoft.com/azure/ai-services/openai/reference
+bfl,Black Forest Labs,BFL_API_KEY,https://bfl.ai
+cerebras,Cerebras,CEREBRAS_API_KEY,https://cloud.cerebras.ai/platform/api-keys
+cloudflare-workers-ai,Cloudflare Workers AI,"CLOUDFLARE_API_TOKEN;CLOUDFLARE_ACCOUNT_ID",https://dash.cloudflare.com/profile/api-tokens
+cohere,Cohere,COHERE_API_KEY,https://dashboard.cohere.com/api-keys
+darknetsearch,DarknetSearch,"DARKNETSEARCH_USERNAME;DARKNETSEARCH_PASSWORD;DARKNETSEARCH_CLIENT_ID;DARKNETSEARCH_CLIENT_SECRET",https://kaduu.com
+darkowl,DarkOwl,"DARKOWL_PUBLIC_KEY;DARKOWL_PRIVATE_KEY",https://www.darkowl.com
+dashscope-qwen,Alibaba DashScope / Qwen,DASHSCOPE_API_KEY,https://bailian.console.aliyun.com
+deepgram,Deepgram,DEEPGRAM_API_KEY,https://console.deepgram.com
+deepinfra,DeepInfra,DEEPINFRA_API_KEY,https://deepinfra.com/dash/api_keys
+elevenlabs,ElevenLabs,ELEVENLABS_API_KEY,https://elevenlabs.io/app/settings/api-keys
+exa,Exa,EXA_API_KEY,https://dashboard.exa.ai/api-keys
+fal-ai,fal.ai,FAL_KEY,https://fal.ai/dashboard/keys
+fireworks,Fireworks AI,FIREWORKS_API_KEY,https://fireworks.ai/account/api-keys
+flare,Flare,FLARE_API_KEY,https://flare.io
+fullhunt,FullHunt,FULLHUNT_API_KEY,https://fullhunt.io
+github-models,GitHub Models,GITHUB_MODELS_PAT,https://github.com/settings/personal-access-tokens
+google-natural-language,Google Cloud Natural Language,GOOGLE_CLOUD_CREDENTIALS_JSON,https://console.cloud.google.com/apis/credentials
+google-speech-to-text,Google Cloud Speech-to-Text,GOOGLE_CLOUD_CREDENTIALS_JSON,https://console.cloud.google.com/apis/credentials
+google-text-to-speech,Google Cloud Text-to-Speech,GOOGLE_CLOUD_CREDENTIALS_JSON,https://console.cloud.google.com/apis/credentials
+google-translation,Google Cloud Translation,GOOGLE_CLOUD_CREDENTIALS_JSON,https://console.cloud.google.com/apis/credentials
+google-vision,Google Cloud Vision,GOOGLE_CLOUD_CREDENTIALS_JSON,https://console.cloud.google.com/apis/credentials
+groq,Groq,GROQ_API_KEY,https://console.groq.com/keys
+hugging-face,Hugging Face,HF_TOKEN,https://huggingface.co/settings/tokens
+ideogram,Ideogram,IDEOGRAM_API_KEY,https://developer.ideogram.ai
+mistral,Mistral AI,MISTRAL_API_KEY,https://admin.mistral.ai/organization/api-keys
+newscatcher,NewsCatcher,NEWSCATCHER_API_KEY,https://www.newscatcherapi.com/docs/v3/api-reference/overview/authentication
+nvidia-nim,NVIDIA NIM,NVIDIA_NIM_API_KEY,https://build.nvidia.com
+onion-search-engine,Onion Search Engine,ONION_SEARCH_API_KEY,https://onionsearchengine.com
+openrouter,OpenRouter,OPENROUTER_API_KEY,https://openrouter.ai/keys
+replicate,Replicate,REPLICATE_API_TOKEN,https://replicate.com/account/api-tokens
+runway,Runway,RUNWAY_API_KEY,https://app.runwayml.com/account/api-keys
+sambanova,SambaNova,SAMBANOVA_API_KEY,https://cloud.sambanova.ai
+serpapi,SerpApi,SERPAPI_API_KEY,https://serpapi.com/manage-api-key
+siliconflow,SiliconFlow,SILICONFLOW_API_KEY,https://cloud.siliconflow.cn
+stability-ai,Stability AI,STABILITY_API_KEY,https://platform.stability.ai/account/keys
+tavily,Tavily,TAVILY_API_KEY,https://app.tavily.com/home
+together,Together AI,TOGETHER_API_KEY,https://api.together.ai/settings/api-keys
+twingly,Twingly,TWINGLY_API_KEY,https://www.twingly.com/dark-web-api/
+voyage-ai,Voyage AI,VOYAGE_API_KEY,https://dash.voyageai.com

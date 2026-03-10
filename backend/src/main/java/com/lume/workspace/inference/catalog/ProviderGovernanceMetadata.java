@@ -15,6 +15,11 @@ public record ProviderGovernanceMetadata(
         String documentationSource,
         String docsUrl,
         String apiKeyPortalUrl,
+        Boolean freeTierRecurring,
+        String freeTierScope,
+        String billingWarning,
+        List<String> freeModels,
+        List<String> regionConstraints,
         List<String> capabilities,
         String notes
 ) {
@@ -31,6 +36,11 @@ public record ProviderGovernanceMetadata(
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
                 List.of(),
                 null
         );
@@ -48,6 +58,11 @@ public record ProviderGovernanceMetadata(
                 defaultDocumentationSource(provider),
                 provider.docsUrl(),
                 provider.apiKeyPortalUrl(),
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
                 provider.capabilities(),
                 provider.notes()
         );
@@ -68,6 +83,11 @@ public record ProviderGovernanceMetadata(
                 coalesce(override.documentationSource, documentationSource),
                 coalesce(override.docsUrl, docsUrl),
                 coalesce(override.apiKeyPortalUrl, apiKeyPortalUrl),
+                override.freeTierRecurring != null ? override.freeTierRecurring : freeTierRecurring,
+                coalesce(override.freeTierScope, freeTierScope),
+                coalesce(override.billingWarning, billingWarning),
+                mergeList(freeModels, override.freeModels),
+                mergeList(regionConstraints, override.regionConstraints),
                 mergeList(capabilities, override.capabilities),
                 coalesce(override.notes, notes)
         );

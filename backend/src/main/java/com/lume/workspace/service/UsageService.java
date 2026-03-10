@@ -8,13 +8,16 @@ public class UsageService {
 
     private final WorkspaceMeteringService workspaceMeteringService;
     private final WorkspaceBudgetService workspaceBudgetService;
+    private final WorkspaceCommercialService workspaceCommercialService;
 
     public UsageService(
             WorkspaceMeteringService workspaceMeteringService,
-            WorkspaceBudgetService workspaceBudgetService
+            WorkspaceBudgetService workspaceBudgetService,
+            WorkspaceCommercialService workspaceCommercialService
     ) {
         this.workspaceMeteringService = workspaceMeteringService;
         this.workspaceBudgetService = workspaceBudgetService;
+        this.workspaceCommercialService = workspaceCommercialService;
     }
 
     public UsageSummaryResponse getSummary() {
@@ -27,8 +30,9 @@ public class UsageService {
                 snapshot.activeTasks(),
                 snapshot.scheduledTasks(),
                 snapshot.unreadNotifications(),
-                "A camada de creditos aqui representa metering operacional do workspace, nao faturamento final.",
-                workspaceBudgetService.summarizeForConsumedCredits(snapshot.consumedCredits())
+                "Uso operacional (runtime) separado do faturamento comercial. Consulte /api/v1/finops e /api/v1/billing para ledger e cobranca.",
+                workspaceBudgetService.summarizeForConsumedCredits(snapshot.consumedCredits()),
+                workspaceCommercialService.getCurrentSummary()
         );
     }
 }

@@ -19,6 +19,7 @@ spring:
       connection-timeout: 20000
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
     show-sql: false
@@ -82,31 +83,9 @@ lume:
         max-concurrent-calls: 8
       rate-limiter:
         permits-per-minute: 120
-      pricing:
-        input-per-1k-usd: 0.0
-        output-per-1k-usd: 0.0
-    providers:
-      openai:
-        pricing:
-          input-per-1k-usd: 0.0
-          output-per-1k-usd: 0.0
-      anthropic:
-        pricing:
-          input-per-1k-usd: 0.0
-          output-per-1k-usd: 0.0
-      google-gemini:
-        pricing:
-          input-per-1k-usd: 0.0
-          output-per-1k-usd: 0.0
-      deepseek:
-        pricing:
-          input-per-1k-usd: 0.0
-          output-per-1k-usd: 0.0
-      xai:
-        pricing:
-          input-per-1k-usd: 0.0
-          output-per-1k-usd: 0.0
-      perplexity:
-        pricing:
-          input-per-1k-usd: 0.0
-          output-per-1k-usd: 0.0
+  finops:
+    reconciliation:
+      enabled: false
+      cron: "0 30 2 1 * *"
+      auto-fix-credit-drift: false
+      max-workspaces-per-run: 500

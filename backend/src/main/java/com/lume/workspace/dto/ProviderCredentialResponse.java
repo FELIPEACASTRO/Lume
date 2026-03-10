@@ -22,6 +22,11 @@ public record ProviderCredentialResponse(
         List<String> missingCredentialEnvVars,
         List<CredentialFieldResponse> credentialFields,
         String apiKeyPortalUrl,
-        String docsUrl
+        String docsUrl,
+        Boolean freeTierRecurring,
+        String freeTierScope,
+        String billingWarning,
+        List<String> freeModels,
+        List<String> regionConstraints
 ) {
 }

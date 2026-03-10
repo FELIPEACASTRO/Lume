@@ -1,39 +1,54 @@
 package com.lume.infrastructure.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Configuração de CORS (Cross-Origin Resource Sharing).
+ * Configuracao de CORS.
  *
- * <p>Permite que o frontend (rodando em porta diferente) acesse a API.</p>
+ * <p>O backend nao presume nenhum cliente cross-origin por padrao.
+ * Quando necessario, as origens permitidas devem ser informadas por
+ * `CORS_ALLOWED_ORIGINS`.</p>
  */
 @Configuration
 public class CorsConfig {
 
+    @Value("${CORS_ALLOWED_ORIGINS:}")
+    private String allowedOrigins;
+
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:4173",
-                "http://localhost:5173",
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:4173",
-                "http://127.0.0.1:5173"
-        ));
+        List<String> origins = parseAllowedOrigins();
+        if (!origins.isEmpty()) {
+            config.setAllowedOrigins(origins);
+            config.setAllowCredentials(true);
+        }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
+    }
+
+    private List<String> parseAllowedOrigins() {
+        if (allowedOrigins == null || allowedOrigins.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .collect(Collectors.toList());
     }
 }

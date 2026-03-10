@@ -1,0 +1,2453 @@
+[
+    {
+        "code":  "openai",
+        "name":  "OpenAI",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_RESPONSES",
+        "apiStyle":  "responses",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  true,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cOPENAI_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "OPENAI_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave principal do projeto OpenAI."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://platform.openai.com/settings/organization/api-keys",
+        "docsUrl":  "https://developers.openai.com/api/docs/guides/text/",
+        "defaultModelCode":  "openai:gpt-4.1-mini",
+        "capabilities":  [
+                             "chat",
+                             "reasoning",
+                             "multimodal"
+                         ],
+        "notes":  "Responses API como caminho principal."
+    },
+    {
+        "code":  "anthropic",
+        "name":  "Anthropic",
+        "category":  "text-runtime",
+        "protocol":  "ANTHROPIC_MESSAGES",
+        "apiStyle":  "messages",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "x-api-key",
+                                "anthropic-version: 2023-06-01"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "ANTHROPIC_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave x-api-key da Anthropic."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.anthropic.com/settings/keys",
+        "docsUrl":  "https://docs.anthropic.com/en/api/messages",
+        "defaultModelCode":  "anthropic:claude-sonnet-4-5",
+        "capabilities":  [
+                             "chat",
+                             "vision",
+                             "reasoning"
+                         ],
+        "notes":  "Messages API oficial."
+    },
+    {
+        "code":  "google-gemini",
+        "name":  "Google Gemini",
+        "category":  "text-runtime",
+        "protocol":  "GEMINI_GENERATE_CONTENT",
+        "apiStyle":  "generate-content",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "x-goog-api-key"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "GEMINI_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave emitida no Google AI Studio."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://aistudio.google.com/apikey",
+        "docsUrl":  "https://ai.google.dev/api",
+        "defaultModelCode":  "google-gemini:gemini-2.5-flash",
+        "capabilities":  [
+                             "chat",
+                             "multimodal",
+                             "vision"
+                         ],
+        "notes":  "REST generateContent com x-goog-api-key."
+    },
+    {
+        "code":  "deepseek",
+        "name":  "DeepSeek",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cDEEPSEEK_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "DEEPSEEK_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave da plataforma DeepSeek."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://platform.deepseek.com/api_keys",
+        "docsUrl":  "https://api-docs.deepseek.com/api/create-chat-completion/",
+        "defaultModelCode":  "deepseek:deepseek-chat",
+        "capabilities":  [
+                             "chat",
+                             "reasoning",
+                             "code"
+                         ],
+        "notes":  "Runtime textual ligado; tratar trialExpirySensitive e oferta promocional como metadata operacional, nunca como garantia do produto."
+    },
+    {
+        "code":  "xai",
+        "name":  "xAI",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_RESPONSES",
+        "apiStyle":  "responses",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  true,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cXAI_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "XAI_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave xAI / Grok."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.x.ai",
+        "docsUrl":  "https://docs.x.ai/docs",
+        "defaultModelCode":  "xai:grok-4",
+        "capabilities":  [
+                             "chat",
+                             "reasoning",
+                             "vision"
+                         ],
+        "notes":  "Responses API oficial."
+    },
+    {
+        "code":  "perplexity",
+        "name":  "Perplexity",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cPERPLEXITY_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "PERPLEXITY_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Perplexity para Sonar API."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://www.perplexity.ai/settings/api",
+        "docsUrl":  "https://docs.perplexity.ai/docs/grounded-llm/openai-compatibility",
+        "defaultModelCode":  "perplexity:sonar",
+        "capabilities":  [
+                             "chat",
+                             "search-grounded"
+                         ],
+        "notes":  "Provider valioso para grounded chat, mas citations e search metadata ainda precisam amadurecer na capability especifica."
+    },
+    {
+        "code":  "groq",
+        "name":  "Groq",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_RESPONSES",
+        "apiStyle":  "responses",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  true,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cGROQ_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "GROQ_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Groq."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.groq.com/keys",
+        "docsUrl":  "https://console.groq.com/docs/openai",
+        "defaultModelCode":  "groq:llama-3.3-70b-versatile",
+        "capabilities":  [
+                             "chat",
+                             "speed"
+                         ],
+        "notes":  "Alto valor para latencia, mas com cobertura de capability mais estreita que provedores generalistas."
+    },
+    {
+        "code":  "mistral",
+        "name":  "Mistral AI",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cMISTRAL_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "MISTRAL_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Mistral."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://admin.mistral.ai/organization/api-keys",
+        "docsUrl":  "https://docs.mistral.ai/capabilities/completion/",
+        "defaultModelCode":  "mistral:mistral-small-latest",
+        "capabilities":  [
+                             "chat",
+                             "code",
+                             "vision",
+                             "ocr",
+                             "embeddings"
+                         ],
+        "notes":  "Chat e OCR ligados; embeddings seguem fora do runtime capability-aware desta fase."
+    },
+    {
+        "code":  "openrouter",
+        "name":  "OpenRouter",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cOPENROUTER_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "OPENROUTER_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave OpenRouter."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://openrouter.ai/keys",
+        "docsUrl":  "https://openrouter.ai/docs",
+        "defaultModelCode":  "openrouter:openai/gpt-4.1-mini",
+        "capabilities":  [
+                             "chat",
+                             "routing",
+                             "aggregation"
+                         ],
+        "notes":  "Roteador util para custo e experimentacao; fluxo gratuito exige modelos com sufixo :free."
+    },
+    {
+        "code":  "cohere",
+        "name":  "Cohere",
+        "category":  "text-runtime",
+        "protocol":  "COHERE_CHAT_V2",
+        "apiStyle":  "chat-v2",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cCOHERE_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "COHERE_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Cohere."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://dashboard.cohere.com/api-keys",
+        "docsUrl":  "https://docs.cohere.com/v2/reference/chat",
+        "defaultModelCode":  "cohere:command-r",
+        "capabilities":  [
+                             "chat",
+                             "embeddings",
+                             "rerank"
+                         ],
+        "notes":  "Runtime de chat, embeddings e rerank ligado; tiers gratuitos e non-commercial devem ser avaliados fora do core."
+    },
+    {
+        "code":  "cloudflare-workers-ai",
+        "name":  "Cloudflare Workers AI",
+        "category":  "text-runtime",
+        "protocol":  "CLOUDFLARE_OPENAI_COMPAT",
+        "apiStyle":  "openai-compat",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cCLOUDFLARE_API_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiToken",
+                                     "label":  "API Token",
+                                     "envVar":  "CLOUDFLARE_API_TOKEN",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Token Cloudflare com permissoes de Workers AI."
+                                 },
+                                 {
+                                     "key":  "accountId",
+                                     "label":  "Account ID",
+                                     "envVar":  "CLOUDFLARE_ACCOUNT_ID",
+                                     "required":  true,
+                                     "secret":  false,
+                                     "configured":  false,
+                                     "description":  "Identificador da conta Cloudflare."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://dash.cloudflare.com/profile/api-tokens",
+        "docsUrl":  "https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/",
+        "defaultModelCode":  "cloudflare-workers-ai:@cf/meta/llama-3.1-8b-instruct",
+        "capabilities":  [
+                             "chat",
+                             "image",
+                             "speech"
+                         ],
+        "notes":  "Catalogado; adaptador dedicado fica fora desta fase."
+    },
+    {
+        "code":  "together",
+        "name":  "Together AI",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cTOGETHER_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "TOGETHER_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Together."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://api.together.ai/settings/api-keys",
+        "docsUrl":  "https://docs.together.ai/docs/openai-api-compatibility",
+        "defaultModelCode":  "together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        "capabilities":  [
+                             "chat",
+                             "image",
+                             "embeddings"
+                         ],
+        "notes":  "Runtime textual habilitado; image/embeddings seguem em roadmap por capability."
+    },
+    {
+        "code":  "fireworks",
+        "name":  "Fireworks AI",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cFIREWORKS_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "FIREWORKS_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Fireworks."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://fireworks.ai/account/api-keys",
+        "docsUrl":  "https://docs.fireworks.ai/guides/querying-text-models",
+        "defaultModelCode":  "fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct",
+        "capabilities":  [
+                             "chat",
+                             "image"
+                         ],
+        "notes":  "Runtime textual habilitado; workloads de imagem ficam na camada de media."
+    },
+    {
+        "code":  "deepinfra",
+        "name":  "DeepInfra",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cDEEPINFRA_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "DEEPINFRA_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave DeepInfra."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://deepinfra.com/dash/api_keys",
+        "docsUrl":  "https://deepinfra.com/docs/openai_api",
+        "defaultModelCode":  "deepinfra:meta-llama/Meta-Llama-3.1-8B-Instruct",
+        "capabilities":  [
+                             "chat",
+                             "image",
+                             "embeddings"
+                         ],
+        "notes":  "Runtime textual habilitado; demais capacidades permanecem dependentes do modelo."
+    },
+    {
+        "code":  "cerebras",
+        "name":  "Cerebras",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  false,
+        "configured":  true,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cCEREBRAS_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "CEREBRAS_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Cerebras."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://cloud.cerebras.ai/platform/api-keys",
+        "docsUrl":  "https://inference-docs.cerebras.ai",
+        "defaultModelCode":  "cerebras:llama-3.3-70b",
+        "capabilities":  [
+                             "chat"
+                         ],
+        "notes":  "Catalogado com metadata de OpenAI-compatibility; ativacao real depende de validacao contratual adicional."
+    },
+    {
+        "code":  "nvidia-nim",
+        "name":  "NVIDIA NIM",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cNVIDIA_NIM_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "NVIDIA_NIM_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave NVIDIA NIM."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://build.nvidia.com",
+        "docsUrl":  "https://docs.api.nvidia.com",
+        "defaultModelCode":  "nvidia-nim:meta/llama-3.1-70b-instruct",
+        "capabilities":  [
+                             "chat",
+                             "multimodal"
+                         ],
+        "notes":  "Catalogado com contrato OpenAI-compatible; exige conta NVIDIA Developer."
+    },
+    {
+        "code":  "sambanova",
+        "name":  "SambaNova",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  false,
+        "configured":  true,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cSAMBANOVA_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "SAMBANOVA_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave SambaNova."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://cloud.sambanova.ai",
+        "docsUrl":  "https://docs.sambanova.ai/cloud/api",
+        "defaultModelCode":  "sambanova:Meta-Llama-3.1-70B-Instruct",
+        "capabilities":  [
+                             "chat"
+                         ],
+        "notes":  "Catalogado; ativacao depende de confirmacao por conta e tier."
+    },
+    {
+        "code":  "siliconflow",
+        "name":  "SiliconFlow",
+        "category":  "text-runtime",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "chat-completions",
+        "executionSupported":  false,
+        "configured":  true,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cSILICONFLOW_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "SILICONFLOW_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave SiliconFlow."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://cloud.siliconflow.cn",
+        "docsUrl":  "https://docs.siliconflow.cn",
+        "defaultModelCode":  "siliconflow:Qwen/Qwen2.5-72B-Instruct",
+        "capabilities":  [
+                             "chat",
+                             "multimodal",
+                             "ocr"
+                         ],
+        "notes":  "Catalogado; locale e encoding exigem validacao contratual adicional."
+    },
+    {
+        "code":  "aws-bedrock",
+        "name":  "AWS Bedrock",
+        "category":  "text-runtime",
+        "protocol":  "BEDROCK_CONVERSE",
+        "apiStyle":  "converse",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "x-amz-date",
+                                "Authorization: AWS4-HMAC-SHA256"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "accessKeyId",
+                                     "label":  "AWS Access Key ID",
+                                     "envVar":  "AWS_ACCESS_KEY_ID",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Credencial AWS."
+                                 },
+                                 {
+                                     "key":  "secretAccessKey",
+                                     "label":  "AWS Secret Access Key",
+                                     "envVar":  "AWS_SECRET_ACCESS_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Segredo AWS."
+                                 },
+                                 {
+                                     "key":  "region",
+                                     "label":  "AWS Region",
+                                     "envVar":  "AWS_REGION",
+                                     "required":  true,
+                                     "secret":  false,
+                                     "configured":  false,
+                                     "description":  "Regiao do runtime Bedrock."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.aws.amazon.com/bedrock/",
+        "docsUrl":  "https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html",
+        "defaultModelCode":  "aws-bedrock:amazon.nova-lite-v1:0",
+        "capabilities":  [
+                             "chat",
+                             "multimodal"
+                         ],
+        "notes":  "Requer assinatura AWS SigV4; mantido manual."
+    },
+    {
+        "code":  "hugging-face",
+        "name":  "Hugging Face",
+        "category":  "text-runtime",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "inference-api",
+        "executionSupported":  false,
+        "configured":  true,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "catalog-only",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cHF_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "token",
+                                     "label":  "HF Token",
+                                     "envVar":  "HF_TOKEN",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Token pessoal Hugging Face."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://huggingface.co/settings/tokens",
+        "docsUrl":  "https://huggingface.co/docs/api-inference",
+        "defaultModelCode":  "hugging-face:meta-llama/Llama-3.1-8B-Instruct",
+        "capabilities":  [
+                             "chat",
+                             "embeddings",
+                             "image",
+                             "audio"
+                         ],
+        "notes":  "Mantido como catalog-only ate padronizacao por tarefa."
+    },
+    {
+        "code":  "ai21",
+        "name":  "AI21 Labs",
+        "category":  "text-runtime",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "jamba",
+        "executionSupported":  false,
+        "configured":  true,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cAI21_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "AI21_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave AI21 Labs."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://studio.ai21.com",
+        "docsUrl":  "https://docs.ai21.com",
+        "defaultModelCode":  "ai21:jamba-1.5-large",
+        "capabilities":  [
+                             "chat"
+                         ],
+        "notes":  "Catalogado para a familia Jamba; ativacao real depende de adapter nativo."
+    },
+    {
+        "code":  "github-models",
+        "name":  "GitHub Models",
+        "category":  "text-runtime",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "prototype",
+        "executionSupported":  false,
+        "configured":  true,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos variam por token, modelo e tier. Use roteamento cost-first para workloads padrao e quality-first apenas quando o caso justificar.",
+        "rateLimitSummary":  "Rate limits dependem do plano e da conta do fornecedor. Nao fixar limites em codigo; tratar como metadata operacional externa.",
+        "routingModes":  [
+                             "cost-first",
+                             "latency-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cGITHUB_MODELS_PAT\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "pat",
+                                     "label":  "GitHub Models PAT",
+                                     "envVar":  "GITHUB_MODELS_PAT",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "PAT com scope models."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://github.com/settings/personal-access-tokens",
+        "docsUrl":  "https://docs.github.com/en/github-models/prototyping-with-ai-models",
+        "defaultModelCode":  "github-models:gpt-4o-mini",
+        "capabilities":  [
+                             "chat",
+                             "multimodal"
+                         ],
+        "notes":  "Depende de PAT com scope adequado e do plano GitHub/Copilot associado ao tenant."
+    },
+    {
+        "code":  "exa",
+        "name":  "Exa",
+        "category":  "research-search",
+        "protocol":  "CUSTOM_RESEARCH",
+        "apiStyle":  "research",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por numero de pesquisas, profundidade e enriquecimento. Consultas amplas devem ser orquestradas com limites por workspace.",
+        "rateLimitSummary":  "Rate limits variam por chave e plano. Pesquisas devem respeitar limites de burst e cota diaria do fornecedor.",
+        "routingModes":  [
+                             "cost-first",
+                             "quality-first",
+                             "latency-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "x-api-key"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "EXA_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Exa."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://dashboard.exa.ai/api-keys",
+        "docsUrl":  "https://exa.ai/docs/reference/search",
+        "defaultModelCode":  "exa:search",
+        "capabilities":  [
+                             "search",
+                             "research"
+                         ],
+        "notes":  "Pesquisa neural pronta para execucao real."
+    },
+    {
+        "code":  "newscatcher",
+        "name":  "NewsCatcher",
+        "category":  "research-search",
+        "protocol":  "CUSTOM_RESEARCH",
+        "apiStyle":  "research",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por numero de pesquisas, profundidade e enriquecimento. Consultas amplas devem ser orquestradas com limites por workspace.",
+        "rateLimitSummary":  "Rate limits variam por chave e plano. Pesquisas devem respeitar limites de burst e cota diaria do fornecedor.",
+        "routingModes":  [
+                             "cost-first",
+                             "quality-first",
+                             "latency-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "x-api-token"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiToken",
+                                     "label":  "API Token",
+                                     "envVar":  "NEWSCATCHER_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Token NewsCatcher."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://www.newscatcherapi.com/docs/v3/api-reference/overview/authentication",
+        "docsUrl":  "https://www.newscatcherapi.com/docs/v3/api-reference/overview/authentication",
+        "defaultModelCode":  "newscatcher:search",
+        "capabilities":  [
+                             "news-search",
+                             "web-search"
+                         ],
+        "notes":  "Muito util para noticias e monitoramento; escopo permanece focado em news search."
+    },
+    {
+        "code":  "tavily",
+        "name":  "Tavily",
+        "category":  "research-search",
+        "protocol":  "CUSTOM_RESEARCH",
+        "apiStyle":  "research",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por numero de pesquisas, profundidade e enriquecimento. Consultas amplas devem ser orquestradas com limites por workspace.",
+        "rateLimitSummary":  "Rate limits variam por chave e plano. Pesquisas devem respeitar limites de burst e cota diaria do fornecedor.",
+        "routingModes":  [
+                             "cost-first",
+                             "quality-first",
+                             "latency-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cTAVILY_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "TAVILY_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Tavily."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://app.tavily.com/home",
+        "docsUrl":  "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+        "defaultModelCode":  "tavily:search",
+        "capabilities":  [
+                             "web-search",
+                             "research"
+                         ],
+        "notes":  "Search web otimizado para agentes, com retorno sintese + links."
+    },
+    {
+        "code":  "serpapi",
+        "name":  "SerpApi",
+        "category":  "research-search",
+        "protocol":  "CUSTOM_RESEARCH",
+        "apiStyle":  "research",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Custos variam por numero de pesquisas, profundidade e enriquecimento. Consultas amplas devem ser orquestradas com limites por workspace.",
+        "rateLimitSummary":  "Rate limits variam por chave e plano. Pesquisas devem respeitar limites de burst e cota diaria do fornecedor.",
+        "routingModes":  [
+                             "cost-first",
+                             "quality-first",
+                             "latency-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "api_key (query string)"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "SERPAPI_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave SerpApi."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://serpapi.com/manage-api-key",
+        "docsUrl":  "https://serpapi.com/search-api",
+        "defaultModelCode":  "serpapi:google-search",
+        "capabilities":  [
+                             "web-search",
+                             "serp"
+                         ],
+        "notes":  "Search web com engine-based routing; nesta fase o adapter usa Google organic results."
+    },
+    {
+        "code":  "voyage-ai",
+        "name":  "Voyage AI",
+        "category":  "vector-runtime",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "embeddings-rerank",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "high_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Embeddings e rerank devem ser cobrados por item ou token; persistir custo por workspace para FinOps e reconciliacao.",
+        "rateLimitSummary":  "Rate limits variam por plano, especialmente em lotes. Preferir batching controlado e filas pequenas.",
+        "routingModes":  [
+                             "cost-first",
+                             "quality-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cVOYAGE_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "VOYAGE_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave Voyage AI."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://dash.voyageai.com",
+        "docsUrl":  "https://docs.voyageai.com/docs/embeddings",
+        "defaultModelCode":  "voyage-ai:voyage-3-large",
+        "capabilities":  [
+                             "embeddings",
+                             "rerank"
+                         ],
+        "notes":  "Embeddings e rerank voltados para retrieval, expostos via capability API."
+    },
+    {
+        "code":  "stability-ai",
+        "name":  "Stability AI",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "image-capability",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cSTABILITY_API_KEY\u003e",
+                                "Accept: application/json"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "STABILITY_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Stability."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://platform.stability.ai/account/keys",
+        "docsUrl":  "https://platform.stability.ai/docs",
+        "defaultModelCode":  "stability-ai:stable-image-core",
+        "capabilities":  [
+                             "image"
+                         ],
+        "notes":  "Stable Image Core ligado para image generation com retorno em base64; image editing, video e audio seguem fora desta fase."
+    },
+    {
+        "code":  "fal-ai",
+        "name":  "fal.ai",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "media",
+        "executionSupported":  false,
+        "configured":  true,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "catalog-only",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Key \u003cFAL_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "key",
+                                     "label":  "fal Key",
+                                     "envVar":  "FAL_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave fal.ai."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://fal.ai/dashboard/keys",
+        "docsUrl":  "https://docs.fal.ai",
+        "defaultModelCode":  "fal-ai:fal-ai/flux/schnell",
+        "capabilities":  [
+                             "image",
+                             "video"
+                         ],
+        "notes":  "Catalogado para tools futuras."
+    },
+    {
+        "code":  "replicate",
+        "name":  "Replicate",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "media-job",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "async",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cREPLICATE_API_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiToken",
+                                     "label":  "API Token",
+                                     "envVar":  "REPLICATE_API_TOKEN",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Token Replicate."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://replicate.com/account/api-tokens",
+        "docsUrl":  "https://replicate.com/docs",
+        "defaultModelCode":  "replicate:black-forest-labs/flux-2-dev",
+        "capabilities":  [
+                             "image",
+                             "image-editing",
+                             "video"
+                         ],
+        "notes":  "Image generation e editing ligados via FLUX predictions assincronas; image-to-video ligado via Grok Imagine Video em submit + polling."
+    },
+    {
+        "code":  "deepgram",
+        "name":  "Deepgram",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "audio-capability",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Token \u003cDEEPGRAM_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "DEEPGRAM_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Deepgram."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.deepgram.com",
+        "docsUrl":  "https://developers.deepgram.com",
+        "defaultModelCode":  "deepgram:nova-3",
+        "capabilities":  [
+                             "stt",
+                             "tts",
+                             "voice"
+                         ],
+        "notes":  "Speech-to-text ligado via capability API usando audio remoto; TTS e voice agents seguem fora desta tranche."
+    },
+    {
+        "code":  "assemblyai",
+        "name":  "AssemblyAI",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "audio-capability",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "ASSEMBLYAI_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave AssemblyAI."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://www.assemblyai.com/dashboard",
+        "docsUrl":  "https://www.assemblyai.com/docs",
+        "defaultModelCode":  "assemblyai:universal",
+        "capabilities":  [
+                             "stt",
+                             "audio-intelligence"
+                         ],
+        "notes":  "Speech-to-text ligado via submit + polling curto no endpoint de transcript; audio intelligence avancado segue fora desta fase."
+    },
+    {
+        "code":  "elevenlabs",
+        "name":  "ElevenLabs",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "audio-capability",
+        "executionSupported":  true,
+        "configured":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "xi-api-key"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "ELEVENLABS_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  true,
+                                     "description":  "Chave ElevenLabs."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://elevenlabs.io/app/settings/api-keys",
+        "docsUrl":  "https://elevenlabs.io/docs/api-reference",
+        "defaultModelCode":  "elevenlabs:eleven_multilingual_v2",
+        "capabilities":  [
+                             "tts",
+                             "voice-cloning"
+                         ],
+        "notes":  "Text-to-speech ligado via capability API; selecao de voz pode ser explicita ou descoberta on-demand."
+    },
+    {
+        "code":  "google-vision",
+        "name":  "Google Cloud Vision",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "ocr",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cGOOGLE_OAUTH_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "credentialsJson",
+                                     "label":  "Service Account JSON",
+                                     "envVar":  "GOOGLE_CLOUD_CREDENTIALS_JSON",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Credenciais do Google Cloud."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.cloud.google.com/apis/credentials",
+        "docsUrl":  "https://cloud.google.com/vision/docs",
+        "defaultModelCode":  "google-vision:document-text-detection",
+        "capabilities":  [
+                             "ocr",
+                             "vision"
+                         ],
+        "notes":  "Catalogado; preferencia por cliente oficial Google Cloud."
+    },
+    {
+        "code":  "google-speech-to-text",
+        "name":  "Google Cloud Speech-to-Text",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "audio",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cGOOGLE_OAUTH_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "credentialsJson",
+                                     "label":  "Service Account JSON",
+                                     "envVar":  "GOOGLE_CLOUD_CREDENTIALS_JSON",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Credenciais do Google Cloud."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.cloud.google.com/apis/credentials",
+        "docsUrl":  "https://cloud.google.com/speech-to-text/docs",
+        "defaultModelCode":  "google-speech-to-text:latest-long",
+        "capabilities":  [
+                             "stt"
+                         ],
+        "notes":  "Catalogado; suporta sync e async conforme tamanho do audio."
+    },
+    {
+        "code":  "google-natural-language",
+        "name":  "Google Cloud Natural Language",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "nlp",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cGOOGLE_OAUTH_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "credentialsJson",
+                                     "label":  "Service Account JSON",
+                                     "envVar":  "GOOGLE_CLOUD_CREDENTIALS_JSON",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Credenciais do Google Cloud."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.cloud.google.com/apis/credentials",
+        "docsUrl":  "https://cloud.google.com/natural-language/docs",
+        "defaultModelCode":  "google-natural-language:analyze-entities",
+        "capabilities":  [
+                             "analysis"
+                         ],
+        "notes":  "Catalogado; foge do contrato puro de LLM e entra como capability especializada."
+    },
+    {
+        "code":  "google-translation",
+        "name":  "Google Cloud Translation",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "translation",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cGOOGLE_OAUTH_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "credentialsJson",
+                                     "label":  "Service Account JSON",
+                                     "envVar":  "GOOGLE_CLOUD_CREDENTIALS_JSON",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Credenciais do Google Cloud."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.cloud.google.com/apis/credentials",
+        "docsUrl":  "https://cloud.google.com/translate/docs",
+        "defaultModelCode":  "google-translation:text",
+        "capabilities":  [
+                             "translation"
+                         ],
+        "notes":  "Catalogado; capability especializada fora do runtime textual unificado."
+    },
+    {
+        "code":  "google-text-to-speech",
+        "name":  "Google Cloud Text-to-Speech",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "audio",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "both",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cGOOGLE_OAUTH_TOKEN\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "credentialsJson",
+                                     "label":  "Service Account JSON",
+                                     "envVar":  "GOOGLE_CLOUD_CREDENTIALS_JSON",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Credenciais do Google Cloud."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://console.cloud.google.com/apis/credentials",
+        "docsUrl":  "https://cloud.google.com/text-to-speech/docs",
+        "defaultModelCode":  "google-text-to-speech:neural2",
+        "capabilities":  [
+                             "tts"
+                         ],
+        "notes":  "Catalogado; capability especializada via Google Cloud."
+    },
+    {
+        "code":  "bfl",
+        "name":  "Black Forest Labs",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "image-job",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "async",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "x-key: \u003cBFL_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "BFL_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Black Forest Labs."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://bfl.ai",
+        "docsUrl":  "https://docs.bfl.ai",
+        "defaultModelCode":  "bfl:flux-2-pro",
+        "capabilities":  [
+                             "image",
+                             "image-editing"
+                         ],
+        "notes":  "FLUX 2 Pro/Klein ligados para image generation e image editing via submit + polling_url; sem fake sync."
+    },
+    {
+        "code":  "runway",
+        "name":  "Runway",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "video-job",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "async",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Authorization: Bearer \u003cRUNWAY_API_KEY\u003e",
+                                "X-Runway-Version: 2024-11-06"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "RUNWAY_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Runway API."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://app.runwayml.com/account/api-keys",
+        "docsUrl":  "https://docs.dev.runwayml.com",
+        "defaultModelCode":  "runway:gen4.5",
+        "capabilities":  [
+                             "video",
+                             "image"
+                         ],
+        "notes":  "Submit + poll interno ligados para image-to-video; text-to-video puro segue fora desta fase."
+    },
+    {
+        "code":  "ideogram",
+        "name":  "Ideogram",
+        "category":  "media-audio",
+        "protocol":  "UNSUPPORTED",
+        "apiStyle":  "image-capability",
+        "executionSupported":  true,
+        "configured":  false,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "businessPriority":  "medium_roi",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "catalogState":  "live",
+        "pricingSummary":  "Workloads de imagem, video e audio tendem a ser mais caros e assincronos. Exigir feature flags e cotas por workspace.",
+        "rateLimitSummary":  "Rate limits para jobs assincronos variam por plano e fila. Aplicar backpressure, polling com jitter e limites por familia.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "Api-Key: \u003cIDEOGRAM_API_KEY\u003e"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "IDEOGRAM_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Ideogram."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://developer.ideogram.ai",
+        "docsUrl":  "https://developer.ideogram.ai",
+        "defaultModelCode":  "ideogram:v3",
+        "capabilities":  [
+                             "image",
+                             "image-editing"
+                         ],
+        "notes":  "Image generation e edit v3 ligadas; a integracao atual trabalha com assets remotos e edicao via mask obrigatoria."
+    },
+    {
+        "code":  "azure-openai",
+        "name":  "Azure OpenAI",
+        "category":  "enterprise-gateway",
+        "protocol":  "OPENAI_CHAT_COMPLETIONS",
+        "apiStyle":  "azure-openai",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "sync",
+        "adminOnly":  false,
+        "tenantScoped":  true,
+        "supportsResponsesApi":  true,
+        "supportsChatCompletions":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos, quotas e modelos dependem do contrato corporativo e da regiao. A governanca deve ficar externa ao core.",
+        "rateLimitSummary":  "Limites dependem do tenant enterprise, deployment e regiao. Exigir validacao contratual antes de declarar runtime live.",
+        "routingModes":  [
+                             "quality-first",
+                             "cost-first"
+                         ],
+        "documentationSource":  "primary_docs",
+        "requiredHeaders":  [
+                                "api-key",
+                                "api-version"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "endpoint",
+                                     "label":  "Resource Endpoint",
+                                     "envVar":  "AZURE_OPENAI_ENDPOINT",
+                                     "required":  true,
+                                     "secret":  false,
+                                     "configured":  false,
+                                     "description":  "Endpoint do recurso Azure OpenAI."
+                                 },
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "AZURE_OPENAI_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Azure OpenAI."
+                                 },
+                                 {
+                                     "key":  "apiVersion",
+                                     "label":  "API Version",
+                                     "envVar":  "AZURE_OPENAI_API_VERSION",
+                                     "required":  true,
+                                     "secret":  false,
+                                     "configured":  false,
+                                     "description":  "Versao da API Azure OpenAI."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://portal.azure.com",
+        "docsUrl":  "https://learn.microsoft.com/azure/ai-services/openai/reference",
+        "defaultModelCode":  "azure-openai:gpt-4.1",
+        "capabilities":  [
+                             "chat",
+                             "responses",
+                             "embeddings",
+                             "image"
+                         ],
+        "notes":  "Gateway enterprise distinto do OpenAI publico, com deployment e api-version proprios."
+    },
+    {
+        "code":  "darkowl",
+        "name":  "DarkOwl",
+        "category":  "threat-intel",
+        "protocol":  "CUSTOM_THREAT_INTEL",
+        "apiStyle":  "threat-intel",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "manual",
+        "adminOnly":  true,
+        "tenantScoped":  true,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos de threat-intel dependem de contrato, compliance e janelas de consulta. Nao habilitar por default no workspace comum.",
+        "rateLimitSummary":  "Rate limits e contratos variam fortemente. Toda execucao deve passar por compliance, auditoria e justificativa obrigatoria.",
+        "routingModes":  [
+                             "quality-first"
+                         ],
+        "documentationSource":  "mixed_sources",
+        "requiredHeaders":  [
+                                "X-DarkOwl-Date",
+                                "X-DarkOwl-Authorization"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "publicKey",
+                                     "label":  "Public Key",
+                                     "envVar":  "DARKOWL_PUBLIC_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave publica DarkOwl."
+                                 },
+                                 {
+                                     "key":  "privateKey",
+                                     "label":  "Private Key",
+                                     "envVar":  "DARKOWL_PRIVATE_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave privada DarkOwl."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://www.darkowl.com",
+        "docsUrl":  "https://www.darkowl.com/wp-content/uploads/2022/02/API-Welcome-Packet.pdf",
+        "defaultModelCode":  "darkowl:search",
+        "capabilities":  [
+                             "dark-web-search",
+                             "threat-intel"
+                         ],
+        "notes":  "Requer compliance, contrato e assinatura especifica antes de qualquer declaracao de runtime live."
+    },
+    {
+        "code":  "onion-search-engine",
+        "name":  "Onion Search Engine",
+        "category":  "threat-intel",
+        "protocol":  "CUSTOM_THREAT_INTEL",
+        "apiStyle":  "threat-intel",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "manual",
+        "adminOnly":  true,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "catalog-only",
+        "pricingSummary":  "Custos de threat-intel dependem de contrato, compliance e janelas de consulta. Nao habilitar por default no workspace comum.",
+        "rateLimitSummary":  "Rate limits e contratos variam fortemente. Toda execucao deve passar por compliance, auditoria e justificativa obrigatoria.",
+        "routingModes":  [
+                             "quality-first"
+                         ],
+        "documentationSource":  "mixed_sources",
+        "requiredHeaders":  [
+                                "x-api-key"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "ONION_SEARCH_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Onion Search Engine."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://onionsearchengine.com",
+        "docsUrl":  "https://onionsearchengine.com",
+        "defaultModelCode":  "onion-search-engine:search",
+        "capabilities":  [
+                             "dark-web-search"
+                         ],
+        "notes":  "Documentacao publica insuficiente para execucao segura como runtime do produto."
+    },
+    {
+        "code":  "twingly",
+        "name":  "Twingly",
+        "category":  "threat-intel",
+        "protocol":  "CUSTOM_THREAT_INTEL",
+        "apiStyle":  "threat-intel",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "manual",
+        "adminOnly":  true,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos de threat-intel dependem de contrato, compliance e janelas de consulta. Nao habilitar por default no workspace comum.",
+        "rateLimitSummary":  "Rate limits e contratos variam fortemente. Toda execucao deve passar por compliance, auditoria e justificativa obrigatoria.",
+        "routingModes":  [
+                             "quality-first"
+                         ],
+        "documentationSource":  "mixed_sources",
+        "requiredHeaders":  [
+                                "Authorization"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "TWINGLY_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Twingly."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://www.twingly.com/dark-web-api/",
+        "docsUrl":  "https://www.twingly.com/dark-web-api/",
+        "defaultModelCode":  "twingly:monitor",
+        "capabilities":  [
+                             "dark-web-monitoring",
+                             "brand-monitoring"
+                         ],
+        "notes":  "API enterprise; mantida como manual."
+    },
+    {
+        "code":  "fullhunt",
+        "name":  "FullHunt",
+        "category":  "threat-intel",
+        "protocol":  "CUSTOM_THREAT_INTEL",
+        "apiStyle":  "threat-intel",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "manual",
+        "adminOnly":  true,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos de threat-intel dependem de contrato, compliance e janelas de consulta. Nao habilitar por default no workspace comum.",
+        "rateLimitSummary":  "Rate limits e contratos variam fortemente. Toda execucao deve passar por compliance, auditoria e justificativa obrigatoria.",
+        "routingModes":  [
+                             "quality-first"
+                         ],
+        "documentationSource":  "mixed_sources",
+        "requiredHeaders":  [
+                                "x-api-key"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "FULLHUNT_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave FullHunt."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://fullhunt.io",
+        "docsUrl":  "https://docs.fullhunt.io/",
+        "defaultModelCode":  "fullhunt:leak-search",
+        "capabilities":  [
+                             "breach-monitoring"
+                         ],
+        "notes":  "Docs publicas, mas mantido manual nesta rodada."
+    },
+    {
+        "code":  "darknetsearch",
+        "name":  "DarknetSearch",
+        "category":  "threat-intel",
+        "protocol":  "CUSTOM_THREAT_INTEL",
+        "apiStyle":  "threat-intel",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "manual",
+        "adminOnly":  true,
+        "tenantScoped":  false,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "catalog-only",
+        "pricingSummary":  "Custos de threat-intel dependem de contrato, compliance e janelas de consulta. Nao habilitar por default no workspace comum.",
+        "rateLimitSummary":  "Rate limits e contratos variam fortemente. Toda execucao deve passar por compliance, auditoria e justificativa obrigatoria.",
+        "routingModes":  [
+                             "quality-first"
+                         ],
+        "documentationSource":  "mixed_sources",
+        "requiredHeaders":  [
+                                "Custom auth"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "DARKNETSEARCH_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Credencial DarknetSearch."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://kaduu.com",
+        "docsUrl":  "https://kaduu.com",
+        "defaultModelCode":  "darknetsearch:monitor",
+        "capabilities":  [
+                             "dark-web-monitoring"
+                         ],
+        "notes":  "Mantido apenas como referencia catalogada enquanto faltarem docs oficiais fortes e fluxo de compliance."
+    },
+    {
+        "code":  "flare",
+        "name":  "Flare",
+        "category":  "threat-intel",
+        "protocol":  "CUSTOM_THREAT_INTEL",
+        "apiStyle":  "threat-intel",
+        "executionSupported":  false,
+        "configured":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "businessPriority":  "contract_dependent",
+        "syncMode":  "manual",
+        "adminOnly":  true,
+        "tenantScoped":  true,
+        "supportsResponsesApi":  false,
+        "supportsChatCompletions":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "catalogState":  "manual",
+        "pricingSummary":  "Custos de threat-intel dependem de contrato, compliance e janelas de consulta. Nao habilitar por default no workspace comum.",
+        "rateLimitSummary":  "Rate limits e contratos variam fortemente. Toda execucao deve passar por compliance, auditoria e justificativa obrigatoria.",
+        "routingModes":  [
+                             "quality-first"
+                         ],
+        "documentationSource":  "mixed_sources",
+        "requiredHeaders":  [
+                                "x-api-key",
+                                "Bearer token transitivo"
+                            ],
+        "credentialFields":  [
+                                 {
+                                     "key":  "apiKey",
+                                     "label":  "API Key",
+                                     "envVar":  "FLARE_API_KEY",
+                                     "required":  true,
+                                     "secret":  true,
+                                     "configured":  false,
+                                     "description":  "Chave Flare."
+                                 },
+                                 {
+                                     "key":  "tenantId",
+                                     "label":  "Tenant ID",
+                                     "envVar":  "FLARE_TENANT_ID",
+                                     "required":  false,
+                                     "secret":  false,
+                                     "configured":  false,
+                                     "description":  "Tenant opcional do workspace Flare."
+                                 }
+                             ],
+        "apiKeyPortalUrl":  "https://flare.io",
+        "docsUrl":  "https://api.docs.flare.io/concepts/authentication",
+        "defaultModelCode":  "flare:threat-monitor",
+        "capabilities":  [
+                             "dark-web-monitoring",
+                             "telegram-monitoring"
+                         ],
+        "notes":  "API com fluxo proprio de autenticacao por token."
+    }
+]

@@ -131,10 +131,8 @@ def _classify_path(relative_path: str) -> str:
         if "/controller/" in path:
             return "backend_controller"
         return "backend_runtime"
-    if "/src/test/" in path or path.startswith("frontend/tests/") or path.startswith("tools/integration_audit/tests/"):
+    if "/src/test/" in path or path.startswith("tools/integration_audit/tests/"):
         return "test"
-    if path.startswith("frontend/src/"):
-        return "frontend"
     if path.startswith("docs/") or path == "readme.md":
         return "docs"
     if any(name in path for name in ("package.json", "pom.xml", ".github/", "docker-compose", ".env.example")):
@@ -186,8 +184,6 @@ def scan_repo(repo_root: str | Path, entries: list[CanonicalCatalogEntry]) -> tu
                 evidence.backend_runtime_files.append(relative_path)
             elif bucket == "backend_controller":
                 evidence.backend_controller_files.append(relative_path)
-            elif bucket == "frontend":
-                evidence.frontend_files.append(relative_path)
             elif bucket == "test":
                 evidence.test_files.append(relative_path)
             elif bucket == "docs":
@@ -217,14 +213,11 @@ def scan_repo(repo_root: str | Path, entries: list[CanonicalCatalogEntry]) -> tu
                             break
         if evidence.governance and evidence.governance.get("implementationStatus") == "live" and not evidence.has_backend_runtime:
             evidence.drift_findings.append("governanca marca live, mas nao foi encontrada evidencia forte de runtime no backend")
-        if evidence.has_frontend and not evidence.has_backend_runtime:
-            evidence.drift_findings.append("ha exposicao em UI/docs sem wiring claro de backend")
-        if evidence.governance is None and (evidence.has_backend_runtime or evidence.has_frontend or evidence.has_docs):
+        if evidence.governance is None and (evidence.has_backend_runtime or evidence.has_docs):
             evidence.drift_findings.append("ha evidencia no repo, mas o provider nao esta no overlay oficial de governanca")
 
         evidence.backend_runtime_files = sort_unique(evidence.backend_runtime_files)
         evidence.backend_controller_files = sort_unique(evidence.backend_controller_files)
-        evidence.frontend_files = sort_unique(evidence.frontend_files)
         evidence.test_files = sort_unique(evidence.test_files)
         evidence.docs_files = sort_unique(evidence.docs_files)
         evidence.config_files = sort_unique(evidence.config_files)

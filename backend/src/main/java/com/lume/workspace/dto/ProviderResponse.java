@@ -29,6 +29,11 @@ public record ProviderResponse(
         List<CredentialFieldResponse> credentialFields,
         String apiKeyPortalUrl,
         String docsUrl,
+        Boolean freeTierRecurring,
+        String freeTierScope,
+        String billingWarning,
+        List<String> freeModels,
+        List<String> regionConstraints,
         String defaultModelCode,
         List<String> capabilities,
         String notes

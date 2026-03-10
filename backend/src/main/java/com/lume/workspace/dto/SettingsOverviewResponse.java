@@ -9,6 +9,7 @@ public record SettingsOverviewResponse(
         int unreadNotifications,
         int knowledgeSources,
         UsageSummaryResponse usage,
+        WorkspaceCommercialSummaryResponse commercial,
         SettingsPreferencesResponse preferences,
         List<SettingsSectionResponse> sections
 ) {

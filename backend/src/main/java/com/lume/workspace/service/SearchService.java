@@ -8,7 +8,6 @@ import com.lume.workspace.entity.AgentProfileJpaEntity;
 import com.lume.workspace.entity.AgentThreadJpaEntity;
 import com.lume.workspace.entity.KnowledgeSourceJpaEntity;
 import com.lume.workspace.entity.LibraryEntryJpaEntity;
-import com.lume.workspace.entity.MembershipJpaEntity;
 import com.lume.workspace.entity.ProjectJpaEntity;
 import com.lume.workspace.entity.PromptTemplateJpaEntity;
 import com.lume.workspace.entity.TaskJpaEntity;
@@ -16,10 +15,10 @@ import com.lume.workspace.repository.AgentProfileJpaRepository;
 import com.lume.workspace.repository.AgentThreadJpaRepository;
 import com.lume.workspace.repository.KnowledgeSourceJpaRepository;
 import com.lume.workspace.repository.LibraryEntryJpaRepository;
-import com.lume.workspace.repository.MembershipJpaRepository;
 import com.lume.workspace.repository.ProjectJpaRepository;
 import com.lume.workspace.repository.PromptTemplateJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ public class SearchService {
     private final ProjectJpaRepository projectRepository;
     private final PromptTemplateJpaRepository promptTemplateRepository;
     private final TaskJpaRepository taskRepository;
-    private final MembershipJpaRepository membershipRepository;
     private final WorkspaceContextService workspaceContextService;
 
     public SearchService(
@@ -48,7 +46,6 @@ public class SearchService {
             ProjectJpaRepository projectRepository,
             PromptTemplateJpaRepository promptTemplateRepository,
             TaskJpaRepository taskRepository,
-            MembershipJpaRepository membershipRepository,
             WorkspaceContextService workspaceContextService
     ) {
         this.userRepository = userRepository;
@@ -59,7 +56,6 @@ public class SearchService {
         this.projectRepository = projectRepository;
         this.promptTemplateRepository = promptTemplateRepository;
         this.taskRepository = taskRepository;
-        this.membershipRepository = membershipRepository;
         this.workspaceContextService = workspaceContextService;
     }
 
@@ -81,14 +77,9 @@ public class SearchService {
         List<SearchResultResponse> results = new ArrayList<>();
 
         Long workspaceId = workspaceContextService.getWorkspaceId();
+        int categoryLimit = categoryLimit(limit);
 
-        List<Long> memberIds = membershipRepository.findByWorkspaceIdAndActiveTrueOrderByCreatedAtAsc(workspaceId)
-                .stream()
-                .map(MembershipJpaEntity::getUserId)
-                .distinct()
-                .toList();
-
-        for (UserJpaEntity user : userRepository.findByIdInOrderByNameAsc(memberIds)) {
+        for (UserJpaEntity user : loadMembers(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "user-%d".formatted(user.getId()),
                     user.getName(),
@@ -100,7 +91,7 @@ public class SearchService {
             ), normalizedQuery);
         }
 
-        for (ProjectJpaEntity project : projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)) {
+        for (ProjectJpaEntity project : loadProjects(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "project-%s".formatted(project.getId()),
                     project.getName(),
@@ -112,7 +103,7 @@ public class SearchService {
             ), normalizedQuery);
         }
 
-        for (TaskJpaEntity task : taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)) {
+        for (TaskJpaEntity task : loadTasks(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "task-%s".formatted(task.getId()),
                     task.getTitle(),
@@ -124,7 +115,7 @@ public class SearchService {
             ), normalizedQuery);
         }
 
-        for (LibraryEntryJpaEntity entry : libraryEntryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)) {
+        for (LibraryEntryJpaEntity entry : loadLibraryEntries(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "library-%s".formatted(entry.getId()),
                     entry.getTitle(),
@@ -136,7 +127,7 @@ public class SearchService {
             ), normalizedQuery);
         }
 
-        for (KnowledgeSourceJpaEntity source : knowledgeSourceRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)) {
+        for (KnowledgeSourceJpaEntity source : loadKnowledgeSources(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "knowledge-%s".formatted(source.getId()),
                     source.getTitle(),
@@ -148,7 +139,7 @@ public class SearchService {
             ), normalizedQuery);
         }
 
-        for (PromptTemplateJpaEntity template : promptTemplateRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)) {
+        for (PromptTemplateJpaEntity template : loadTemplates(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "template-%s".formatted(template.getId()),
                     template.getTitle(),
@@ -160,7 +151,7 @@ public class SearchService {
             ), normalizedQuery);
         }
 
-        for (AgentProfileJpaEntity profile : agentProfileRepository.findByWorkspaceIdOrderByNameAsc(workspaceId)) {
+        for (AgentProfileJpaEntity profile : loadAgentProfiles(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "profile-%s".formatted(profile.getId()),
                     profile.getName(),
@@ -172,7 +163,7 @@ public class SearchService {
             ), normalizedQuery);
         }
 
-        for (AgentThreadJpaEntity thread : agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)) {
+        for (AgentThreadJpaEntity thread : loadAgentThreads(workspaceId, normalizedQuery, categoryLimit)) {
             maybeAdd(results, new SearchResultResponse(
                     "thread-%s".formatted(thread.getId()),
                     thread.getTitle(),
@@ -185,6 +176,74 @@ public class SearchService {
         }
 
         return results.stream().limit(limit).toList();
+    }
+
+    private List<UserJpaEntity> loadMembers(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return userRepository.findActiveMembersByWorkspaceId(workspaceId, page);
+        }
+        return userRepository.searchActiveMembersByWorkspaceId(workspaceId, query, page);
+    }
+
+    private List<ProjectJpaEntity> loadProjects(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, page);
+        }
+        return projectRepository.searchByWorkspaceId(workspaceId, query, page);
+    }
+
+    private List<TaskJpaEntity> loadTasks(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, page);
+        }
+        return taskRepository.searchByWorkspaceId(workspaceId, query, page);
+    }
+
+    private List<LibraryEntryJpaEntity> loadLibraryEntries(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return libraryEntryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, page);
+        }
+        return libraryEntryRepository.searchByWorkspaceId(workspaceId, query, page);
+    }
+
+    private List<KnowledgeSourceJpaEntity> loadKnowledgeSources(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return knowledgeSourceRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, page);
+        }
+        return knowledgeSourceRepository.searchByWorkspaceId(workspaceId, query, page);
+    }
+
+    private List<PromptTemplateJpaEntity> loadTemplates(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return promptTemplateRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, page);
+        }
+        return promptTemplateRepository.searchByWorkspaceId(workspaceId, query, page);
+    }
+
+    private List<AgentProfileJpaEntity> loadAgentProfiles(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return agentProfileRepository.findByWorkspaceIdOrderByNameAsc(workspaceId, page);
+        }
+        return agentProfileRepository.searchByWorkspaceId(workspaceId, query, page);
+    }
+
+    private List<AgentThreadJpaEntity> loadAgentThreads(Long workspaceId, String query, int categoryLimit) {
+        PageRequest page = PageRequest.of(0, categoryLimit);
+        if (query.isBlank()) {
+            return agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, page);
+        }
+        return agentThreadRepository.searchByWorkspaceId(workspaceId, query, page);
+    }
+
+    private int categoryLimit(int requestedLimit) {
+        return Math.max(3, Math.min(8, (requestedLimit / 6) + 1));
     }
 
     private void maybeAdd(List<SearchResultResponse> results, SearchResultResponse result, String normalizedQuery) {

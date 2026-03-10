@@ -4,7 +4,6 @@ import com.lume.domain.exception.AccessDeniedException;
 import com.lume.domain.exception.ResourceNotFoundException;
 import com.lume.domain.exception.SetupRequiredException;
 import com.lume.domain.exception.UnauthorizedException;
-import com.lume.infrastructure.config.WorkspaceAuthProperties;
 import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.dto.OrganizationResponse;
@@ -63,7 +62,8 @@ public class WorkspaceContextService {
     private final UserPreferenceJpaRepository userPreferenceRepository;
     private final ObjectProvider<HttpServletRequest> requestProvider;
     private final WorkspaceSessionService workspaceSessionService;
-    private final WorkspaceAuthProperties workspaceAuthProperties;
+    private final List<WorkspaceActorOverrideResolver> actorOverrideResolvers;
+
     @Autowired
     public WorkspaceContextService(
             OrganizationJpaRepository organizationRepository,
@@ -74,7 +74,7 @@ public class WorkspaceContextService {
             UserPreferenceJpaRepository userPreferenceRepository,
             ObjectProvider<HttpServletRequest> requestProvider,
             WorkspaceSessionService workspaceSessionService,
-            WorkspaceAuthProperties workspaceAuthProperties
+            List<WorkspaceActorOverrideResolver> actorOverrideResolvers
     ) {
         this.organizationRepository = organizationRepository;
         this.workspaceRepository = workspaceRepository;
@@ -84,7 +84,7 @@ public class WorkspaceContextService {
         this.userPreferenceRepository = userPreferenceRepository;
         this.requestProvider = requestProvider;
         this.workspaceSessionService = workspaceSessionService;
-        this.workspaceAuthProperties = workspaceAuthProperties;
+        this.actorOverrideResolvers = actorOverrideResolvers;
     }
 
     protected WorkspaceContextService(
@@ -105,7 +105,7 @@ public class WorkspaceContextService {
                 userPreferenceRepository,
                 requestProvider,
                 null,
-                null
+                List.of()
         );
     }
 
@@ -219,21 +219,12 @@ public class WorkspaceContextService {
         }
 
         HttpServletRequest request = requestProvider.getIfAvailable();
-        if (request != null && workspaceAuthProperties != null && workspaceAuthProperties.isAllowTestHeader()) {
-            String actorUserId = request.getHeader(HEADER_ACTOR_USER_ID);
-            if (actorUserId != null && !actorUserId.isBlank()) {
-                try {
-                    Long parsedId = Long.valueOf(actorUserId.trim());
-                    return userRepository.findByIdAndActiveTrue(parsedId)
-                            .orElseThrow(() -> new AccessDeniedException("O usuario informado no header nao esta ativo."));
-                } catch (NumberFormatException exception) {
-                    throw new AccessDeniedException("O header de usuario atual e invalido.");
+        if (request != null) {
+            for (WorkspaceActorOverrideResolver actorOverrideResolver : actorOverrideResolvers) {
+                var override = actorOverrideResolver.resolveOverride(request);
+                if (override.isPresent()) {
+                    return override.get();
                 }
-            }
-
-            if (workspaceAuthProperties.isAllowTestAutoLogin()) {
-                return userRepository.findTopByActiveTrueOrderByCreatedAtAsc()
-                        .orElseThrow(() -> new UnauthorizedException("Nenhum usuario ativo esta disponivel para auto-login em teste."));
             }
         }
 

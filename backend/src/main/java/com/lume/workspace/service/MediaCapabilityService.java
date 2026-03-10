@@ -30,16 +30,19 @@ public class MediaCapabilityService {
             "ideogram", "ideogram:v3",
             "bfl", "bfl:flux-2-pro",
             "stability-ai", "stability-ai:stable-image-core",
-            "replicate", "replicate:black-forest-labs/flux-2-dev"
+            "replicate", "replicate:black-forest-labs/flux-2-dev",
+            "fal-ai", "fal-ai:fal-ai/flux/schnell"
     );
     private static final Map<String, String> DEFAULT_IMAGE_EDIT_MODELS = Map.of(
             "ideogram", "ideogram:v3",
             "bfl", "bfl:flux-2-pro",
-            "replicate", "replicate:black-forest-labs/flux-kontext-dev"
+            "replicate", "replicate:black-forest-labs/flux-kontext-dev",
+            "fal-ai", "fal-ai:fal-ai/flux/schnell"
     );
     private static final Map<String, String> DEFAULT_VIDEO_MODELS = Map.of(
             "runway", "runway:gen4.5",
-            "replicate", "replicate:xai/grok-imagine-video"
+            "replicate", "replicate:xai/grok-imagine-video",
+            "fal-ai", "fal-ai:fal-ai/minimax/hailuo-02/standard/image-to-video"
     );
 
     private final ProviderCatalogService providerCatalogService;
@@ -100,6 +103,7 @@ public class MediaCapabilityService {
                 case "bfl" -> bflGenerate(provider, model, request);
                 case "stability-ai" -> stabilityGenerate(provider, model, request);
                 case "replicate" -> replicateGenerate(provider, model, request);
+                case "fal-ai" -> falGenerate(provider, model, request);
                 default -> new AiPlatformModels.ImageGenerationResponse(
                         provider.code(),
                         provider.name(),
@@ -194,6 +198,7 @@ public class MediaCapabilityService {
                 case "ideogram" -> ideogramEdit(provider, model, request);
                 case "bfl" -> bflEdit(provider, model, request);
                 case "replicate" -> replicateEdit(provider, model, request);
+                case "fal-ai" -> falEdit(provider, model, request);
                 default -> new AiPlatformModels.ImageEditResponse(
                         provider.code(),
                         provider.name(),
@@ -272,6 +277,7 @@ public class MediaCapabilityService {
             AiPlatformModels.VideoGenerationResponse response = switch (provider.code()) {
                 case "runway" -> runwaySubmit(provider, model, request);
                 case "replicate" -> replicateVideoSubmit(provider, model, request);
+                case "fal-ai" -> falVideoSubmit(provider, model, request);
                 default -> new AiPlatformModels.VideoGenerationResponse(
                         provider.code(),
                         provider.name(),
@@ -346,6 +352,7 @@ public class MediaCapabilityService {
             AiPlatformModels.VideoGenerationResponse response = switch (provider.code()) {
                 case "runway" -> runwayTaskStatus(provider, jobId);
                 case "replicate" -> replicateVideoJobStatus(provider, jobId);
+                case "fal-ai" -> falVideoJobStatus(provider, jobId);
                 default -> new AiPlatformModels.VideoGenerationResponse(
                         provider.code(),
                         provider.name(),
@@ -435,6 +442,7 @@ public class MediaCapabilityService {
             AiPlatformModels.ImageGenerationResponse response = switch (provider.code()) {
                 case "bfl" -> bflJobStatus(provider, jobId, effectivePollingUrl);
                 case "replicate" -> replicateImageJobStatus(provider, jobId, effectivePollingUrl);
+                case "fal-ai" -> falImageJobStatus(provider, jobId, effectivePollingUrl);
                 default -> new AiPlatformModels.ImageGenerationResponse(
                         provider.code(),
                         provider.name(),
@@ -1104,6 +1112,141 @@ public class MediaCapabilityService {
         );
     }
 
+    private AiPlatformModels.ImageGenerationResponse falGenerate(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            AiPlatformModels.ImageGenerationRequest request
+    ) {
+        JsonNode response = falSubmit(provider, model, request.prompt(), null, request.size());
+        return falSubmissionToImageResponse(provider, model, response);
+    }
+
+    private AiPlatformModels.ImageEditResponse falEdit(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            AiPlatformModels.ImageEditRequest request
+    ) {
+        JsonNode response = falSubmit(provider, model, request.prompt(), request.inputImageUrl(), null);
+        AiPlatformModels.AsyncJobHandle asyncJob = falAsyncJob(provider, model, response);
+        return new AiPlatformModels.ImageEditResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                asyncJob == null ? "provider_error" : "submitted",
+                List.of(),
+                List.of(),
+                asyncJob,
+                asyncJob == null ? "O provider nao retornou um request_id valido." : null
+        );
+    }
+
+    private AiPlatformModels.VideoGenerationResponse falVideoSubmit(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            AiPlatformModels.VideoGenerationRequest request
+    ) {
+        JsonNode response = falSubmit(provider, model, request.prompt(), request.inputImageUrl(), request.aspectRatio());
+        AiPlatformModels.AsyncJobHandle asyncJob = falAsyncJob(provider, model, response);
+        return new AiPlatformModels.VideoGenerationResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                asyncJob == null ? "provider_error" : "submitted",
+                List.of(),
+                asyncJob,
+                asyncJob == null ? "O provider nao retornou um request_id valido." : null
+        );
+    }
+
+    private AiPlatformModels.ImageGenerationResponse falImageJobStatus(
+            ProviderDefinition provider,
+            String jobId,
+            String pollingUrl
+    ) {
+        JsonNode statusResponse = restClientBuilder.build()
+                .get()
+                .uri(pollingUrl)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Key " + providerCatalogService.credentialValue(provider, "key"))
+                .retrieve()
+                .body(JsonNode.class);
+
+        String status = normalizeFalStatus(statusResponse.path("status").asText(""));
+        if (!"completed".equals(status)) {
+            return new AiPlatformModels.ImageGenerationResponse(
+                    provider.code(),
+                    provider.name(),
+                    provider.defaultModelCode(),
+                    status,
+                    List.of(),
+                    List.of(),
+                    falAsyncJob(provider, providerCatalogService.resolveModel(provider.code(), provider.defaultModelCode()), statusResponse),
+                    "failed".equals(status) ? firstNonBlank(statusResponse.path("error").asText(null), statusResponse.path("detail").asText(null), "O job de imagem falhou no provider.") : null
+            );
+        }
+
+        JsonNode result = restClientBuilder.build()
+                .get()
+                .uri(pollingUrl.replace("/status", ""))
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Key " + providerCatalogService.credentialValue(provider, "key"))
+                .retrieve()
+                .body(JsonNode.class);
+
+        return new AiPlatformModels.ImageGenerationResponse(
+                provider.code(),
+                provider.name(),
+                provider.defaultModelCode(),
+                "completed",
+                extractFalUrls(result),
+                List.of(),
+                null,
+                null
+        );
+    }
+
+    private AiPlatformModels.VideoGenerationResponse falVideoJobStatus(ProviderDefinition provider, String jobId) {
+        String pollingUrl = providerCatalogService.resolveBaseUrl(provider) + "/" + externalModelCode(provider.defaultModelCode()) + "/requests/" + jobId + "/status";
+        JsonNode statusResponse = restClientBuilder.build()
+                .get()
+                .uri(pollingUrl)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Key " + providerCatalogService.credentialValue(provider, "key"))
+                .retrieve()
+                .body(JsonNode.class);
+
+        String status = normalizeFalStatus(statusResponse.path("status").asText(""));
+        if (!"completed".equals(status)) {
+            return new AiPlatformModels.VideoGenerationResponse(
+                    provider.code(),
+                    provider.name(),
+                    provider.defaultModelCode(),
+                    status,
+                    List.of(),
+                    falAsyncJob(provider, providerCatalogService.resolveModel(provider.code(), provider.defaultModelCode()), statusResponse),
+                    "failed".equals(status) ? firstNonBlank(statusResponse.path("error").asText(null), statusResponse.path("detail").asText(null), "O job de video falhou no provider.") : null
+            );
+        }
+
+        JsonNode result = restClientBuilder.build()
+                .get()
+                .uri(pollingUrl.replace("/status", ""))
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Key " + providerCatalogService.credentialValue(provider, "key"))
+                .retrieve()
+                .body(JsonNode.class);
+
+        return new AiPlatformModels.VideoGenerationResponse(
+                provider.code(),
+                provider.name(),
+                provider.defaultModelCode(),
+                "completed",
+                extractFalUrls(result),
+                null,
+                null
+        );
+    }
+
     private HttpEntity<ByteArrayResource> binaryPart(String url, String fallbackName) {
         byte[] data = restClientBuilder.build()
                 .get()
@@ -1163,19 +1306,19 @@ public class MediaCapabilityService {
     }
 
     private boolean supportsImageGeneration(ProviderDefinition provider) {
-        return provider.capabilities().contains("image") && List.of("ideogram", "bfl", "stability-ai", "replicate").contains(provider.code());
+        return provider.capabilities().contains("image") && List.of("ideogram", "bfl", "stability-ai", "replicate", "fal-ai").contains(provider.code());
     }
 
     private boolean supportsImageEditing(ProviderDefinition provider) {
-        return provider.capabilities().contains("image-editing") && List.of("ideogram", "bfl", "replicate").contains(provider.code());
+        return provider.capabilities().contains("image-editing") && List.of("ideogram", "bfl", "replicate", "fal-ai").contains(provider.code());
     }
 
     private boolean supportsVideoGeneration(ProviderDefinition provider) {
-        return provider.capabilities().contains("video") && List.of("runway", "replicate").contains(provider.code());
+        return provider.capabilities().contains("video") && List.of("runway", "replicate", "fal-ai").contains(provider.code());
     }
 
     private boolean supportsAsyncImagePolling(ProviderDefinition provider) {
-        return List.of("bfl", "replicate").contains(provider.code());
+        return List.of("bfl", "replicate", "fal-ai").contains(provider.code());
     }
 
     private ModelDefinition resolveCapabilityModel(ProviderDefinition provider, String modelCode, Map<String, String> defaults) {
@@ -1337,6 +1480,18 @@ public class MediaCapabilityService {
         };
     }
 
+    private String normalizeFalStatus(String providerStatus) {
+        if (providerStatus == null || providerStatus.isBlank()) {
+            return "submitted";
+        }
+        return switch (providerStatus.trim().toUpperCase(Locale.ROOT)) {
+            case "COMPLETED", "SUCCESS" -> "completed";
+            case "FAILED", "ERROR" -> "failed";
+            case "IN_PROGRESS", "RUNNING", "PROCESSING" -> "running";
+            default -> "submitted";
+        };
+    }
+
     private List<String> extractReplicateOutputUrls(JsonNode response) {
         if (response == null) {
             return List.of();
@@ -1375,12 +1530,102 @@ public class MediaCapabilityService {
         return fallbackModelCode;
     }
 
+    private JsonNode falSubmit(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            String prompt,
+            String imageUrl,
+            String sizeOrAspectRatio
+    ) {
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("prompt", prompt == null ? "" : prompt.trim());
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            payload.put("image_url", imageUrl.trim());
+        }
+        if (sizeOrAspectRatio != null && !sizeOrAspectRatio.isBlank()) {
+            payload.put("aspect_ratio", sizeOrAspectRatio.trim());
+        }
+        return restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/" + externalModelCode(model.code()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Key " + providerCatalogService.credentialValue(provider, "key"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+    }
+
+    private AiPlatformModels.AsyncJobHandle falAsyncJob(ProviderDefinition provider, ModelDefinition model, JsonNode response) {
+        if (response == null) {
+            return null;
+        }
+        String requestId = firstNonBlank(response.path("request_id").asText(null), response.path("requestId").asText(null));
+        if (requestId == null || requestId.isBlank()) {
+            return null;
+        }
+        String pollPath = firstNonBlank(
+                response.path("status_url").asText(null),
+                response.path("statusUrl").asText(null),
+                providerCatalogService.resolveBaseUrl(provider) + "/" + externalModelCode(model.code()) + "/requests/" + requestId + "/status"
+        );
+        return new AiPlatformModels.AsyncJobHandle(
+                provider.code(),
+                provider.name(),
+                requestId,
+                normalizeFalStatus(response.path("status").asText("")),
+                pollPath
+        );
+    }
+
+    private AiPlatformModels.ImageGenerationResponse falSubmissionToImageResponse(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            JsonNode response
+    ) {
+        AiPlatformModels.AsyncJobHandle asyncJob = falAsyncJob(provider, model, response);
+        return new AiPlatformModels.ImageGenerationResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                asyncJob == null ? "provider_error" : "submitted",
+                List.of(),
+                List.of(),
+                asyncJob,
+                asyncJob == null ? "O provider nao retornou um request_id valido." : null
+        );
+    }
+
+    private List<String> extractFalUrls(JsonNode response) {
+        if (response == null) {
+            return List.of();
+        }
+        if (response.path("images").isArray()) {
+            return java.util.stream.StreamSupport.stream(response.path("images").spliterator(), false)
+                    .map(node -> node.path("url").asText(node.asText(null)))
+                    .filter(url -> url != null && !url.isBlank())
+                    .toList();
+        }
+        if (response.path("image").path("url").isTextual()) {
+            return List.of(response.path("image").path("url").asText());
+        }
+        if (response.path("video").path("url").isTextual()) {
+            return List.of(response.path("video").path("url").asText());
+        }
+        if (response.path("video").isTextual()) {
+            return List.of(response.path("video").asText());
+        }
+        return List.of();
+    }
+
     private String defaultImagePollingUrl(ProviderDefinition provider, String jobId, String pollingUrl) {
         if (pollingUrl != null && !pollingUrl.isBlank()) {
             return pollingUrl;
         }
         if ("replicate".equals(provider.code())) {
             return providerCatalogService.resolveBaseUrl(provider) + "/predictions/" + jobId;
+        }
+        if ("fal-ai".equals(provider.code())) {
+            return providerCatalogService.resolveBaseUrl(provider) + "/" + externalModelCode(provider.defaultModelCode()) + "/requests/" + jobId + "/status";
         }
         return null;
     }

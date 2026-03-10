@@ -1,5 +1,4 @@
 services:
-  # ─── PostgreSQL ────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: lume-postgres
@@ -18,7 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ─── Backend (Spring Boot + Java 21) ──────────────────────
   backend:
     build:
       context: ./backend
@@ -38,24 +36,35 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       XAI_API_KEY: ${XAI_API_KEY:-}
       PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:-}
+      AI21_API_KEY: ${AI21_API_KEY:-}
+      ASSEMBLYAI_API_KEY: ${ASSEMBLYAI_API_KEY:-}
+      CEREBRAS_API_KEY: ${CEREBRAS_API_KEY:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      COHERE_API_KEY: ${COHERE_API_KEY:-}
+      DEEPINFRA_API_KEY: ${DEEPINFRA_API_KEY:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      EXA_API_KEY: ${EXA_API_KEY:-}
+      FAL_KEY: ${FAL_KEY:-}
+      FIREWORKS_API_KEY: ${FIREWORKS_API_KEY:-}
+      GITHUB_MODELS_PAT: ${GITHUB_MODELS_PAT:-}
+      GOOGLE_CLOUD_CREDENTIALS_JSON: ${GOOGLE_CLOUD_CREDENTIALS_JSON:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      SAMBANOVA_API_KEY: ${SAMBANOVA_API_KEY:-}
+      SERPAPI_API_KEY: ${SERPAPI_API_KEY:-}
+      SILICONFLOW_API_KEY: ${SILICONFLOW_API_KEY:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      TOGETHER_API_KEY: ${TOGETHER_API_KEY:-}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
       RUN_REAL_AI_TESTS: ${RUN_REAL_AI_TESTS:-false}
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
-
-  # ─── Frontend (React + Vite) ──────────────────────────────
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: lume-frontend
-    restart: unless-stopped
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
 
 volumes:
   postgres_data:

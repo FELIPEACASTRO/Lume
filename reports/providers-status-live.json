@@ -1,0 +1,823 @@
+[
+    {
+        "providerCode":  "openai",
+        "providerName":  "OpenAI",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "anthropic",
+        "providerName":  "Anthropic",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "google-gemini",
+        "providerName":  "Google Gemini",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "deepseek",
+        "providerName":  "DeepSeek",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "xai",
+        "providerName":  "xAI",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "perplexity",
+        "providerName":  "Perplexity",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "groq",
+        "providerName":  "Groq",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "mistral",
+        "providerName":  "Mistral AI",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "openrouter",
+        "providerName":  "OpenRouter",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "cohere",
+        "providerName":  "Cohere",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "cloudflare-workers-ai",
+        "providerName":  "Cloudflare Workers AI",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "CLOUDFLARE_ACCOUNT_ID"
+                                     ]
+    },
+    {
+        "providerCode":  "together",
+        "providerName":  "Together AI",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "fireworks",
+        "providerName":  "Fireworks AI",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "deepinfra",
+        "providerName":  "DeepInfra",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "cerebras",
+        "providerName":  "Cerebras",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "nvidia-nim",
+        "providerName":  "NVIDIA NIM",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "NVIDIA_NIM_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "sambanova",
+        "providerName":  "SambaNova",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "siliconflow",
+        "providerName":  "SiliconFlow",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "aws-bedrock",
+        "providerName":  "AWS Bedrock",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "AWS_ACCESS_KEY_ID",
+                                         "AWS_SECRET_ACCESS_KEY",
+                                         "AWS_REGION"
+                                     ]
+    },
+    {
+        "providerCode":  "hugging-face",
+        "providerName":  "Hugging Face",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "catalog-only",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "ai21",
+        "providerName":  "AI21 Labs",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "github-models",
+        "providerName":  "GitHub Models",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "text-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "exa",
+        "providerName":  "Exa",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "research-search",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "newscatcher",
+        "providerName":  "NewsCatcher",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "research-search",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "NEWSCATCHER_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "tavily",
+        "providerName":  "Tavily",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "research-search",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "TAVILY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "serpapi",
+        "providerName":  "SerpApi",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "research-search",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "voyage-ai",
+        "providerName":  "Voyage AI",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "vector-runtime",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "stability-ai",
+        "providerName":  "Stability AI",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "STABILITY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "fal-ai",
+        "providerName":  "fal.ai",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "catalog-only",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "replicate",
+        "providerName":  "Replicate",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "REPLICATE_API_TOKEN"
+                                     ]
+    },
+    {
+        "providerCode":  "deepgram",
+        "providerName":  "Deepgram",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "DEEPGRAM_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "assemblyai",
+        "providerName":  "AssemblyAI",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "elevenlabs",
+        "providerName":  "ElevenLabs",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "google-vision",
+        "providerName":  "Google Cloud Vision",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-speech-to-text",
+        "providerName":  "Google Cloud Speech-to-Text",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-natural-language",
+        "providerName":  "Google Cloud Natural Language",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-translation",
+        "providerName":  "Google Cloud Translation",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-text-to-speech",
+        "providerName":  "Google Cloud Text-to-Speech",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "bfl",
+        "providerName":  "Black Forest Labs",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "BFL_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "runway",
+        "providerName":  "Runway",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "RUNWAY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "ideogram",
+        "providerName":  "Ideogram",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "catalogState":  "live",
+        "category":  "media-audio",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "missingCredentialEnvVars":  [
+                                         "IDEOGRAM_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "azure-openai",
+        "providerName":  "Azure OpenAI",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "enterprise-gateway",
+        "adminOnly":  false,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "AZURE_OPENAI_ENDPOINT",
+                                         "AZURE_OPENAI_API_KEY",
+                                         "AZURE_OPENAI_API_VERSION"
+                                     ]
+    },
+    {
+        "providerCode":  "darkowl",
+        "providerName":  "DarkOwl",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "threat-intel",
+        "adminOnly":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "DARKOWL_PUBLIC_KEY",
+                                         "DARKOWL_PRIVATE_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "onion-search-engine",
+        "providerName":  "Onion Search Engine",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "catalog-only",
+        "category":  "threat-intel",
+        "adminOnly":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "missingCredentialEnvVars":  [
+                                         "ONION_SEARCH_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "twingly",
+        "providerName":  "Twingly",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "threat-intel",
+        "adminOnly":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "TWINGLY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "fullhunt",
+        "providerName":  "FullHunt",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "threat-intel",
+        "adminOnly":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "FULLHUNT_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "darknetsearch",
+        "providerName":  "DarknetSearch",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "catalog-only",
+        "category":  "threat-intel",
+        "adminOnly":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "missingCredentialEnvVars":  [
+                                         "DARKNETSEARCH_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "flare",
+        "providerName":  "Flare",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "catalogState":  "manual",
+        "category":  "threat-intel",
+        "adminOnly":  true,
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "missingCredentialEnvVars":  [
+                                         "FLARE_API_KEY"
+                                     ]
+    }
+]

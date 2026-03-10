@@ -31,8 +31,6 @@ def _default_catalog_path(name: str) -> Path:
 def _run_safe_checks(repo_root: Path) -> list[SafeCheckResult]:
     commands = [
         ("mvn -q -DskipTests compile", repo_root / "backend"),
-        ("pnpm lint", repo_root / "frontend"),
-        ("pnpm test:unit", repo_root / "frontend"),
     ]
     results: list[SafeCheckResult] = []
     for command, workdir in commands:

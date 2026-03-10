@@ -21,6 +21,7 @@ public class ResearchService {
     private final ProviderCatalogService providerCatalogService;
     private final WorkspaceContextService workspaceContextService;
     private final AuditLogService auditLogService;
+    private final WorkspaceLedgerService workspaceLedgerService;
     private final RestClient.Builder restClientBuilder;
     private final ObjectMapper objectMapper;
 
@@ -28,12 +29,14 @@ public class ResearchService {
             ProviderCatalogService providerCatalogService,
             WorkspaceContextService workspaceContextService,
             AuditLogService auditLogService,
+            WorkspaceLedgerService workspaceLedgerService,
             RestClient.Builder restClientBuilder,
             ObjectMapper objectMapper
     ) {
         this.providerCatalogService = providerCatalogService;
         this.workspaceContextService = workspaceContextService;
         this.auditLogService = auditLogService;
+        this.workspaceLedgerService = workspaceLedgerService;
         this.restClientBuilder = restClientBuilder;
         this.objectMapper = objectMapper;
     }
@@ -78,6 +81,27 @@ public class ResearchService {
                         "query", request.query()
                 )
         );
+        workspaceLedgerService.recordUsageEvent(
+                "research.query",
+                "research",
+                provider.code(),
+                "Consulta de pesquisa executada com status " + response.status() + "."
+        );
+        workspaceLedgerService.recordCostEntry(new WorkspaceLedgerService.CostLedgerRecord(
+                workspaceContextService.getWorkspaceId(),
+                provider.code(),
+                provider.defaultModelCode(),
+                "web_search",
+                null,
+                response.status(),
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                "Pesquisa externa sem custo estimado consolidado nesta etapa."
+        ));
         return response;
     }
 

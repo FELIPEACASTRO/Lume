@@ -1,0 +1,967 @@
+[
+    {
+        "providerCode":  "openai",
+        "providerName":  "OpenAI",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "anthropic",
+        "providerName":  "Anthropic",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "google-gemini",
+        "providerName":  "Google Gemini",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "deepseek",
+        "providerName":  "DeepSeek",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "xai",
+        "providerName":  "xAI",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "perplexity",
+        "providerName":  "Perplexity",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "groq",
+        "providerName":  "Groq",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "mistral",
+        "providerName":  "Mistral AI",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "openrouter",
+        "providerName":  "OpenRouter",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "cohere",
+        "providerName":  "Cohere",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "cloudflare-workers-ai",
+        "providerName":  "Cloudflare Workers AI",
+        "category":  "text-runtime",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "CLOUDFLARE_ACCOUNT_ID"
+                                     ]
+    },
+    {
+        "providerCode":  "together",
+        "providerName":  "Together AI",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "fireworks",
+        "providerName":  "Fireworks AI",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "deepinfra",
+        "providerName":  "DeepInfra",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Provider configurado e pronto para execucao.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "cerebras",
+        "providerName":  "Cerebras",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "nvidia-nim",
+        "providerName":  "NVIDIA NIM",
+        "category":  "text-runtime",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "NVIDIA_NIM_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "sambanova",
+        "providerName":  "SambaNova",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "siliconflow",
+        "providerName":  "SiliconFlow",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "aws-bedrock",
+        "providerName":  "AWS Bedrock",
+        "category":  "text-runtime",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "AWS_ACCESS_KEY_ID",
+                                         "AWS_SECRET_ACCESS_KEY",
+                                         "AWS_REGION"
+                                     ]
+    },
+    {
+        "providerCode":  "hugging-face",
+        "providerName":  "Hugging Face",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "ai21",
+        "providerName":  "AI21 Labs",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "github-models",
+        "providerName":  "GitHub Models",
+        "category":  "text-runtime",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "exa",
+        "providerName":  "Exa",
+        "category":  "research-search",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "newscatcher",
+        "providerName":  "NewsCatcher",
+        "category":  "research-search",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "NEWSCATCHER_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "tavily",
+        "providerName":  "Tavily",
+        "category":  "research-search",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "TAVILY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "serpapi",
+        "providerName":  "SerpApi",
+        "category":  "research-search",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "voyage-ai",
+        "providerName":  "Voyage AI",
+        "category":  "vector-runtime",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "live",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "stability-ai",
+        "providerName":  "Stability AI",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "STABILITY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "fal-ai",
+        "providerName":  "fal.ai",
+        "category":  "media-audio",
+        "configured":  true,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "replicate",
+        "providerName":  "Replicate",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "REPLICATE_API_TOKEN"
+                                     ]
+    },
+    {
+        "providerCode":  "deepgram",
+        "providerName":  "Deepgram",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "DEEPGRAM_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "assemblyai",
+        "providerName":  "AssemblyAI",
+        "category":  "media-audio",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "elevenlabs",
+        "providerName":  "ElevenLabs",
+        "category":  "media-audio",
+        "configured":  true,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "ready",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+
+                                     ]
+    },
+    {
+        "providerCode":  "google-vision",
+        "providerName":  "Google Cloud Vision",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-speech-to-text",
+        "providerName":  "Google Cloud Speech-to-Text",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-natural-language",
+        "providerName":  "Google Cloud Natural Language",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-translation",
+        "providerName":  "Google Cloud Translation",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "google-text-to-speech",
+        "providerName":  "Google Cloud Text-to-Speech",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "GOOGLE_CLOUD_CREDENTIALS_JSON"
+                                     ]
+    },
+    {
+        "providerCode":  "bfl",
+        "providerName":  "Black Forest Labs",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "BFL_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "runway",
+        "providerName":  "Runway",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "RUNWAY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "ideogram",
+        "providerName":  "Ideogram",
+        "category":  "media-audio",
+        "configured":  false,
+        "executionSupported":  true,
+        "implementationStatus":  "implemented_with_restrictions",
+        "evidenceLevel":  "integration_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "live",
+        "readinessStatus":  "missing_credentials",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada e acompanhada por configuracao e ultimo teste registrado.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "IDEOGRAM_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "azure-openai",
+        "providerName":  "Azure OpenAI",
+        "category":  "enterprise-gateway",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "catalog_only",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "AZURE_OPENAI_ENDPOINT",
+                                         "AZURE_OPENAI_API_KEY",
+                                         "AZURE_OPENAI_API_VERSION"
+                                     ]
+    },
+    {
+        "providerCode":  "darkowl",
+        "providerName":  "DarkOwl",
+        "category":  "threat-intel",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "DARKOWL_PUBLIC_KEY",
+                                         "DARKOWL_PRIVATE_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "onion-search-engine",
+        "providerName":  "Onion Search Engine",
+        "category":  "threat-intel",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "ONION_SEARCH_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "twingly",
+        "providerName":  "Twingly",
+        "category":  "threat-intel",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "TWINGLY_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "fullhunt",
+        "providerName":  "FullHunt",
+        "category":  "threat-intel",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "FULLHUNT_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "darknetsearch",
+        "providerName":  "DarknetSearch",
+        "category":  "threat-intel",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "catalog-only",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "DARKNETSEARCH_API_KEY"
+                                     ]
+    },
+    {
+        "providerCode":  "flare",
+        "providerName":  "Flare",
+        "category":  "threat-intel",
+        "configured":  false,
+        "executionSupported":  false,
+        "implementationStatus":  "blocked",
+        "evidenceLevel":  "offline_verified",
+        "streamingMode":  "unsupported",
+        "runtimeMaturity":  "catalog_only",
+        "readinessStatus":  "manual",
+        "healthSource":  "static",
+        "snapshotPersistence":  "memory",
+        "message":  "Integracao catalogada, mas ainda nao liberada para uso operacional.",
+        "lastConnectivityStatus":  null,
+        "lastCheckedAt":  null,
+        "missingCredentialEnvVars":  [
+                                         "FLARE_API_KEY"
+                                     ]
+    }
+]

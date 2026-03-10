@@ -28,12 +28,11 @@ public class WorkspaceMeteringService {
     }
 
     public UsageMeteringSnapshot currentSnapshot() {
-        long activeTasks = taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId()).size();
-        int scheduledTasks = (int) taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId()).stream()
-                .filter(task -> task.getScheduledFor() != null)
-                .count();
-        int threadCount = agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId()).size();
-        int unreadNotifications = (int) notificationRepository.countByWorkspaceIdAndReadFalse(workspaceContextService.getWorkspaceId());
+        Long workspaceId = workspaceContextService.getWorkspaceId();
+        long activeTasks = taskRepository.countByWorkspaceId(workspaceId);
+        int scheduledTasks = (int) taskRepository.countByWorkspaceIdAndScheduledForIsNotNull(workspaceId);
+        int threadCount = (int) agentThreadRepository.countByWorkspaceId(workspaceId);
+        int unreadNotifications = (int) notificationRepository.countByWorkspaceIdAndReadFalse(workspaceId);
 
         int consumedCredits = Math.min(DAILY_CREDITS, (int) (activeTasks * 18 + threadCount * 12));
         int remainingCredits = Math.max(0, DAILY_CREDITS - consumedCredits);

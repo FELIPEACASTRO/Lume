@@ -2,11 +2,11 @@
 
 ## Arquitetura real
 
-O Lume continua um monolito Spring Boot + SPA React.
+O Lume continua um monolito Spring Boot backend-only.
 
 - `users`: area mais proxima de Clean Architecture/CQRS/ACL
 - `workspace/ai`: monolito modular em transicao, com Strategy/Registry/Adapter na camada de runtime de IA
-- `frontend`: SPA com pages/services/types centralizados
+- `workspace/*`: tenancy, settings, tasks, knowledge, library, agents, billing e FinOps
 
 ## Decisoes vigentes
 
@@ -17,12 +17,11 @@ O Lume continua um monolito Spring Boot + SPA React.
 
 ## Boundary atual
 
-- controllers versionados expõem shell, providers, settings, agents e capability API
+- controllers versionados expoem shell, providers, settings, agents e capability API
 - services de workspace concentram a fachada do produto
-- `workspace/inference` concentra catalogo, adapters, resiliência, métricas e secret resolution
+- `workspace/inference` concentra catalogo, adapters, resiliencia, metricas e secret resolution
 
 ## Target architecture
 
 - curto prazo: aprofundar o monolito modular
-- médio prazo: avaliar reactor multi-modulo somente se build/release pain, ownership e mudança de cadência justificarem
-
+- medio prazo: avaliar reactor multi-modulo somente se build/release pain, ownership e mudanca de cadencia justificarem

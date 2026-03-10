@@ -73,4 +73,12 @@ public class WorkspaceJpaEntity {
     public void setSlug(String slug) {
         this.slug = slug;
     }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

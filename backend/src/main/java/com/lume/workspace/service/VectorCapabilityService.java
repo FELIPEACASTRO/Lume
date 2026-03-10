@@ -21,12 +21,17 @@ public class VectorCapabilityService {
 
     private static final Map<String, String> DEFAULT_EMBEDDING_MODELS = Map.of(
             "cohere", "cohere:embed-v4.0",
-            "voyage-ai", "voyage-ai:voyage-3-large"
+            "voyage-ai", "voyage-ai:voyage-3-large",
+            "hugging-face", "hugging-face:sentence-transformers/all-MiniLM-L6-v2",
+            "siliconflow", "siliconflow:BAAI/bge-m3",
+            "dashscope-qwen", "dashscope-qwen:text-embedding-v4"
     );
 
     private static final Map<String, String> DEFAULT_RERANK_MODELS = Map.of(
             "cohere", "cohere:rerank-v3.5",
-            "voyage-ai", "voyage-ai:rerank-2"
+            "voyage-ai", "voyage-ai:rerank-2",
+            "siliconflow", "siliconflow:BAAI/bge-reranker-v2-m3",
+            "dashscope-qwen", "dashscope-qwen:gte-rerank-v2"
     );
 
     private final ProviderCatalogService providerCatalogService;
@@ -84,6 +89,9 @@ public class VectorCapabilityService {
             AiPlatformModels.EmbeddingResponse response = switch (provider.code()) {
                 case "cohere" -> cohereEmbeddings(provider, request);
                 case "voyage-ai" -> voyageEmbeddings(provider, request);
+                case "hugging-face" -> huggingFaceEmbeddings(provider, request);
+                case "siliconflow" -> siliconFlowEmbeddings(provider, request);
+                case "dashscope-qwen" -> dashScopeEmbeddings(provider, request);
                 default -> throw new IllegalStateException("Provider de embeddings nao suportado: " + provider.code());
             };
             auditLogService.record("ai_embeddings", provider.code(), response.status(), Map.of(
@@ -141,6 +149,8 @@ public class VectorCapabilityService {
             AiPlatformModels.RerankResponse response = switch (provider.code()) {
                 case "cohere" -> cohereRerank(provider, request);
                 case "voyage-ai" -> voyageRerank(provider, request);
+                case "siliconflow" -> siliconFlowRerank(provider, request);
+                case "dashscope-qwen" -> dashScopeRerank(provider, request);
                 default -> throw new IllegalStateException("Provider de rerank nao suportado: " + provider.code());
             };
             auditLogService.record("ai_rerank", provider.code(), response.status(), Map.of(
@@ -326,11 +336,20 @@ public class VectorCapabilityService {
     }
 
     private boolean supportsEmbeddings(ProviderDefinition provider) {
-        return provider.capabilities().contains("embeddings") && (provider.code().equals("cohere") || provider.code().equals("voyage-ai"));
+        return provider.capabilities().contains("embeddings")
+                && (provider.code().equals("cohere")
+                || provider.code().equals("voyage-ai")
+                || provider.code().equals("hugging-face")
+                || provider.code().equals("siliconflow")
+                || provider.code().equals("dashscope-qwen"));
     }
 
     private boolean supportsRerank(ProviderDefinition provider) {
-        return provider.capabilities().contains("rerank") && (provider.code().equals("cohere") || provider.code().equals("voyage-ai"));
+        return provider.capabilities().contains("rerank")
+                && (provider.code().equals("cohere")
+                || provider.code().equals("voyage-ai")
+                || provider.code().equals("siliconflow")
+                || provider.code().equals("dashscope-qwen"));
     }
 
     private ModelDefinition resolveEmbeddingModel(ProviderDefinition provider, String requestedModelCode) {
@@ -390,5 +409,211 @@ public class VectorCapabilityService {
             return null;
         }
         return new AiPlatformModels.UsageMetadata(inputTokens, null, inputTokens, null);
+    }
+
+    private AiPlatformModels.EmbeddingResponse huggingFaceEmbeddings(ProviderDefinition provider, AiPlatformModels.EmbeddingRequest request) {
+        ModelDefinition model = resolveEmbeddingModel(provider, request.modelCode());
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("inputs", request.input());
+        payload.putObject("options").put("wait_for_model", true);
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri("https://api-inference.huggingface.co/models/" + externalModelCode(model.code()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "token"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        List<List<Double>> embeddings;
+        if (response.isArray() && response.size() > 0 && response.get(0).isNumber()) {
+            embeddings = List.of(parseVector(response));
+        } else {
+            embeddings = parseEmbeddings(response, response);
+        }
+
+        return new AiPlatformModels.EmbeddingResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                embeddings,
+                embeddings.isEmpty() ? null : embeddings.getFirst().size(),
+                null,
+                null
+        );
+    }
+
+    private AiPlatformModels.EmbeddingResponse siliconFlowEmbeddings(ProviderDefinition provider, AiPlatformModels.EmbeddingRequest request) {
+        ModelDefinition model = resolveEmbeddingModel(provider, request.modelCode());
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("model", externalModelCode(model.code()));
+        payload.put("input", request.input());
+        payload.put("encoding_format", "float");
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/embeddings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        List<List<Double>> embeddings = response.path("data").isArray()
+                ? java.util.stream.StreamSupport.stream(response.path("data").spliterator(), false)
+                .map(node -> parseVector(node.path("embedding")))
+                .toList()
+                : List.of();
+
+        Integer promptTokens = response.path("usage").path("prompt_tokens").isNumber()
+                ? response.path("usage").path("prompt_tokens").asInt()
+                : response.path("usage").path("total_tokens").isNumber()
+                ? response.path("usage").path("total_tokens").asInt()
+                : null;
+        return new AiPlatformModels.EmbeddingResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                embeddings,
+                embeddings.isEmpty() ? null : embeddings.getFirst().size(),
+                usageFromTokens(promptTokens),
+                null
+        );
+    }
+
+    private AiPlatformModels.EmbeddingResponse dashScopeEmbeddings(ProviderDefinition provider, AiPlatformModels.EmbeddingRequest request) {
+        ModelDefinition model = resolveEmbeddingModel(provider, request.modelCode());
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("model", externalModelCode(model.code()));
+        payload.put("input", request.input());
+        payload.put("encoding_format", "float");
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/embeddings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        List<List<Double>> embeddings = response.path("data").isArray()
+                ? java.util.stream.StreamSupport.stream(response.path("data").spliterator(), false)
+                .map(node -> parseVector(node.path("embedding")))
+                .toList()
+                : List.of();
+
+        Integer promptTokens = response.path("usage").path("prompt_tokens").isNumber()
+                ? response.path("usage").path("prompt_tokens").asInt()
+                : response.path("usage").path("total_tokens").isNumber()
+                ? response.path("usage").path("total_tokens").asInt()
+                : null;
+        return new AiPlatformModels.EmbeddingResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                embeddings,
+                embeddings.isEmpty() ? null : embeddings.getFirst().size(),
+                usageFromTokens(promptTokens),
+                null
+        );
+    }
+
+    private AiPlatformModels.RerankResponse siliconFlowRerank(ProviderDefinition provider, AiPlatformModels.RerankRequest request) {
+        ModelDefinition model = resolveRerankModel(provider, request.modelCode());
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("model", externalModelCode(model.code()));
+        payload.put("query", request.query());
+        payload.put("top_n", request.topN() != null ? request.topN() : request.documents() == null ? 0 : request.documents().size());
+        ArrayNode documents = objectMapper.createArrayNode();
+        if (request.documents() != null) {
+            request.documents().forEach(documents::add);
+        }
+        payload.set("documents", documents);
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/rerank")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        JsonNode results = response.path("results").isArray() ? response.path("results") : response.path("data");
+        List<Integer> rankedIndexes = results.isArray()
+                ? java.util.stream.StreamSupport.stream(results.spliterator(), false)
+                .map(result -> result.path("index").isNumber() ? result.path("index").asInt() : result.path("document_index").asInt(-1))
+                .filter(index -> index >= 0)
+                .toList()
+                : List.of();
+        Integer promptTokens = response.path("usage").path("total_tokens").isNumber()
+                ? response.path("usage").path("total_tokens").asInt()
+                : response.path("usage").path("prompt_tokens").isNumber()
+                ? response.path("usage").path("prompt_tokens").asInt()
+                : null;
+        return new AiPlatformModels.RerankResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                rankedIndexes,
+                rankedDocuments(rankedIndexes, request.documents()),
+                usageFromTokens(promptTokens),
+                null
+        );
+    }
+
+    private AiPlatformModels.RerankResponse dashScopeRerank(ProviderDefinition provider, AiPlatformModels.RerankRequest request) {
+        ModelDefinition model = resolveRerankModel(provider, request.modelCode());
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("model", externalModelCode(model.code()));
+        ObjectNode input = payload.putObject("input");
+        input.put("query", request.query());
+        ArrayNode documents = input.putArray("documents");
+        if (request.documents() != null) {
+            request.documents().forEach(documents::add);
+        }
+        ObjectNode parameters = payload.putObject("parameters");
+        parameters.put("top_n", request.topN() != null ? request.topN() : request.documents() == null ? 0 : request.documents().size());
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri("https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + providerCatalogService.credentialValue(provider, "apiKey"))
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        JsonNode results = response.path("output").path("results").isArray()
+                ? response.path("output").path("results")
+                : response.path("results");
+        List<Integer> rankedIndexes = results.isArray()
+                ? java.util.stream.StreamSupport.stream(results.spliterator(), false)
+                .map(result -> result.path("index").isNumber() ? result.path("index").asInt() : result.path("document_id").asInt(-1))
+                .filter(index -> index >= 0)
+                .toList()
+                : List.of();
+
+        Integer inputTokens = response.path("usage").path("input_tokens").isNumber()
+                ? response.path("usage").path("input_tokens").asInt()
+                : response.path("usage").path("total_tokens").isNumber()
+                ? response.path("usage").path("total_tokens").asInt()
+                : null;
+        return new AiPlatformModels.RerankResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                rankedIndexes,
+                rankedDocuments(rankedIndexes, request.documents()),
+                usageFromTokens(inputTokens),
+                null
+        );
     }
 }

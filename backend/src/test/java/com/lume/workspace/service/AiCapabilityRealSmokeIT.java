@@ -30,6 +30,8 @@ class AiCapabilityRealSmokeIT {
         Map.ofEntries(
                 Map.entry("COHERE_API_KEY", System.getenv("COHERE_API_KEY")),
                 Map.entry("VOYAGE_API_KEY", System.getenv("VOYAGE_API_KEY")),
+                Map.entry("DASHSCOPE_API_KEY", System.getenv("DASHSCOPE_API_KEY")),
+                Map.entry("SILICONFLOW_API_KEY", System.getenv("SILICONFLOW_API_KEY")),
                 Map.entry("EXA_API_KEY", System.getenv("EXA_API_KEY")),
                 Map.entry("NEWSCATCHER_API_KEY", System.getenv("NEWSCATCHER_API_KEY")),
                 Map.entry("TAVILY_API_KEY", System.getenv("TAVILY_API_KEY")),
@@ -58,6 +60,7 @@ class AiCapabilityRealSmokeIT {
                 catalogService,
                 new TestWorkspaceContextService(),
                 new NoOpAuditLogService(),
+                new GoogleCloudSupportService(catalogService, new ObjectMapper()),
                 builder,
                 new ObjectMapper()
         );
@@ -72,21 +75,37 @@ class AiCapabilityRealSmokeIT {
                 catalogService,
                 new TestWorkspaceContextService(),
                 new NoOpAuditLogService(),
+                new NoOpWorkspaceLedgerService(),
                 builder,
                 new ObjectMapper()
         );
 
-        for (String providerCode : List.of("cohere", "voyage-ai")) {
+        for (String providerCode : List.of("cohere", "voyage-ai", "dashscope-qwen", "siliconflow")) {
             if (!catalogService.isConfigured(providerCode)) {
                 continue;
             }
             var response = vectorCapabilityService.embeddings(new AiPlatformModels.EmbeddingRequest(
-                    providerCode,
-                    null,
-                    "Lume workspace overview"
+                providerCode,
+                null,
+                "Lume workspace overview"
             ));
             assertThat(response.status()).isEqualTo("completed");
             assertThat(response.embeddings()).isNotEmpty();
+        }
+
+        for (String providerCode : List.of("dashscope-qwen", "siliconflow")) {
+            if (!catalogService.isConfigured(providerCode)) {
+                continue;
+            }
+            var response = vectorCapabilityService.rerank(new AiPlatformModels.RerankRequest(
+                    providerCode,
+                    null,
+                    "qual documento fala de custo?",
+                    List.of("plano de produto", "orcamento e custos"),
+                    2
+            ));
+            assertThat(response.status()).isEqualTo("completed");
+            assertThat(response.rankedIndexes()).isNotEmpty();
         }
 
         for (String providerCode : List.of("exa", "newscatcher", "tavily", "serpapi")) {

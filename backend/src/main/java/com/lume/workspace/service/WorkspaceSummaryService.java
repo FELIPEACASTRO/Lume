@@ -1,6 +1,5 @@
 package com.lume.workspace.service;
 
-import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
 import com.lume.workspace.dto.RecentItemResponse;
 import com.lume.workspace.dto.SummaryCountsResponse;
@@ -17,6 +16,7 @@ import com.lume.workspace.repository.MembershipJpaRepository;
 import com.lume.workspace.repository.NotificationJpaRepository;
 import com.lume.workspace.repository.ProjectJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -61,39 +61,33 @@ public class WorkspaceSummaryService {
 
     public WorkspaceSummaryResponse getSummary() {
         Long workspaceId = workspaceContextService.getWorkspaceId();
-        List<UserJpaEntity> users = userRepository.findByIdInOrderByNameAsc(
-                membershipRepository.findByWorkspaceIdAndActiveTrueOrderByCreatedAtAsc(workspaceId)
-                        .stream()
-                        .map(membership -> membership.getUserId())
-                        .toList()
-        );
-        int userCount = users.size();
+        int userCount = (int) userRepository.countActiveMembersByWorkspaceId(workspaceId);
         int libraryCount = (int) libraryEntryRepository.countByWorkspaceId(workspaceId);
         int threadCount = (int) agentThreadRepository.countByWorkspaceId(workspaceId);
         int projectCount = (int) projectRepository.countByWorkspaceId(workspaceId);
         int taskCount = (int) taskRepository.countByWorkspaceId(workspaceId);
         int unreadNotifications = (int) notificationRepository.countByWorkspaceIdAndReadFalse(workspaceId);
-        long activeUsers = users.stream().filter(UserJpaEntity::isActive).count();
+        long activeUsers = membershipRepository.countByWorkspaceIdAndActiveTrue(workspaceId);
 
-        List<ProjectJpaEntity> projects = projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId);
-        List<TaskJpaEntity> tasks = taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId);
-        List<LibraryEntryJpaEntity> libraryEntries = libraryEntryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId);
-        List<AgentThreadJpaEntity> threads = agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId);
-        List<NotificationJpaEntity> notifications = notificationRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceId);
+        List<ProjectJpaEntity> recentProjects = projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 2));
+        List<TaskJpaEntity> recentTasks = taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 3));
+        List<LibraryEntryJpaEntity> recentLibraryEntries = libraryEntryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 2));
+        List<AgentThreadJpaEntity> recentThreads = agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 2));
+        List<NotificationJpaEntity> recentNotifications = notificationRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceId, PageRequest.of(0, 2));
 
         List<RecentCandidate> recentCandidates = new ArrayList<>();
-        tasks.stream().limit(3).forEach(task -> recentCandidates.add(new RecentCandidate(
+        recentTasks.forEach(task -> recentCandidates.add(new RecentCandidate(
                 task.getUpdatedAt(),
                 new RecentItemResponse(
                         "task-" + task.getId(),
                         task.getTitle(),
-                        task.getSummary(),
+                        defaultText(task.getSummary(), task.getPrompt()),
                         buildRecentTaskDetail(task),
                         "/tasks/" + task.getId(),
                         task.getAvailability()
                 )
         )));
-        libraryEntries.stream().limit(2).forEach(entry -> recentCandidates.add(new RecentCandidate(
+        recentLibraryEntries.forEach(entry -> recentCandidates.add(new RecentCandidate(
                 entry.getUpdatedAt(),
                 new RecentItemResponse(
                         "library-" + entry.getId(),
@@ -104,7 +98,7 @@ public class WorkspaceSummaryService {
                         entry.getAvailability()
                 )
         )));
-        threads.stream().limit(2).forEach(thread -> recentCandidates.add(new RecentCandidate(
+        recentThreads.forEach(thread -> recentCandidates.add(new RecentCandidate(
                 thread.getUpdatedAt(),
                 new RecentItemResponse(
                         "thread-" + thread.getId(),
@@ -117,7 +111,7 @@ public class WorkspaceSummaryService {
                         thread.getAvailability()
                 )
         )));
-        projects.stream().limit(2).forEach(project -> recentCandidates.add(new RecentCandidate(
+        recentProjects.forEach(project -> recentCandidates.add(new RecentCandidate(
                 project.getUpdatedAt(),
                 new RecentItemResponse(
                         "project-" + project.getId(),
@@ -128,7 +122,7 @@ public class WorkspaceSummaryService {
                         project.getAvailability()
                 )
         )));
-        notifications.stream().limit(2).forEach(notification -> recentCandidates.add(new RecentCandidate(
+        recentNotifications.forEach(notification -> recentCandidates.add(new RecentCandidate(
                 notification.getCreatedAt(),
                 new RecentItemResponse(
                         "notification-" + notification.getId(),
@@ -174,7 +168,7 @@ public class WorkspaceSummaryService {
                 taskCount == 0
                         ? "Ainda nao ha tarefas persistidas."
                         : "A lista mostra o trabalho em andamento, concluido ou com erro.",
-                tasks.stream().map(TaskJpaEntity::getAvailability).findFirst().orElse("live"),
+                recentTasks.stream().map(TaskJpaEntity::getAvailability).findFirst().orElse("live"),
                 "/tasks"
         ));
         facets.add(new WorkspaceFacetResponse(
@@ -194,7 +188,7 @@ public class WorkspaceSummaryService {
                 threadCount == 0
                         ? "Nenhuma conversa de agente foi registrada ainda."
                         : "Acompanhe conversas, execucao e falhas dos agentes.",
-                threads.stream().map(AgentThreadJpaEntity::getAvailability).findFirst().orElse("live"),
+                recentThreads.stream().map(AgentThreadJpaEntity::getAvailability).findFirst().orElse("live"),
                 "/agents"
         ));
         facets.add(new WorkspaceFacetResponse(
@@ -229,6 +223,13 @@ public class WorkspaceSummaryService {
             return "momento indisponivel";
         }
         return SUMMARY_TIME_FORMAT.format(moment);
+    }
+
+    private String defaultText(String primary, String fallback) {
+        if (primary == null || primary.isBlank()) {
+            return fallback;
+        }
+        return primary;
     }
 
     private record RecentCandidate(LocalDateTime timestamp, RecentItemResponse item) {

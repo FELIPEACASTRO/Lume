@@ -10,7 +10,7 @@ def _implementation_status(evidence: RepoEvidence) -> str:
         return "implemented_with_restrictions"
     if evidence.has_backend_runtime:
         return "implemented_with_restrictions"
-    if evidence.has_docs or evidence.has_frontend or evidence.has_config:
+    if evidence.has_docs or evidence.has_config:
         return "catalog_only"
     return "out_of_scope"
 
@@ -20,7 +20,7 @@ def _evidence_level(evidence: RepoEvidence) -> str:
         return str(evidence.governance["evidenceLevel"])
     if evidence.has_backend_runtime and evidence.has_tests:
         return EvidenceStrength.HIGH.value
-    if evidence.has_backend_runtime or evidence.has_frontend:
+    if evidence.has_backend_runtime:
         return EvidenceStrength.MEDIUM.value
     return EvidenceStrength.LOW.value
 
@@ -35,9 +35,9 @@ def classify_coverage(evidence: RepoEvidence) -> CoverageType:
         return CoverageType.PARTIAL
     if not evidence.has_backend_runtime and evidence.gateway_mentions:
         return CoverageType.INDIRECT_VIA_GATEWAY
-    if not evidence.has_backend_runtime and evidence.has_tests and not (evidence.has_frontend or evidence.has_docs):
+    if not evidence.has_backend_runtime and evidence.has_tests and not evidence.has_docs:
         return CoverageType.STUB_OR_MOCK
-    if evidence.has_docs or evidence.has_frontend or evidence.has_config or evidence.governance:
+    if evidence.has_docs or evidence.has_config or evidence.governance:
         return CoverageType.NOT_IMPLEMENTED
     return CoverageType.NOT_IMPLEMENTED
 
@@ -46,8 +46,6 @@ def _exposure(evidence: RepoEvidence) -> str:
     channels: list[str] = []
     if evidence.has_backend_runtime:
         channels.append("backend")
-    if evidence.has_frontend:
-        channels.append("frontend")
     if evidence.has_docs:
         channels.append("docs")
     if evidence.has_config:
@@ -81,7 +79,6 @@ def build_service_record(service: str, aliases: list[str], category: str, capabi
             set(
                 evidence.backend_runtime_files
                 + evidence.backend_controller_files
-                + evidence.frontend_files
                 + evidence.test_files
                 + evidence.docs_files
                 + evidence.config_files

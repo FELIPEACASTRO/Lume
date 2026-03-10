@@ -8,6 +8,7 @@ public record UsageSummaryResponse(
         int scheduledTasks,
         int unreadNotifications,
         String note,
-        BudgetSummaryResponse budget
+        BudgetSummaryResponse budget,
+        WorkspaceCommercialSummaryResponse commercial
 ) {
 }

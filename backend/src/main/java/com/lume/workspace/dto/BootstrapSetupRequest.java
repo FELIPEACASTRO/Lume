@@ -19,6 +19,15 @@ public record BootstrapSetupRequest(
         String adminEmail,
         @NotBlank(message = "password deve ser informado")
         @Size(min = 8, max = 128, message = "password deve ter entre 8 e 128 caracteres")
-        String password
+        String password,
+        @NotBlank(message = "primaryUseCase deve ser informado")
+        @Size(max = 64, message = "primaryUseCase nao pode ultrapassar 64 caracteres")
+        String primaryUseCase,
+        @NotBlank(message = "workStyle deve ser informado")
+        @Size(max = 64, message = "workStyle nao pode ultrapassar 64 caracteres")
+        String workStyle,
+        @NotBlank(message = "selectedPlan deve ser informado")
+        @Size(max = 32, message = "selectedPlan nao pode ultrapassar 32 caracteres")
+        String selectedPlan
 ) {
 }

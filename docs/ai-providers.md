@@ -27,11 +27,13 @@ Runtime textual realmente ligado:
 | Perplexity | `perplexity` | - | `chat-completions` | `unsupported` | `perplexity:sonar` |
 | Groq | `groq` | - | `responses` | `unsupported` | `groq:llama-3.3-70b-versatile` |
 | OpenRouter | `openrouter` | - | `chat-completions` | `unsupported` | `openrouter:openai/gpt-4.1-mini` |
-| Cohere | `cohere` | - | `chat-v2` | `unsupported` | `cohere:command-r` |
+| Cohere | `cohere` | - | `chat-v2` | `unsupported` | `cohere:command-a-03-2025` |
 | Together | `together` | - | `chat-completions` | `unsupported` | `together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo` |
 | Fireworks | `fireworks` | - | `chat-completions` | `unsupported` | `fireworks:accounts/fireworks/models/llama-v3p1-8b-instruct` |
 | DeepInfra | `deepinfra` | - | `chat-completions` | `unsupported` | `deepinfra:meta-llama/Meta-Llama-3.1-8B-Instruct` |
 | Mistral | `mistral` | - | `chat-completions` | `unsupported` | `mistral:mistral-small-latest` |
+| DashScope / Qwen | `dashscope-qwen` | `dashscope` | `chat-completions` | `unsupported` | `dashscope-qwen:qwen-plus` |
+| SiliconFlow | `siliconflow` | - | `chat-completions` | `unsupported` | `siliconflow:Qwen/Qwen2.5-7B-Instruct` |
 
 Research live:
 
@@ -48,6 +50,8 @@ Vector runtime live:
 |---|---|---|---|
 | Voyage AI | `voyage-ai` | `embeddings-rerank` | `embeddings`, `rerank` |
 | Cohere | `cohere` | `chat-v2` | `embeddings`, `rerank` |
+| DashScope / Qwen | `dashscope-qwen` | `chat-completions` | `embeddings`, `rerank` |
+| SiliconFlow | `siliconflow` | `chat-completions` | `embeddings`, `rerank` |
 
 Media/audio/OCR live com restricoes:
 
@@ -63,7 +67,7 @@ Media/audio/OCR live com restricoes:
 | Black Forest Labs | `bfl` | `image-job` | `image-generation`, `image-editing` |
 | Runway | `runway` | `video-job` | `video-generation` |
 
-Catalogados/manual/skeleton nesta rodada:
+Providers em `implemented_with_restrictions` nesta rodada:
 
 - `cloudflare-workers-ai`
 - `azure-openai`
@@ -73,19 +77,50 @@ Catalogados/manual/skeleton nesta rodada:
 - `cerebras`
 - `nvidia-nim`
 - `sambanova`
+- `google-vision`
+- `google-speech-to-text`
+- `google-text-to-speech`
+- `google-translation`
+- `google-natural-language`
+- `fal-ai`
+- `fullhunt`
+- `flare`
+- `darkowl`
+- `twingly`
+- `onion-search-engine`
+- `darknetsearch`
+
+Providers asiaticos gratuitos recorrentes priorizados nesta fase:
+
+- `dashscope-qwen`
+  - `freeTierRecurring=true`
+  - `freeTierScope=mainland_beijing_only`
+  - `freeModels=[qwen-plus, text-embedding-v4, gte-rerank-v2]`
+  - `regionConstraints=[cn-beijing]`
+  - `billingWarning`: a regiao Singapore e outras podem gerar cobranca
 - `siliconflow`
+  - `freeTierRecurring=true`
+  - `freeTierScope=selected_models`
+  - `freeModels=[Qwen/Qwen2.5-7B-Instruct, BAAI/bge-m3, BAAI/bge-reranker-v2-m3]`
+  - `regionConstraints=[global]`
+  - `billingWarning`: a gratuidade depende do modelo escolhido
+
+Providers que continuam fora do runtime automatico:
+
 - `github-models`
-- media/audio providers ainda fora desta rodada, exceto `deepgram`, `assemblyai`, `elevenlabs`, `mistral` OCR, `stability-ai`, `replicate`, `ideogram`, `bfl` e `runway`
-- threat-intel providers sem adapter live
 
 ## Capability API realmente ligada
 
 - `POST /api/v1/embeddings`
   - `cohere`
   - `voyage-ai`
+  - `dashscope-qwen`
+  - `siliconflow`
 - `POST /api/v1/rerank`
   - `cohere`
   - `voyage-ai`
+  - `dashscope-qwen`
+  - `siliconflow`
 - `POST /api/v1/search`
   - `exa`
   - `newscatcher`
@@ -96,26 +131,44 @@ Catalogados/manual/skeleton nesta rodada:
   - `assemblyai`
 - `POST /api/v1/audio/tts`
   - `elevenlabs`
+  - `google-text-to-speech`
 - `POST /api/v1/ocr`
   - `mistral`
+  - `google-vision`
+- `POST /api/v1/translation/text`
+  - `google-translation`
+- `POST /api/v1/nlp/analyze`
+  - `google-natural-language`
 - `POST /api/v1/images/generate`
   - `stability-ai`
   - `replicate`
   - `ideogram`
   - `bfl`
+  - `fal-ai`
 - `POST /api/v1/images/edit`
   - `replicate`
   - `ideogram`
   - `bfl`
+  - `fal-ai`
 - `GET /api/v1/images/jobs/{provider}/{jobId}`
   - `replicate`
   - `bfl`
+  - `fal-ai`
 - `POST /api/v1/videos/generate`
   - `replicate`
   - `runway`
+  - `fal-ai`
 - `GET /api/v1/videos/jobs/{provider}/{jobId}`
   - `replicate`
   - `runway`
+  - `fal-ai`
+- `POST /api/v1/threat-intel/search`
+  - `fullhunt`
+  - `flare`
+  - `darkowl`
+  - `twingly`
+  - `onion-search-engine`
+  - `darknetsearch`
 
 ## Contratos e metadados importantes
 

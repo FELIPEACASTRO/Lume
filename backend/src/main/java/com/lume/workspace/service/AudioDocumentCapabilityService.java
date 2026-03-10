@@ -22,20 +22,24 @@ public class AudioDocumentCapabilityService {
 
     private static final Map<String, String> DEFAULT_STT_MODELS = Map.of(
             "deepgram", "deepgram:nova-3",
-            "assemblyai", "assemblyai:universal"
+            "assemblyai", "assemblyai:universal",
+            "google-speech-to-text", "google-speech-to-text:latest-long"
     );
 
     private static final Map<String, String> DEFAULT_TTS_MODELS = Map.of(
-            "elevenlabs", "elevenlabs:eleven_multilingual_v2"
+            "elevenlabs", "elevenlabs:eleven_multilingual_v2",
+            "google-text-to-speech", "google-text-to-speech:neural2"
     );
 
     private static final Map<String, String> DEFAULT_OCR_MODELS = Map.of(
-            "mistral", "mistral:mistral-ocr-latest"
+            "mistral", "mistral:mistral-ocr-latest",
+            "google-vision", "google-vision:document-text-detection"
     );
 
     private final ProviderCatalogService providerCatalogService;
     private final WorkspaceContextService workspaceContextService;
     private final AuditLogService auditLogService;
+    private final GoogleCloudSupportService googleCloudSupportService;
     private final RestClient.Builder restClientBuilder;
     private final ObjectMapper objectMapper;
 
@@ -43,12 +47,14 @@ public class AudioDocumentCapabilityService {
             ProviderCatalogService providerCatalogService,
             WorkspaceContextService workspaceContextService,
             AuditLogService auditLogService,
+            GoogleCloudSupportService googleCloudSupportService,
             RestClient.Builder restClientBuilder,
             ObjectMapper objectMapper
     ) {
         this.providerCatalogService = providerCatalogService;
         this.workspaceContextService = workspaceContextService;
         this.auditLogService = auditLogService;
+        this.googleCloudSupportService = googleCloudSupportService;
         this.restClientBuilder = restClientBuilder;
         this.objectMapper = objectMapper;
     }
@@ -102,6 +108,7 @@ public class AudioDocumentCapabilityService {
             AiPlatformModels.SpeechToTextResponse response = switch (provider.code()) {
                 case "deepgram" -> deepgramSpeechToText(provider, model, request);
                 case "assemblyai" -> assemblyAiSpeechToText(provider, model, request);
+                case "google-speech-to-text" -> googleSpeechToText(provider, model, request);
                 default -> new AiPlatformModels.SpeechToTextResponse(
                         provider.code(),
                         provider.name(),
@@ -166,6 +173,7 @@ public class AudioDocumentCapabilityService {
         try {
             AiPlatformModels.TextToSpeechResponse response = switch (provider.code()) {
                 case "elevenlabs" -> elevenLabsTextToSpeech(provider, model, request);
+                case "google-text-to-speech" -> googleTextToSpeech(provider, model, request);
                 default -> new AiPlatformModels.TextToSpeechResponse(
                         provider.code(),
                         provider.name(),
@@ -241,6 +249,7 @@ public class AudioDocumentCapabilityService {
         try {
             AiPlatformModels.OcrResponse response = switch (provider.code()) {
                 case "mistral" -> mistralOcr(provider, model, request);
+                case "google-vision" -> googleVisionOcr(provider, model, request);
                 default -> new AiPlatformModels.OcrResponse(
                         provider.code(),
                         provider.name(),
@@ -323,7 +332,7 @@ public class AudioDocumentCapabilityService {
         if (request.languageCode() != null && !request.languageCode().isBlank()) {
             payload.put("language_code", normalizeAssemblyLanguage(request.languageCode()));
         }
-        payload.put("speech_model", externalModelCode(model.code()));
+        payload.set("speech_models", objectMapper.createArrayNode().add(externalModelCode(model.code())));
 
         JsonNode submission = restClientBuilder.build()
                 .post()
@@ -349,12 +358,12 @@ public class AudioDocumentCapabilityService {
         }
 
         JsonNode transcript = submission;
-        for (int attempt = 0; attempt < 8; attempt++) {
+        for (int attempt = 0; attempt < 20; attempt++) {
             String status = transcript.path("status").asText("");
             if ("completed".equalsIgnoreCase(status) || "error".equalsIgnoreCase(status)) {
                 break;
             }
-            sleepQuietly(250L);
+            sleepQuietly(500L);
             transcript = restClientBuilder.build()
                     .get()
                     .uri(providerCatalogService.resolveBaseUrl(provider) + "/transcript/" + transcriptId)
@@ -393,11 +402,11 @@ public class AudioDocumentCapabilityService {
                 provider.code(),
                 provider.name(),
                 model.code(),
-                status,
+                "submitted",
                 null,
                 null,
                 null,
-                "A transcricao ainda esta em processamento no provider."
+                null
         );
     }
 
@@ -511,6 +520,137 @@ public class AudioDocumentCapabilityService {
         );
     }
 
+    private AiPlatformModels.SpeechToTextResponse googleSpeechToText(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            AiPlatformModels.SpeechToTextRequest request
+    ) {
+        GoogleCloudSupportService.GoogleAccessContext accessContext = googleCloudSupportService.accessContext(provider);
+        byte[] audioBytes = fetchBinary(request.audioUrl().trim());
+
+        ObjectNode payload = objectMapper.createObjectNode();
+        ObjectNode config = payload.putObject("config");
+        config.put("languageCode", request.languageCode() != null && !request.languageCode().isBlank() ? request.languageCode().trim() : "en-US");
+        config.put("model", externalModelCode(model.code()));
+        config.put("enableAutomaticPunctuation", true);
+        payload.putObject("audio").put("content", Base64.getEncoder().encodeToString(audioBytes));
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/speech:recognize")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessContext.accessToken())
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        JsonNode alternative = response.path("results").isArray() && !response.path("results").isEmpty()
+                ? response.path("results").get(0).path("alternatives").get(0)
+                : NullNode.getInstance();
+        return new AiPlatformModels.SpeechToTextResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                alternative.path("transcript").asText(""),
+                alternative.path("confidence").isNumber() ? alternative.path("confidence").asDouble() : null,
+                null,
+                null
+        );
+    }
+
+    private AiPlatformModels.TextToSpeechResponse googleTextToSpeech(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            AiPlatformModels.TextToSpeechRequest request
+    ) {
+        GoogleCloudSupportService.GoogleAccessContext accessContext = googleCloudSupportService.accessContext(provider);
+
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.putObject("input").put("text", request.text());
+        ObjectNode voice = payload.putObject("voice");
+        voice.put("languageCode", request.voice() != null && request.voice().contains(":")
+                ? request.voice().substring(0, request.voice().indexOf(':'))
+                : "en-US");
+        if (request.voice() != null && !request.voice().isBlank()) {
+            voice.put("name", request.voice().trim());
+        }
+        payload.putObject("audioConfig").put("audioEncoding", normalizeGoogleAudioEncoding(request.format()));
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/text:synthesize")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessContext.accessToken())
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        return new AiPlatformModels.TextToSpeechResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                null,
+                response.path("audioContent").asText(null),
+                null
+        );
+    }
+
+    private AiPlatformModels.OcrResponse googleVisionOcr(
+            ProviderDefinition provider,
+            ModelDefinition model,
+            AiPlatformModels.OcrRequest request
+    ) {
+        GoogleCloudSupportService.GoogleAccessContext accessContext = googleCloudSupportService.accessContext(provider);
+        ObjectNode payload = objectMapper.createObjectNode();
+        ObjectNode visionRequest = objectMapper.createObjectNode();
+        if (request.documentUrl() != null && !request.documentUrl().isBlank()) {
+            visionRequest.putObject("image")
+                    .putObject("source")
+                    .put("imageUri", request.documentUrl().trim());
+        } else if (request.imageUrl() != null && !request.imageUrl().isBlank()) {
+            visionRequest.putObject("image")
+                    .putObject("source")
+                    .put("imageUri", request.imageUrl().trim());
+        } else {
+            return new AiPlatformModels.OcrResponse(provider.code(), provider.name(), model.code(), "validation_error", null, List.of(), "Informe imageUrl ou documentUrl para executar OCR.");
+        }
+        visionRequest.putArray("features").add(objectMapper.createObjectNode().put("type", "DOCUMENT_TEXT_DETECTION"));
+        if (request.languageCode() != null && !request.languageCode().isBlank()) {
+            visionRequest.putObject("imageContext").putArray("languageHints").add(request.languageCode().trim());
+        }
+        payload.putArray("requests").add(visionRequest);
+
+        JsonNode response = restClientBuilder.build()
+                .post()
+                .uri(providerCatalogService.resolveBaseUrl(provider) + "/images:annotate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessContext.accessToken())
+                .body(payload)
+                .retrieve()
+                .body(JsonNode.class);
+
+        JsonNode annotation = response.path("responses").isArray() && !response.path("responses").isEmpty()
+                ? response.path("responses").get(0)
+                : NullNode.getInstance();
+        String text = annotation.path("fullTextAnnotation").path("text").asText(
+                annotation.path("textAnnotations").isArray() && !annotation.path("textAnnotations").isEmpty()
+                        ? annotation.path("textAnnotations").get(0).path("description").asText("")
+                        : ""
+        );
+
+        return new AiPlatformModels.OcrResponse(
+                provider.code(),
+                provider.name(),
+                model.code(),
+                "completed",
+                text,
+                text == null || text.isBlank() ? List.of() : List.of(text),
+                null
+        );
+    }
+
     private String resolveElevenLabsVoiceId(ProviderDefinition provider, String requestedVoice) {
         if (requestedVoice != null && !requestedVoice.isBlank()) {
             return requestedVoice.trim();
@@ -537,15 +677,19 @@ public class AudioDocumentCapabilityService {
 
     private boolean supportsSpeechToText(ProviderDefinition provider) {
         return provider.capabilities().contains("stt")
-                && ("deepgram".equals(provider.code()) || "assemblyai".equals(provider.code()));
+                && ("deepgram".equals(provider.code())
+                || "assemblyai".equals(provider.code())
+                || "google-speech-to-text".equals(provider.code()));
     }
 
     private boolean supportsTextToSpeech(ProviderDefinition provider) {
-        return provider.capabilities().contains("tts") && "elevenlabs".equals(provider.code());
+        return provider.capabilities().contains("tts")
+                && ("elevenlabs".equals(provider.code()) || "google-text-to-speech".equals(provider.code()));
     }
 
     private boolean supportsOcr(ProviderDefinition provider) {
-        return provider.capabilities().contains("ocr") && "mistral".equals(provider.code());
+        return provider.capabilities().contains("ocr")
+                && ("mistral".equals(provider.code()) || "google-vision".equals(provider.code()));
     }
 
     private ModelDefinition resolveCapabilityModel(ProviderDefinition provider, String modelCode, Map<String, String> defaults) {
@@ -562,6 +706,27 @@ public class AudioDocumentCapabilityService {
 
     private String normalizeAssemblyLanguage(String languageCode) {
         return languageCode.trim().replace('-', '_').toLowerCase();
+    }
+
+    private String normalizeGoogleAudioEncoding(String format) {
+        if (format == null || format.isBlank()) {
+            return "MP3";
+        }
+        String normalized = format.trim().toUpperCase();
+        return switch (normalized) {
+            case "LINEAR16", "WAV" -> "LINEAR16";
+            case "OGG", "OGG_OPUS" -> "OGG_OPUS";
+            default -> "MP3";
+        };
+    }
+
+    private byte[] fetchBinary(String url) {
+        return restClientBuilder.build()
+                .get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_OCTET_STREAM)
+                .retrieve()
+                .body(byte[].class);
     }
 
     private void sleepQuietly(long millis) {

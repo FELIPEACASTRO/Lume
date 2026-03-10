@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * Resposta padronizada da API para erros e mensagens.
  *
  * <p><b>Clean Code:</b> Estrutura consistente para todas as respostas de erro,
- * facilitando o tratamento no frontend.</p>
+ * facilitando o tratamento pelos clientes da API.</p>
  *
  * @param timestamp momento do erro
  * @param status    código HTTP

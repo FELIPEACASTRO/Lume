@@ -29,8 +29,8 @@ class ProviderGovernanceMetadataCatalogTest {
         assertThat(openaiMetadata.businessPriority()).isEqualTo("high_roi");
         assertThat(openaiMetadata.routingModes()).contains("cost-first", "latency-first", "quality-first");
 
-        assertThat(darkowlMetadata.implementationStatus()).isEqualTo("blocked");
-        assertThat(darkowlMetadata.evidenceLevel()).isEqualTo("offline_verified");
+        assertThat(darkowlMetadata.implementationStatus()).isEqualTo("implemented_with_restrictions");
+        assertThat(darkowlMetadata.evidenceLevel()).isEqualTo("integration_verified");
         assertThat(darkowlMetadata.documentationSource()).isEqualTo("mixed_sources");
     }
 

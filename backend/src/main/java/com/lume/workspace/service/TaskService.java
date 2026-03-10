@@ -6,6 +6,8 @@ import com.lume.workspace.dto.TaskDetailResponse;
 import com.lume.workspace.dto.TaskStepResponse;
 import com.lume.workspace.dto.TaskSummaryResponse;
 import com.lume.workspace.entity.TaskJpaEntity;
+import com.lume.workspace.inference.ModelDefinition;
+import com.lume.workspace.inference.ProviderDefinition;
 import com.lume.workspace.repository.ProjectJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
 import com.lume.workspace.repository.TaskStepJpaRepository;
@@ -27,19 +29,25 @@ public class TaskService {
     private final ProjectJpaRepository projectRepository;
     private final WorkspaceContextService workspaceContextService;
     private final AuditLogService auditLogService;
+    private final WorkspaceLedgerService workspaceLedgerService;
+    private final ProviderCatalogService providerCatalogService;
 
     public TaskService(
             TaskJpaRepository taskRepository,
             TaskStepJpaRepository taskStepRepository,
             ProjectJpaRepository projectRepository,
             WorkspaceContextService workspaceContextService,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            WorkspaceLedgerService workspaceLedgerService,
+            ProviderCatalogService providerCatalogService
     ) {
         this.taskRepository = taskRepository;
         this.taskStepRepository = taskStepRepository;
         this.projectRepository = projectRepository;
         this.workspaceContextService = workspaceContextService;
         this.auditLogService = auditLogService;
+        this.workspaceLedgerService = workspaceLedgerService;
+        this.providerCatalogService = providerCatalogService;
     }
 
     public List<TaskSummaryResponse> listTasks(String projectId) {
@@ -57,6 +65,8 @@ public class TaskService {
 
     @Transactional
     public TaskDetailResponse createTask(CreateTaskRequest request) {
+        RuntimeSelection runtimeSelection = resolveRuntimeSelection(request);
+
         TaskJpaEntity task = new TaskJpaEntity();
         task.setId("task-" + UUID.randomUUID().toString().substring(0, 8));
         task.setWorkspaceId(workspaceContextService.getWorkspaceId());
@@ -64,11 +74,14 @@ public class TaskService {
         task.setTaskType(request.taskType());
         task.setTitle(titleFromPrompt(request.prompt(), request.taskType()));
         task.setPrompt(request.prompt());
-        task.setSummary(summaryFromPrompt(request.prompt()));
+        task.setSummary("");
         task.setStatusLabel("Na fila");
         task.setAvailability("live");
         task.setRuntimeState("queued");
         task.setLastError(null);
+        task.setProviderCode(runtimeSelection.providerCode());
+        task.setModelCode(runtimeSelection.modelCode());
+        task.setVersionLabel(runtimeSelection.versionLabel());
         task.setOwnerName(resolveOwnerName(task.getProjectId()));
         task.setScheduledFor(null);
         task.setShareSlug(null);
@@ -78,7 +91,17 @@ public class TaskService {
                 "task",
                 savedTask.getId(),
                 "created",
-                "{\"taskType\":\"%s\"}".formatted(savedTask.getTaskType())
+                "{\"taskType\":\"%s\",\"providerCode\":\"%s\",\"modelCode\":\"%s\"}".formatted(
+                        savedTask.getTaskType(),
+                        savedTask.getProviderCode() == null ? "" : savedTask.getProviderCode(),
+                        savedTask.getModelCode() == null ? "" : savedTask.getModelCode()
+                )
+        );
+        workspaceLedgerService.recordUsageEvent(
+                "task.created",
+                "task",
+                savedTask.getId(),
+                "Nova tarefa criada no workspace com runtimeState queued."
         );
 
         return toDetailResponse(savedTask);
@@ -103,7 +126,10 @@ public class TaskService {
                 task.getOwnerName(),
                 task.getUpdatedAt().format(DATE_TIME_FORMATTER),
                 task.getScheduledFor() == null ? null : task.getScheduledFor().format(DATE_TIME_FORMATTER),
-                task.getShareSlug()
+                task.getShareSlug(),
+                task.getProviderCode(),
+                task.getModelCode(),
+                task.getVersionLabel()
         );
     }
 
@@ -143,14 +169,6 @@ public class TaskService {
         return "%s...".formatted(normalized.substring(0, 69));
     }
 
-    private String summaryFromPrompt(String prompt) {
-        String normalized = prompt.trim().replaceAll("\\s+", " ");
-        if (normalized.length() <= 140) {
-            return normalized;
-        }
-        return "%s...".formatted(normalized.substring(0, 137));
-    }
-
     private String resolveOwnerName(String projectId) {
         if (projectId == null || projectId.isBlank()) {
             return workspaceContextService.getActorName();
@@ -160,5 +178,55 @@ public class TaskService {
                         ? workspaceContextService.getActorName()
                         : project.getOwnerName())
                 .orElse(workspaceContextService.getActorName());
+    }
+
+    private RuntimeSelection resolveRuntimeSelection(CreateTaskRequest request) {
+        String providerCode = trimToNull(request.providerCode());
+        String modelCode = trimToNull(request.modelCode());
+        String versionLabel = trimToNull(request.versionLabel());
+
+        if (providerCode == null && modelCode == null && versionLabel == null) {
+            return RuntimeSelection.empty();
+        }
+
+        if (providerCode == null || modelCode == null) {
+            throw new IllegalArgumentException("Informe provedor e modelo para registrar a execucao IA da tarefa.");
+        }
+
+        ProviderDefinition provider = providerCatalogService.requireProvider(providerCode);
+        if (!provider.executionSupported() || !"text-runtime".equalsIgnoreCase(provider.category())) {
+            throw new IllegalArgumentException("Selecione um provedor de texto ativo para criar tarefas com execucao IA.");
+        }
+
+        ModelDefinition model = providerCatalogService.findModelForProvider(provider.code(), modelCode)
+                .orElseThrow(() -> new IllegalArgumentException("O modelo selecionado nao pertence ao provedor informado."));
+
+        if (!model.enabledForAgents()) {
+            throw new IllegalArgumentException("O modelo selecionado nao esta habilitado para tarefas/conversa.");
+        }
+
+        if (versionLabel != null && !versionLabel.equals(model.versionLabel())) {
+            throw new IllegalArgumentException("A versao da tarefa deve corresponder a versao oficial do modelo selecionado.");
+        }
+
+        return new RuntimeSelection(provider.code(), model.code(), model.versionLabel());
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private record RuntimeSelection(
+            String providerCode,
+            String modelCode,
+            String versionLabel
+    ) {
+        private static RuntimeSelection empty() {
+            return new RuntimeSelection(null, null, null);
+        }
     }
 }
