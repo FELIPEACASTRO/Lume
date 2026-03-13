@@ -14,7 +14,9 @@
       "Bash(ls \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\\\\backend\"/*.xml \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\\\\backend\"/*.gradle)",
       "Bash(ls \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/mvnw*)",
       "Bash(mvn -f backend/pom.xml clean test)",
-      "Read(//c/Users/davis/.claude/plans/**)"
+      "Read(//c/Users/davis/.claude/plans/**)",
+      "Bash(git ls-tree:*)",
+      "Bash(find /c/Users/davis/Workspace/Lume/backend/src/main/java/com/lume/workspace/controller -name Member*.java -o -name Task*.java)"
     ],
     "additionalDirectories": [
       "c:\\Users\\davis\\.claude\\plans"
