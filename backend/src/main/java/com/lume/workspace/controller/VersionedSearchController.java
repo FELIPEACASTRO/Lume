@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/search", "/api/v1/search"})
+@RequestMapping("/v1/search")
 public class VersionedSearchController {
 
     private final SearchService searchService;

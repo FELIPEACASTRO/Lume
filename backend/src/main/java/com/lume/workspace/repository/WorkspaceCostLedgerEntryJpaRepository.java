@@ -1,6 +1,7 @@
 package com.lume.workspace.repository;
 
 import com.lume.workspace.entity.WorkspaceCostLedgerEntryJpaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -9,7 +10,7 @@ import java.util.List;
 
 public interface WorkspaceCostLedgerEntryJpaRepository extends JpaRepository<WorkspaceCostLedgerEntryJpaEntity, Long> {
 
-    List<WorkspaceCostLedgerEntryJpaEntity> findByWorkspaceIdOrderByCreatedAtDesc(Long workspaceId);
+    List<WorkspaceCostLedgerEntryJpaEntity> findByWorkspaceIdOrderByCreatedAtDesc(Long workspaceId, Pageable pageable);
 
     long countByWorkspaceId(Long workspaceId);
 

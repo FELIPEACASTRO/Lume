@@ -47,7 +47,7 @@ public class ApplicationSetupService {
     private final WorkspaceSessionService workspaceSessionService;
     private final AuditLogService auditLogService;
     private final ProviderCatalogService providerCatalogService;
-    private final WorkspaceCommercialService workspaceCommercialService;
+    private final WorkspaceOnboardingService workspaceOnboardingService;
 
     public ApplicationSetupService(
             OrganizationJpaRepository organizationRepository,
@@ -61,7 +61,7 @@ public class ApplicationSetupService {
             WorkspaceSessionService workspaceSessionService,
             AuditLogService auditLogService,
             ProviderCatalogService providerCatalogService,
-            WorkspaceCommercialService workspaceCommercialService
+            WorkspaceOnboardingService workspaceOnboardingService
     ) {
         this.organizationRepository = organizationRepository;
         this.workspaceRepository = workspaceRepository;
@@ -74,7 +74,7 @@ public class ApplicationSetupService {
         this.workspaceSessionService = workspaceSessionService;
         this.auditLogService = auditLogService;
         this.providerCatalogService = providerCatalogService;
-        this.workspaceCommercialService = workspaceCommercialService;
+        this.workspaceOnboardingService = workspaceOnboardingService;
     }
 
     public SetupStatusResponse getStatus() {
@@ -136,7 +136,7 @@ public class ApplicationSetupService {
         preference.setLanguageCode("pt-BR");
         userPreferenceRepository.save(preference);
 
-        workspaceCommercialService.initializeWorkspace(workspace.getId(), request);
+        workspaceOnboardingService.initializeWorkspace(workspace.getId(), request);
         ensureStarterAgentProfile(workspace.getId());
 
         auditLogService.recordExplicit(
@@ -199,7 +199,7 @@ public class ApplicationSetupService {
         }
 
         if (userRepository.count() == 0L && organizationRepository.count() == 1L) {
-            OrganizationJpaEntity organization = organizationRepository.findAll().getFirst();
+            OrganizationJpaEntity organization = organizationRepository.findAll(org.springframework.data.domain.PageRequest.of(0, 1)).getContent().getFirst();
             organization.setName(normalizedName);
             return organizationRepository.save(organization);
         }
@@ -218,7 +218,7 @@ public class ApplicationSetupService {
         }
 
         if (userRepository.count() == 0L && workspaceRepository.count() == 1L) {
-            WorkspaceJpaEntity workspace = workspaceRepository.findAll().getFirst();
+            WorkspaceJpaEntity workspace = workspaceRepository.findAll(org.springframework.data.domain.PageRequest.of(0, 1)).getContent().getFirst();
             workspace.setOrganizationId(organization.getId());
             workspace.setName(normalizedName);
             return workspaceRepository.save(workspace);

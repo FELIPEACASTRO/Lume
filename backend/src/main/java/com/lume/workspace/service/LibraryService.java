@@ -10,6 +10,7 @@ import com.lume.workspace.entity.ProjectJpaEntity;
 import com.lume.workspace.repository.ArtifactVersionJpaRepository;
 import com.lume.workspace.repository.LibraryEntryJpaRepository;
 import com.lume.workspace.repository.ProjectJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +55,7 @@ public class LibraryService {
                 .stream()
                 .collect(Collectors.groupingBy(ArtifactVersionJpaEntity::getEntryId));
 
-        return libraryEntryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)
+        return libraryEntryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 200))
                 .stream()
                 .filter(entry -> !entry.isArchived())
                 .filter(entry -> normalizedCategory.isBlank() || entry.getCategory().equalsIgnoreCase(normalizedCategory))
@@ -137,7 +138,7 @@ public class LibraryService {
     }
 
     private Map<String, ProjectJpaEntity> loadProjectsById(Long workspaceId) {
-        return projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)
+        return projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 200))
                 .stream()
                 .collect(Collectors.toMap(ProjectJpaEntity::getId, Function.identity(), (left, right) -> left));
     }

@@ -1,6 +1,6 @@
 # Docs Hub do Lume
 
-Este diretorio concentra a documentacao vigente do backend do Lume: governanca de providers, arquitetura, testes, FinOps e matrizes de validacao.
+Este diretorio concentra a documentacao vigente da plataforma Lume: frontend, backend, governanca de providers, arquitetura, testes, FinOps e matrizes de validacao.
 
 ## Ordem recomendada de leitura
 
@@ -15,7 +15,7 @@ Este diretorio concentra a documentacao vigente do backend do Lume: governanca d
 ## Artefatos principais
 
 - `architecture-overview.md`
-  - retrato honesto da arquitetura backend-only
+  - retrato honesto da arquitetura full-stack atual
 - `requirements-matrix.md`
   - precedencia oficial, taxonomias e gates
 - `ai-providers.md`
@@ -27,7 +27,7 @@ Este diretorio concentra a documentacao vigente do backend do Lume: governanca d
 - `official-sources.md`
   - links primarios para promocao de estado
 - `test-strategy.md`
-  - estrategia de testes do backend
+  - estrategia de testes da plataforma
 - `test-evidence.md`
   - registro da evidencia executada
 - `live-validation-matrix.md`

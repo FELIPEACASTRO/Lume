@@ -11,6 +11,7 @@ import com.lume.workspace.inference.ProviderDefinition;
 import com.lume.workspace.repository.ProjectJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
 import com.lume.workspace.repository.TaskStepJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class TaskService {
     private final AuditLogService auditLogService;
     private final WorkspaceLedgerService workspaceLedgerService;
     private final ProviderCatalogService providerCatalogService;
+    private final WorkspaceOnboardingService workspaceOnboardingService;
 
     public TaskService(
             TaskJpaRepository taskRepository,
@@ -39,7 +41,8 @@ public class TaskService {
             WorkspaceContextService workspaceContextService,
             AuditLogService auditLogService,
             WorkspaceLedgerService workspaceLedgerService,
-            ProviderCatalogService providerCatalogService
+            ProviderCatalogService providerCatalogService,
+            WorkspaceOnboardingService workspaceOnboardingService
     ) {
         this.taskRepository = taskRepository;
         this.taskStepRepository = taskStepRepository;
@@ -48,11 +51,12 @@ public class TaskService {
         this.auditLogService = auditLogService;
         this.workspaceLedgerService = workspaceLedgerService;
         this.providerCatalogService = providerCatalogService;
+        this.workspaceOnboardingService = workspaceOnboardingService;
     }
 
     public List<TaskSummaryResponse> listTasks(String projectId) {
         List<TaskJpaEntity> tasks = projectId == null || projectId.isBlank()
-                ? taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId())
+                ? taskRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId(), PageRequest.of(0, 200))
                 : taskRepository.findByWorkspaceIdAndProjectIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId(), projectId);
         return tasks.stream().map(this::toSummaryResponse).toList();
     }
@@ -102,6 +106,11 @@ public class TaskService {
                 "task",
                 savedTask.getId(),
                 "Nova tarefa criada no workspace com runtimeState queued."
+        );
+        workspaceOnboardingService.advanceCurrentOnboarding(
+                "first_task_created",
+                "Primeira tarefa criada no workspace.",
+                "task.created"
         );
 
         return toDetailResponse(savedTask);

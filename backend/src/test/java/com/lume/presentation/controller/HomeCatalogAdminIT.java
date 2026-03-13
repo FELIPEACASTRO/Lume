@@ -74,7 +74,7 @@ class HomeCatalogAdminIT {
     @Test
     @DisplayName("GET /api/v1/home/catalog - should return persisted home catalog")
     void shouldReturnHomeCatalog() throws Exception {
-        mockMvc.perform(get("/api/v1/home/catalog").with(operatorHeader()))
+        mockMvc.perform(get("/v1/home/catalog").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.settings.headline").isString())
                 .andExpect(jsonPath("$.blocks").isArray())
@@ -90,7 +90,7 @@ class HomeCatalogAdminIT {
                 "Acompanhe o que esta em andamento, busque contexto e abra novas tarefas."
         );
 
-        mockMvc.perform(patch("/api/v1/home/catalog/settings")
+        mockMvc.perform(patch("/v1/home/catalog/settings")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -98,7 +98,7 @@ class HomeCatalogAdminIT {
                 .andExpect(jsonPath("$.headline").value("Defina sua proxima acao"))
                 .andExpect(jsonPath("$.supportingText").value("Acompanhe o que esta em andamento, busque contexto e abra novas tarefas."));
 
-        mockMvc.perform(get("/api/v1/home/overview").with(operatorHeader()))
+        mockMvc.perform(get("/v1/home/overview").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.headline").value("Defina sua proxima acao"));
     }
@@ -120,7 +120,7 @@ class HomeCatalogAdminIT {
                 true
         );
 
-        mockMvc.perform(post("/api/v1/home/catalog/blocks")
+        mockMvc.perform(post("/v1/home/catalog/blocks")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
@@ -131,14 +131,14 @@ class HomeCatalogAdminIT {
                 .andExpect(jsonPath("$.ctaLabel").value("Abrir biblioteca"))
                 .andExpect(jsonPath("$.ctaPath").value("/library"));
 
-        mockMvc.perform(get("/api/v1/home/catalog").with(operatorHeader()))
+        mockMvc.perform(get("/v1/home/catalog").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.blocks[?(@.id=='recentes-admin-it')]").isNotEmpty());
 
-        mockMvc.perform(delete("/api/v1/home/catalog/blocks/recentes-admin-it").with(operatorHeader()))
+        mockMvc.perform(delete("/v1/home/catalog/blocks/recentes-admin-it").with(operatorHeader()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/home/catalog").with(operatorHeader()))
+        mockMvc.perform(get("/v1/home/catalog").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.blocks[?(@.id=='recentes-admin-it')]").isEmpty());
     }
@@ -156,7 +156,7 @@ class HomeCatalogAdminIT {
                 true
         );
 
-        mockMvc.perform(patch("/api/v1/home/catalog/blocks/alerts")
+        mockMvc.perform(patch("/v1/home/catalog/blocks/alerts")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -184,7 +184,7 @@ class HomeCatalogAdminIT {
                 true
         );
 
-        mockMvc.perform(post("/api/v1/home/catalog/blocks")
+        mockMvc.perform(post("/v1/home/catalog/blocks")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -224,3 +224,4 @@ class HomeCatalogAdminIT {
         return entity;
     }
 }
+

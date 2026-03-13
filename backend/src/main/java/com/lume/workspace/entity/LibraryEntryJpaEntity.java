@@ -50,7 +50,7 @@ public class LibraryEntryJpaEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String summary;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "library_entry_tags", joinColumns = @JoinColumn(name = "entry_id"))
     @Column(name = "tag", nullable = false, length = 80)
     private Set<String> tags = new LinkedHashSet<>();

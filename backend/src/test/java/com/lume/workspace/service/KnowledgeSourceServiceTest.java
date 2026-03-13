@@ -35,8 +35,8 @@ class KnowledgeSourceServiceTest {
         ProjectJpaRepository projectRepository = mock(ProjectJpaRepository.class);
 
         KnowledgeSourceJpaEntity entity = seededSource("knowledge-playbooks", "Playbooks", "proj-ops");
-        when(repository.findByWorkspaceIdOrderByUpdatedAtDesc(1L)).thenReturn(List.of(entity));
-        when(projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(1L)).thenReturn(List.of(project("proj-ops", "Operacao")));
+        when(repository.findByWorkspaceIdOrderByUpdatedAtDesc(any(Long.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(entity));
+        when(projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(any(Long.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(project("proj-ops", "Operacao")));
 
         KnowledgeSourceService service = new KnowledgeSourceService(
                 repository,

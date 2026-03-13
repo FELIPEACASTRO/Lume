@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/v1/prompt-templates", "/api/v1/prompt-templates"})
+@RequestMapping("/v1/prompt-templates")
 public class VersionedPromptTemplateController {
 
     private final PromptTemplateService promptTemplateService;

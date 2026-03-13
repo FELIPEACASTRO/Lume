@@ -3,6 +3,7 @@ package com.lume.presentation.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lume.infrastructure.persistence.entity.UserJpaEntity;
 import com.lume.infrastructure.persistence.repository.JpaUserRepository;
+import com.lume.workspace.controller.VersionedShellCatalogController;
 import com.lume.workspace.dto.CreateShellNavigationItemRequest;
 import com.lume.workspace.dto.CreateShellTaskTypeRequest;
 import com.lume.workspace.dto.UpdateShellNavigationItemRequest;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(VersionedShellCatalogController.class)
 @DisplayName("Shell Catalog Admin - Integration Tests")
 class ShellCatalogAdminIT {
 
@@ -88,7 +91,7 @@ class ShellCatalogAdminIT {
     @Test
     @DisplayName("GET /api/v1/shell/catalog - should return persisted catalog for settings admins")
     void shouldReturnShellCatalog() throws Exception {
-        mockMvc.perform(get("/api/v1/shell/catalog").with(operatorHeader()))
+        mockMvc.perform(get("/v1/shell/catalog").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].id").value("home"))
                 .andExpect(jsonPath("$.items[0].enabled").value(true))
@@ -111,7 +114,7 @@ class ShellCatalogAdminIT {
                 List.of("alertas", "pendencias")
         );
 
-        mockMvc.perform(post("/api/v1/shell/catalog/navigation-items")
+        mockMvc.perform(post("/v1/shell/catalog/navigation-items")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -120,7 +123,7 @@ class ShellCatalogAdminIT {
                 .andExpect(jsonPath("$.path").value("/ops-alerts"))
                 .andExpect(jsonPath("$.icon").value("inbox"));
 
-        mockMvc.perform(get("/api/v1/shell/catalog").with(operatorHeader()))
+        mockMvc.perform(get("/v1/shell/catalog").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[?(@.id=='ops-alerts')]").isNotEmpty());
     }
@@ -141,7 +144,7 @@ class ShellCatalogAdminIT {
                 List.of("visao")
         );
 
-        mockMvc.perform(post("/api/v1/shell/catalog/navigation-items")
+        mockMvc.perform(post("/v1/shell/catalog/navigation-items")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -164,7 +167,7 @@ class ShellCatalogAdminIT {
                 List.of("painel", "trabalho", "inicio")
         );
 
-        mockMvc.perform(patch("/api/v1/shell/catalog/navigation-items/home")
+        mockMvc.perform(patch("/v1/shell/catalog/navigation-items/home")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -175,7 +178,7 @@ class ShellCatalogAdminIT {
                 .andExpect(jsonPath("$.sortOrder").value(5))
                 .andExpect(jsonPath("$.availability").value("attention"));
 
-        mockMvc.perform(get("/api/v1/shell/navigation").with(operatorHeader()))
+        mockMvc.perform(get("/v1/shell/navigation").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].label").value("Painel"))
                 .andExpect(jsonPath("$.items[0].path").value("/inicio"))
@@ -197,7 +200,7 @@ class ShellCatalogAdminIT {
                 null
         );
 
-        mockMvc.perform(patch("/api/v1/shell/catalog/navigation-items/home")
+        mockMvc.perform(patch("/v1/shell/catalog/navigation-items/home")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -220,7 +223,7 @@ class ShellCatalogAdminIT {
                 null
         );
 
-        mockMvc.perform(patch("/api/v1/shell/catalog/navigation-items/home")
+        mockMvc.perform(patch("/v1/shell/catalog/navigation-items/home")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -244,16 +247,16 @@ class ShellCatalogAdminIT {
                 List.of("alertas")
         );
 
-        mockMvc.perform(post("/api/v1/shell/catalog/navigation-items")
+        mockMvc.perform(post("/v1/shell/catalog/navigation-items")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("/api/v1/shell/catalog/navigation-items/ops-alerts-admin-it").with(operatorHeader()))
+        mockMvc.perform(delete("/v1/shell/catalog/navigation-items/ops-alerts-admin-it").with(operatorHeader()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/shell/catalog").with(operatorHeader()))
+        mockMvc.perform(get("/v1/shell/catalog").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[?(@.id=='ops-alerts-admin-it')]").isEmpty());
     }
@@ -261,7 +264,7 @@ class ShellCatalogAdminIT {
     @Test
     @DisplayName("DELETE /api/v1/shell/catalog/navigation-items/{id} - should reject core areas")
     void shouldRejectDeleteCoreNavigationItem() throws Exception {
-        mockMvc.perform(delete("/api/v1/shell/catalog/navigation-items/home").with(operatorHeader()))
+        mockMvc.perform(delete("/v1/shell/catalog/navigation-items/home").with(operatorHeader()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Esta area faz parte da navegacao essencial e nao pode ser removida."));
     }
@@ -276,7 +279,7 @@ class ShellCatalogAdminIT {
                 true
         );
 
-        mockMvc.perform(patch("/api/v1/shell/catalog/task-types/research")
+        mockMvc.perform(patch("/v1/shell/catalog/task-types/research")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -284,7 +287,7 @@ class ShellCatalogAdminIT {
                 .andExpect(jsonPath("$.label").value("Pesquisar contexto"))
                 .andExpect(jsonPath("$.sortOrder").value(15));
 
-        mockMvc.perform(get("/api/v1/shell/navigation").with(operatorHeader()))
+        mockMvc.perform(get("/v1/shell/navigation").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.taskTypes[0].label").value("Pesquisar contexto"));
     }
@@ -300,7 +303,7 @@ class ShellCatalogAdminIT {
                 true
         );
 
-        mockMvc.perform(post("/api/v1/shell/catalog/task-types")
+        mockMvc.perform(post("/v1/shell/catalog/task-types")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -320,16 +323,16 @@ class ShellCatalogAdminIT {
                 true
         );
 
-        mockMvc.perform(post("/api/v1/shell/catalog/task-types")
+        mockMvc.perform(post("/v1/shell/catalog/task-types")
                         .with(operatorHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("/api/v1/shell/catalog/task-types/triage-admin-it").with(operatorHeader()))
+        mockMvc.perform(delete("/v1/shell/catalog/task-types/triage-admin-it").with(operatorHeader()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/shell/catalog").with(operatorHeader()))
+        mockMvc.perform(get("/v1/shell/catalog").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.taskTypes[?(@.taskType=='triage-admin-it')]").isEmpty());
     }
@@ -342,3 +345,4 @@ class ShellCatalogAdminIT {
         };
     }
 }
+

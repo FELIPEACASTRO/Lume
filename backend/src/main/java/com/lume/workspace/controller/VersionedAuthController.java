@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/auth", "/api/v1/auth"})
+@RequestMapping("/v1/auth")
 public class VersionedAuthController {
 
     private final WorkspaceContextService workspaceContextService;

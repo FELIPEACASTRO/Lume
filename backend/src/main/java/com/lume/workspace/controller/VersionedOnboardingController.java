@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/onboarding", "/api/v1/onboarding"})
+@RequestMapping("/v1/onboarding")
 public class VersionedOnboardingController {
 
     private final WorkspaceCommercialService workspaceCommercialService;

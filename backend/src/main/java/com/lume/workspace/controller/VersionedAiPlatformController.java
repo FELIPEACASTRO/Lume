@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1", "/api/v1"})
+@RequestMapping("/v1")
 public class VersionedAiPlatformController {
 
     private final AiCapabilityService aiCapabilityService;

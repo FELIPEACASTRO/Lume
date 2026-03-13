@@ -1,6 +1,7 @@
 package com.lume.workspace.repository;
 
 import com.lume.workspace.entity.WorkspaceInvoiceJpaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -11,6 +12,8 @@ import java.util.Optional;
 public interface WorkspaceInvoiceJpaRepository extends JpaRepository<WorkspaceInvoiceJpaEntity, Long> {
 
     List<WorkspaceInvoiceJpaEntity> findByWorkspaceIdOrderByCreatedAtDesc(Long workspaceId);
+
+    List<WorkspaceInvoiceJpaEntity> findByWorkspaceIdOrderByCreatedAtDesc(Long workspaceId, Pageable pageable);
 
     Optional<WorkspaceInvoiceJpaEntity> findByInvoiceNumber(String invoiceNumber);
 

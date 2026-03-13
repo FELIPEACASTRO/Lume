@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/shell", "/api/v1/shell"})
+@RequestMapping("/v1/shell")
 public class VersionedShellController {
 
     private final ShellNavigationService shellNavigationService;

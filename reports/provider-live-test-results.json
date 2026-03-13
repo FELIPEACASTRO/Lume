@@ -1,0 +1,1691 @@
+[
+  {
+    "providerCode": "ai21",
+    "providerName": "AI21 Labs",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:07:55",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 3267,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "anthropic",
+    "providerName": "Anthropic",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": 400,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Circuit breaker aberto para anthropic.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:07:56",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "provider_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": 400,
+        "latencyMs": 29,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": true,
+        "detail": "Circuit breaker aberto para anthropic."
+      }
+    ]
+  },
+  {
+    "providerCode": "assemblyai",
+    "providerName": "AssemblyAI",
+    "category": "media-audio",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "audio-stt",
+    "endpoint": "/v1/audio/stt",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:05",
+        "capabilityTested": "audio-stt",
+        "endpoint": "/v1/audio/stt",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 2046,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "aws-bedrock",
+    "providerName": "AWS Bedrock",
+    "category": "text-runtime",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_REGION"
+    ],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes para AWS Bedrock: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:05",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 20,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes para AWS Bedrock: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION"
+      }
+    ]
+  },
+  {
+    "providerCode": "azure-openai",
+    "providerName": "Azure OpenAI",
+    "category": "enterprise-gateway",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "AZURE_OPENAI_ENDPOINT",
+      "AZURE_OPENAI_API_KEY",
+      "AZURE_OPENAI_API_VERSION",
+      "AZURE_OPENAI_DEPLOYMENT"
+    ],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes para Azure OpenAI: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_API_VERSION, AZURE_OPENAI_DEPLOYMENT",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:05",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 17,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes para Azure OpenAI: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_API_VERSION, AZURE_OPENAI_DEPLOYMENT"
+      }
+    ]
+  },
+  {
+    "providerCode": "bfl",
+    "providerName": "Black Forest Labs",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "BFL_API_KEY"
+    ],
+    "capabilityTested": "image-generate",
+    "endpoint": "/v1/images/generate",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: BFL_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:05",
+        "capabilityTested": "image-generate",
+        "endpoint": "/v1/images/generate",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 29,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: BFL_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "cerebras",
+    "providerName": "Cerebras",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "catalog_only",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:12",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 3738,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "cloudflare-workers-ai",
+    "providerName": "Cloudflare Workers AI",
+    "category": "text-runtime",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "CLOUDFLARE_ACCOUNT_ID"
+    ],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes para Cloudflare Workers AI: CLOUDFLARE_ACCOUNT_ID",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:12",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 16,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes para Cloudflare Workers AI: CLOUDFLARE_ACCOUNT_ID"
+      }
+    ]
+  },
+  {
+    "providerCode": "cohere",
+    "providerName": "Cohere",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:15",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 2133,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "darknetsearch",
+    "providerName": "DarknetSearch",
+    "category": "threat-intel",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "DARKNETSEARCH_USERNAME",
+      "DARKNETSEARCH_PASSWORD",
+      "DARKNETSEARCH_CLIENT_ID",
+      "DARKNETSEARCH_CLIENT_SECRET"
+    ],
+    "capabilityTested": "threat-intel-search",
+    "endpoint": "/v1/threat-intel/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "A feature flag security.compliance.dark-web-enabled esta desligada.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:15",
+        "capabilityTested": "threat-intel-search",
+        "endpoint": "/v1/threat-intel/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 60,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "A feature flag security.compliance.dark-web-enabled esta desligada."
+      }
+    ]
+  },
+  {
+    "providerCode": "darkowl",
+    "providerName": "DarkOwl",
+    "category": "threat-intel",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "DARKOWL_PUBLIC_KEY",
+      "DARKOWL_PRIVATE_KEY"
+    ],
+    "capabilityTested": "threat-intel-search",
+    "endpoint": "/v1/threat-intel/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "A feature flag security.compliance.dark-web-enabled esta desligada.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:15",
+        "capabilityTested": "threat-intel-search",
+        "endpoint": "/v1/threat-intel/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 104,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "A feature flag security.compliance.dark-web-enabled esta desligada."
+      }
+    ]
+  },
+  {
+    "providerCode": "dashscope-qwen",
+    "providerName": "Alibaba DashScope / Qwen",
+    "category": "text-runtime",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "DASHSCOPE_API_KEY"
+    ],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes para Alibaba DashScope / Qwen: DASHSCOPE_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:15",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 24,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes para Alibaba DashScope / Qwen: DASHSCOPE_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "deepgram",
+    "providerName": "Deepgram",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "DEEPGRAM_API_KEY"
+    ],
+    "capabilityTested": "audio-stt",
+    "endpoint": "/v1/audio/stt",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: DEEPGRAM_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:16",
+        "capabilityTested": "audio-stt",
+        "endpoint": "/v1/audio/stt",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 29,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: DEEPGRAM_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "deepinfra",
+    "providerName": "DeepInfra",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": 402,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Circuit breaker aberto para deepinfra.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:17",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "provider_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": 402,
+        "latencyMs": 23,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": true,
+        "detail": "Circuit breaker aberto para deepinfra."
+      }
+    ]
+  },
+  {
+    "providerCode": "deepseek",
+    "providerName": "DeepSeek",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": 402,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Circuit breaker aberto para deepseek.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:18",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "provider_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": 402,
+        "latencyMs": 20,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": true,
+        "detail": "Circuit breaker aberto para deepseek."
+      }
+    ]
+  },
+  {
+    "providerCode": "elevenlabs",
+    "providerName": "ElevenLabs",
+    "category": "media-audio",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "audio-tts",
+    "endpoint": "/v1/audio/tts",
+    "providerHttpStatus": 401,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "401 Unauthorized: [no body]",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:41",
+        "capabilityTested": "audio-tts",
+        "endpoint": "/v1/audio/tts",
+        "connectivityStatus": "provider_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": 401,
+        "latencyMs": 447,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "401 Unauthorized: [no body]"
+      }
+    ]
+  },
+  {
+    "providerCode": "exa",
+    "providerName": "Exa",
+    "category": "research-search",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "search",
+    "endpoint": "/v1/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:42",
+        "capabilityTested": "search",
+        "endpoint": "/v1/search",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 478,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "fal-ai",
+    "providerName": "fal.ai",
+    "category": "media-audio",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "video-generate",
+    "endpoint": "/v1/videos/generate",
+    "providerHttpStatus": 403,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED_403",
+    "detail": "403 Forbidden: \"{\"detail\": \"User is locked. Reason: Exhausted balance. Top up your balance at fal.ai/dashboard/billing.\"}\"",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:44",
+        "capabilityTested": "video-generate",
+        "endpoint": "/v1/videos/generate",
+        "connectivityStatus": "provider_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": 403,
+        "latencyMs": 251,
+        "attemptStatus": "PASS_ACCEPTED_403",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "403 Forbidden: \"{\"detail\": \"User is locked. Reason: Exhausted balance. Top up your balance at fal.ai/dashboard/billing.\"}\""
+      }
+    ]
+  },
+  {
+    "providerCode": "fireworks",
+    "providerName": "Fireworks AI",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:47",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 1454,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "flare",
+    "providerName": "Flare",
+    "category": "threat-intel",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "FLARE_API_KEY"
+    ],
+    "capabilityTested": "threat-intel-search",
+    "endpoint": "/v1/threat-intel/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "A feature flag security.compliance.dark-web-enabled esta desligada.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:47",
+        "capabilityTested": "threat-intel-search",
+        "endpoint": "/v1/threat-intel/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 105,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "A feature flag security.compliance.dark-web-enabled esta desligada."
+      }
+    ]
+  },
+  {
+    "providerCode": "fullhunt",
+    "providerName": "FullHunt",
+    "category": "threat-intel",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "FULLHUNT_API_KEY"
+    ],
+    "capabilityTested": "threat-intel-search",
+    "endpoint": "/v1/threat-intel/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "A feature flag security.compliance.dark-web-enabled esta desligada.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:47",
+        "capabilityTested": "threat-intel-search",
+        "endpoint": "/v1/threat-intel/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 88,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "A feature flag security.compliance.dark-web-enabled esta desligada."
+      }
+    ]
+  },
+  {
+    "providerCode": "google-gemini",
+    "providerName": "Google Gemini",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:53",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 4559,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "google-natural-language",
+    "providerName": "Google Cloud Natural Language",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "GOOGLE_CLOUD_CREDENTIALS_JSON"
+    ],
+    "capabilityTested": "nlp",
+    "endpoint": "/v1/nlp/analyze",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:53",
+        "capabilityTested": "nlp",
+        "endpoint": "/v1/nlp/analyze",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 89,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON"
+      }
+    ]
+  },
+  {
+    "providerCode": "google-speech-to-text",
+    "providerName": "Google Cloud Speech-to-Text",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "GOOGLE_CLOUD_CREDENTIALS_JSON"
+    ],
+    "capabilityTested": "audio-stt",
+    "endpoint": "/v1/audio/stt",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:53",
+        "capabilityTested": "audio-stt",
+        "endpoint": "/v1/audio/stt",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 88,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON"
+      }
+    ]
+  },
+  {
+    "providerCode": "google-text-to-speech",
+    "providerName": "Google Cloud Text-to-Speech",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "GOOGLE_CLOUD_CREDENTIALS_JSON"
+    ],
+    "capabilityTested": "audio-tts",
+    "endpoint": "/v1/audio/tts",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:53",
+        "capabilityTested": "audio-tts",
+        "endpoint": "/v1/audio/tts",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 52,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON"
+      }
+    ]
+  },
+  {
+    "providerCode": "google-translation",
+    "providerName": "Google Cloud Translation",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "GOOGLE_CLOUD_CREDENTIALS_JSON"
+    ],
+    "capabilityTested": "translation",
+    "endpoint": "/v1/translation/text",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:54",
+        "capabilityTested": "translation",
+        "endpoint": "/v1/translation/text",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 68,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON"
+      }
+    ]
+  },
+  {
+    "providerCode": "google-vision",
+    "providerName": "Google Cloud Vision",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "GOOGLE_CLOUD_CREDENTIALS_JSON"
+    ],
+    "capabilityTested": "ocr",
+    "endpoint": "/v1/ocr",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:54",
+        "capabilityTested": "ocr",
+        "endpoint": "/v1/ocr",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 49,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: GOOGLE_CLOUD_CREDENTIALS_JSON"
+      }
+    ]
+  },
+  {
+    "providerCode": "groq",
+    "providerName": "Groq",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:55",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 619,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "hugging-face",
+    "providerName": "Hugging Face",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Autenticacao recusada por hugging-face.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:56",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "authentication_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 170,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Autenticacao recusada por hugging-face."
+      }
+    ]
+  },
+  {
+    "providerCode": "ideogram",
+    "providerName": "Ideogram",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "IDEOGRAM_API_KEY"
+    ],
+    "capabilityTested": "image-generate",
+    "endpoint": "/v1/images/generate",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: IDEOGRAM_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:08:56",
+        "capabilityTested": "image-generate",
+        "endpoint": "/v1/images/generate",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 50,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: IDEOGRAM_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "mistral",
+    "providerName": "Mistral AI",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:02",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 4295,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "newscatcher",
+    "providerName": "NewsCatcher",
+    "category": "research-search",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "NEWSCATCHER_API_KEY"
+    ],
+    "capabilityTested": "search",
+    "endpoint": "/v1/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: NEWSCATCHER_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:02",
+        "capabilityTested": "search",
+        "endpoint": "/v1/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 52,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: NEWSCATCHER_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "nvidia-nim",
+    "providerName": "NVIDIA NIM",
+    "category": "text-runtime",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "catalog_only",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "NVIDIA_NIM_API_KEY"
+    ],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes para NVIDIA NIM: NVIDIA_NIM_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:02",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 30,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes para NVIDIA NIM: NVIDIA_NIM_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "onion-search-engine",
+    "providerName": "Onion Search Engine",
+    "category": "threat-intel",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "ONION_SEARCH_API_KEY"
+    ],
+    "capabilityTested": "threat-intel-search",
+    "endpoint": "/v1/threat-intel/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "A feature flag security.compliance.dark-web-enabled esta desligada.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:03",
+        "capabilityTested": "threat-intel-search",
+        "endpoint": "/v1/threat-intel/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 102,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "A feature flag security.compliance.dark-web-enabled esta desligada."
+      }
+    ]
+  },
+  {
+    "providerCode": "openai",
+    "providerName": "OpenAI",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:08",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 4181,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "openrouter",
+    "providerName": "OpenRouter",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:11",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 1813,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "perplexity",
+    "providerName": "Perplexity",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Autenticacao recusada por perplexity.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:11",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "authentication_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 246,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Autenticacao recusada por perplexity."
+      }
+    ]
+  },
+  {
+    "providerCode": "replicate",
+    "providerName": "Replicate",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "REPLICATE_API_TOKEN"
+    ],
+    "capabilityTested": "video-generate",
+    "endpoint": "/v1/videos/generate",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: REPLICATE_API_TOKEN",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:12",
+        "capabilityTested": "video-generate",
+        "endpoint": "/v1/videos/generate",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 40,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: REPLICATE_API_TOKEN"
+      }
+    ]
+  },
+  {
+    "providerCode": "runway",
+    "providerName": "Runway",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "RUNWAY_API_KEY"
+    ],
+    "capabilityTested": "video-generate",
+    "endpoint": "/v1/videos/generate",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: RUNWAY_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:12",
+        "capabilityTested": "video-generate",
+        "endpoint": "/v1/videos/generate",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 37,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: RUNWAY_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "sambanova",
+    "providerName": "SambaNova",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "catalog_only",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:15",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 1759,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "serpapi",
+    "providerName": "SerpApi",
+    "category": "research-search",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "search",
+    "endpoint": "/v1/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:15",
+        "capabilityTested": "search",
+        "endpoint": "/v1/search",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 206,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "siliconflow",
+    "providerName": "SiliconFlow",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:24",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 5735,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "stability-ai",
+    "providerName": "Stability AI",
+    "category": "media-audio",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "STABILITY_API_KEY"
+    ],
+    "capabilityTested": "image-generate",
+    "endpoint": "/v1/images/generate",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: STABILITY_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:24",
+        "capabilityTested": "image-generate",
+        "endpoint": "/v1/images/generate",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 36,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: STABILITY_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "tavily",
+    "providerName": "Tavily",
+    "category": "research-search",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "TAVILY_API_KEY"
+    ],
+    "capabilityTested": "search",
+    "endpoint": "/v1/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Credenciais ausentes: TAVILY_API_KEY",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:24",
+        "capabilityTested": "search",
+        "endpoint": "/v1/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 32,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Credenciais ausentes: TAVILY_API_KEY"
+      }
+    ]
+  },
+  {
+    "providerCode": "together",
+    "providerName": "Together AI",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Autenticacao recusada por together.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:25",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "authentication_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 273,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Autenticacao recusada por together."
+      }
+    ]
+  },
+  {
+    "providerCode": "twingly",
+    "providerName": "Twingly",
+    "category": "threat-intel",
+    "configured": false,
+    "executionSupported": true,
+    "implementationStatus": "implemented_with_restrictions",
+    "readinessStatus": "missing_credentials",
+    "missingCredentialEnvVars": [
+      "TWINGLY_API_KEY"
+    ],
+    "capabilityTested": "threat-intel-search",
+    "endpoint": "/v1/threat-intel/search",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "A feature flag security.compliance.dark-web-enabled esta desligada.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:25",
+        "capabilityTested": "threat-intel-search",
+        "endpoint": "/v1/threat-intel/search",
+        "connectivityStatus": "missing_credentials",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 85,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "A feature flag security.compliance.dark-web-enabled esta desligada."
+      }
+    ]
+  },
+  {
+    "providerCode": "voyage-ai",
+    "providerName": "Voyage AI",
+    "category": "vector-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "embeddings",
+    "endpoint": "/v1/embeddings",
+    "providerHttpStatus": null,
+    "acceptedByRule": true,
+    "finalStatus": "PASS_ACCEPTED",
+    "detail": "completed",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:26",
+        "capabilityTested": "embeddings",
+        "endpoint": "/v1/embeddings",
+        "connectivityStatus": "completed",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 397,
+        "attemptStatus": "PASS_ACCEPTED",
+        "acceptedByRule": true,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "completed"
+      }
+    ]
+  },
+  {
+    "providerCode": "xai",
+    "providerName": "xAI",
+    "category": "text-runtime",
+    "configured": true,
+    "executionSupported": true,
+    "implementationStatus": "live",
+    "readinessStatus": "ready",
+    "missingCredentialEnvVars": [],
+    "capabilityTested": "chat",
+    "endpoint": "/v1/chat",
+    "providerHttpStatus": null,
+    "acceptedByRule": false,
+    "finalStatus": "FAIL_REJECTED",
+    "detail": "Autenticacao recusada por xai.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-03-11T12:09:26",
+        "capabilityTested": "chat",
+        "endpoint": "/v1/chat",
+        "connectivityStatus": "authentication_error",
+        "connectivityHttp": 200,
+        "capabilityHttp": 200,
+        "providerHttpStatus": null,
+        "latencyMs": 294,
+        "attemptStatus": "FAIL_REJECTED",
+        "acceptedByRule": false,
+        "transientFailure": false,
+        "circuitOpenDetected": false,
+        "detail": "Autenticacao recusada por xai."
+      }
+    ]
+  }
+]

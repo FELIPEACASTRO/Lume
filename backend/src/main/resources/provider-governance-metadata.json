@@ -62,9 +62,10 @@
       "businessPriority": "high_roi"
     },
     "anthropic": {
-      "implementationStatus": "live",
+      "implementationStatus": "implemented_with_restrictions",
       "evidenceLevel": "integration_verified",
-      "businessPriority": "high_roi"
+      "businessPriority": "high_roi",
+      "notes": "A integracao existe e esta verificada, mas a promocao para live depende de credencial com saldo operacional suficiente e smoke real estavel."
     },
     "google-gemini": {
       "implementationStatus": "live",
@@ -72,15 +73,16 @@
       "businessPriority": "high_roi"
     },
     "deepseek": {
-      "implementationStatus": "live",
+      "implementationStatus": "implemented_with_restrictions",
       "evidenceLevel": "integration_verified",
       "businessPriority": "medium_roi",
-      "notes": "Runtime textual ligado; tratar trialExpirySensitive e oferta promocional como metadata operacional, nunca como garantia do produto."
+      "notes": "Runtime textual ligado; tratar saldo, trialExpirySensitive e oferta promocional como metadata operacional, nunca como garantia do produto."
     },
     "xai": {
-      "implementationStatus": "live",
+      "implementationStatus": "implemented_with_restrictions",
       "evidenceLevel": "integration_verified",
-      "businessPriority": "medium_roi"
+      "businessPriority": "medium_roi",
+      "notes": "Promover para live apenas com credencial validada e smoke real consistente; falhas de autenticacao nao podem ficar mascaradas como prontidao ampla."
     },
     "perplexity": {
       "implementationStatus": "implemented_with_restrictions",
@@ -134,16 +136,18 @@
       "businessPriority": "medium_roi"
     },
     "cerebras": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Conectividade real validada no runtime textual; permanece restrito ate acumular smoke operacional e governanca de custo."
     },
     "nvidia-nim": {
       "implementationStatus": "catalog_only",
       "evidenceLevel": "offline_verified"
     },
     "sambanova": {
-      "implementationStatus": "catalog_only",
-      "evidenceLevel": "offline_verified"
+      "implementationStatus": "implemented_with_restrictions",
+      "evidenceLevel": "integration_verified",
+      "notes": "Conectividade real validada no runtime textual; permanece restrito ate smoke recorrente e evidencias de custo/estabilidade."
     },
     "siliconflow": {
       "implementationStatus": "implemented_with_restrictions",

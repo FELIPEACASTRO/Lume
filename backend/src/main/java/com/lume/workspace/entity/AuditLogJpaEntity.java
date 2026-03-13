@@ -70,4 +70,40 @@ public class AuditLogJpaEntity {
     public void setPayload(String payload) {
         this.payload = payload;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getOrganizationId() {
+        return organizationId;
+    }
+
+    public Long getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public Long getActorUserId() {
+        return actorUserId;
+    }
+
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public String getEntityId() {
+        return entityId;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

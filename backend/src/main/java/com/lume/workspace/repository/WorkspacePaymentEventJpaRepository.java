@@ -1,6 +1,7 @@
 package com.lume.workspace.repository;
 
 import com.lume.workspace.entity.WorkspacePaymentEventJpaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -11,6 +12,8 @@ import java.util.Optional;
 public interface WorkspacePaymentEventJpaRepository extends JpaRepository<WorkspacePaymentEventJpaEntity, Long> {
 
     List<WorkspacePaymentEventJpaEntity> findByWorkspaceIdOrderByOccurredAtDesc(Long workspaceId);
+
+    List<WorkspacePaymentEventJpaEntity> findByWorkspaceIdOrderByOccurredAtDesc(Long workspaceId, Pageable pageable);
 
     Optional<WorkspacePaymentEventJpaEntity> findByWorkspaceIdAndGatewayEventId(Long workspaceId, String gatewayEventId);
 

@@ -22,10 +22,10 @@ public class WorkspaceOnboardingProfileJpaEntity {
     private String workStyle = "small_team";
 
     @Column(name = "activation_status", nullable = false, length = 32)
-    private String activationStatus = "ready";
+    private String activationStatus = "started";
 
     @Column(name = "activation_note", nullable = false, length = 255)
-    private String activationNote = "Workspace pronto para iniciar tarefas, projetos e busca operacional.";
+    private String activationNote = "Onboarding iniciado. Defina seu perfil para continuar.";
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

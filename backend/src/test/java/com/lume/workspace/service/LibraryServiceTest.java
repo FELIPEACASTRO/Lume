@@ -64,9 +64,9 @@ class LibraryServiceTest {
         project.setWorkspaceId(1L);
         project.setName("Operacao");
 
-        when(libraryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(1L)).thenReturn(List.of(entry));
+        when(libraryRepository.findByWorkspaceIdOrderByUpdatedAtDesc(any(Long.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(entry));
         when(versionRepository.findByWorkspaceIdOrderByCreatedAtDesc(1L)).thenReturn(List.of(version));
-        when(projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(1L)).thenReturn(List.of(project));
+        when(projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(any(Long.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(project));
 
         LibraryService service = new LibraryService(
                 libraryRepository,

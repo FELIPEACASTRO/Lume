@@ -15,11 +15,11 @@ Este documento corrige a ordem de implementacao do programa da Lume e passa a se
 
 ## 2. Tranche implementada neste repositorio
 
-- `Sprint 0`: hygiene de `.gitignore`, limpeza documental e runbook backend-only
+- `Sprint 0`: hygiene de `.gitignore`, limpeza documental e runbook operacional
 - `F1A`: runtime mais honesto e coerente
   - bootstrap real de setup e sessao
   - shell e catalogos administraveis expostos por API
-  - providers, tasks, search e settings desacoplados de superficie visual removida
+  - providers, tasks, search e settings com superficie web Next.js consumindo APIs reais
 
 ## 3. Criterio de continuidade
 

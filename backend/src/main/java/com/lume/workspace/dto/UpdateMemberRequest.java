@@ -1,10 +1,12 @@
 package com.lume.workspace.dto;
 
+import jakarta.validation.constraints.Size;
+
 public record UpdateMemberRequest(
-        String name,
-        String email,
-        String password,
-        String roleCode,
+        @Size(max = 200) String name,
+        @Size(max = 320) String email,
+        @Size(max = 128) String password,
+        @Size(max = 40) String roleCode,
         Boolean active
 ) {
 }

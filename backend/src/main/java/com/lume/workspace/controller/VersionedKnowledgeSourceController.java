@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/v1/knowledge-sources", "/api/v1/knowledge-sources"})
+@RequestMapping("/v1/knowledge-sources")
 public class VersionedKnowledgeSourceController {
 
     private final KnowledgeSourceService knowledgeSourceService;

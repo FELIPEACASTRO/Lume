@@ -2,11 +2,12 @@
 
 ## Arquitetura real
 
-O Lume continua um monolito Spring Boot backend-only.
+O Lume opera como plataforma full-stack com backend Spring Boot e frontend Next.js.
 
 - `users`: area mais proxima de Clean Architecture/CQRS/ACL
 - `workspace/ai`: monolito modular em transicao, com Strategy/Registry/Adapter na camada de runtime de IA
 - `workspace/*`: tenancy, settings, tasks, knowledge, library, agents, billing e FinOps
+- `frontend/*`: App Router, shell workspace-first, design system e integracao typed com `/api/v1`
 
 ## Decisoes vigentes
 
@@ -20,6 +21,7 @@ O Lume continua um monolito Spring Boot backend-only.
 - controllers versionados expoem shell, providers, settings, agents e capability API
 - services de workspace concentram a fachada do produto
 - `workspace/inference` concentra catalogo, adapters, resiliencia, metricas e secret resolution
+- frontend consome sessao por cookie e nunca manipula segredos de providers
 
 ## Target architecture
 

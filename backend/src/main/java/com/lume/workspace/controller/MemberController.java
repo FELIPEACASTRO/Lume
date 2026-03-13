@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/v1/members", "/api/v1/members"})
+@RequestMapping("/v1/members")
 public class MemberController {
 
     private final MemberService memberService;
@@ -34,7 +34,7 @@ public class MemberController {
     @PatchMapping("/{id}")
     public ResponseEntity<MemberResponse> update(
             @PathVariable Long id,
-            @RequestBody UpdateMemberRequest request
+            @Valid @RequestBody UpdateMemberRequest request
     ) {
         return ResponseEntity.ok(memberService.updateMember(id, request));
     }

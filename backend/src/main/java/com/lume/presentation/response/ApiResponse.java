@@ -14,20 +14,26 @@ import java.time.LocalDateTime;
  * @param status    código HTTP
  * @param error     mensagem de erro principal
  * @param details   detalhes adicionais (validação, etc.)
+ * @param traceId   identificador de correlacao para depuracao (somente em erros internos)
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ApiResponse(
         LocalDateTime timestamp,
         int status,
         String error,
-        Object details
+        Object details,
+        String traceId
 ) {
 
     public static ApiResponse of(int status, String error) {
-        return new ApiResponse(LocalDateTime.now(), status, error, null);
+        return new ApiResponse(LocalDateTime.now(), status, error, null, null);
     }
 
     public static ApiResponse of(int status, String error, Object details) {
-        return new ApiResponse(LocalDateTime.now(), status, error, details);
+        return new ApiResponse(LocalDateTime.now(), status, error, details, null);
+    }
+
+    public static ApiResponse withTraceId(int status, String error, String traceId) {
+        return new ApiResponse(LocalDateTime.now(), status, error, null, traceId);
     }
 }

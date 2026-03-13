@@ -1,0 +1,7 @@
+{
+  "name": "lume-root",
+  "private": true,
+  "dependencies": {
+    "framer-motion": "^12.35.2"
+  }
+}

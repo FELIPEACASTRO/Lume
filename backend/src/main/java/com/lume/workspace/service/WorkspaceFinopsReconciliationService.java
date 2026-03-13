@@ -10,6 +10,7 @@ import com.lume.workspace.repository.WorkspaceFinopsReconciliationRunJpaReposito
 import com.lume.workspace.repository.WorkspaceInvoiceJpaRepository;
 import com.lume.workspace.repository.WorkspacePaymentEventJpaRepository;
 import com.lume.workspace.repository.WorkspaceSubscriptionJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,9 +94,9 @@ public class WorkspaceFinopsReconciliationService implements WorkspaceFinopsReco
     @Transactional(readOnly = true)
     public List<FinopsReconciliationRunEntryResponse> listCurrentWorkspaceHistory(int limit) {
         workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_BUDGETS_READ);
-        return reconciliationRunRepository.findByWorkspaceIdOrderByExecutedAtDesc(workspaceContextService.getWorkspaceId())
+        return reconciliationRunRepository.findByWorkspaceIdOrderByExecutedAtDesc(
+                workspaceContextService.getWorkspaceId(), PageRequest.of(0, safeLimit(limit)))
                 .stream()
-                .limit(safeLimit(limit))
                 .map(item -> new FinopsReconciliationRunEntryResponse(
                         item.getId(),
                         item.getRunMode(),

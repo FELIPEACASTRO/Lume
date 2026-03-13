@@ -19,6 +19,7 @@ public record ProviderResponse(
         boolean supportsResponsesApi,
         boolean supportsChatCompletions,
         String streamingMode,
+        String providerTier,
         String runtimeMaturity,
         String catalogState,
         String pricingSummary,

@@ -11,6 +11,8 @@ public record SettingsOverviewResponse(
         UsageSummaryResponse usage,
         WorkspaceCommercialSummaryResponse commercial,
         SettingsPreferencesResponse preferences,
+        SettingsGovernanceSummaryResponse governance,
+        SettingsComplianceSummaryResponse compliance,
         List<SettingsSectionResponse> sections
 ) {
 }

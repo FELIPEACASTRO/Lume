@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn -f backend/pom.xml verify -q)",
+      "Bash(mvn -f backend/pom.xml verify)"
+    ]
+  }
+}

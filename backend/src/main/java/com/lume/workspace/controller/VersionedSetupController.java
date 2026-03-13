@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/setup", "/api/v1/setup"})
+@RequestMapping("/v1/setup")
 public class VersionedSetupController {
 
     private final ApplicationSetupService applicationSetupService;

@@ -32,27 +32,51 @@ import java.util.List;
 public class WorkspaceContextService {
 
     public static final String HEADER_ACTOR_USER_ID = "X-Lume-Actor-User-Id";
-    public static final String PERMISSION_WORKSPACE_READ = "workspace.read";
-    public static final String PERMISSION_WORKSPACE_SWITCH = "workspace.switch";
-    public static final String PERMISSION_MEMBERS_READ = "members.read";
-    public static final String PERMISSION_MEMBERS_MANAGE = "members.manage";
-    public static final String PERMISSION_PROVIDERS_READ = "providers.read";
-    public static final String PERMISSION_PROVIDERS_MANAGE = "providers.manage";
-    public static final String PERMISSION_PROVIDERS_TEST = "providers.test";
-    public static final String PERMISSION_AGENTS_RUNTIME_MANAGE = "agents.runtime.manage";
-    public static final String PERMISSION_RESEARCH_RUN = "research.run";
-    public static final String PERMISSION_KNOWLEDGE_READ = "knowledge.read";
-    public static final String PERMISSION_KNOWLEDGE_MANAGE = "knowledge.manage";
-    public static final String PERMISSION_ARTIFACTS_READ = "artifacts.read";
-    public static final String PERMISSION_ARTIFACTS_MANAGE = "artifacts.manage";
-    public static final String PERMISSION_TEMPLATES_READ = "templates.read";
-    public static final String PERMISSION_TEMPLATES_MANAGE = "templates.manage";
-    public static final String PERMISSION_BUDGETS_READ = "budgets.read";
-    public static final String PERMISSION_BUDGETS_MANAGE = "budgets.manage";
-    public static final String PERMISSION_SETTINGS_MANAGE = "settings.manage";
-    public static final String PERMISSION_THREAT_INTEL_READ = "threat_intel.read";
-    public static final String PERMISSION_THREAT_INTEL_RUN = "threat_intel.run";
-    public static final String PERMISSION_THREAT_INTEL_MANAGE = "threat_intel.manage";
+
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_WORKSPACE_READ = WorkspacePermissions.WORKSPACE_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_WORKSPACE_SWITCH = WorkspacePermissions.WORKSPACE_SWITCH;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_MEMBERS_READ = WorkspacePermissions.MEMBERS_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_MEMBERS_MANAGE = WorkspacePermissions.MEMBERS_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_PROVIDERS_READ = WorkspacePermissions.PROVIDERS_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_PROVIDERS_MANAGE = WorkspacePermissions.PROVIDERS_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_PROVIDERS_TEST = WorkspacePermissions.PROVIDERS_TEST;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_AGENTS_RUNTIME_MANAGE = WorkspacePermissions.AGENTS_RUNTIME_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_RESEARCH_RUN = WorkspacePermissions.RESEARCH_RUN;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_KNOWLEDGE_READ = WorkspacePermissions.KNOWLEDGE_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_KNOWLEDGE_MANAGE = WorkspacePermissions.KNOWLEDGE_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_ARTIFACTS_READ = WorkspacePermissions.ARTIFACTS_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_ARTIFACTS_MANAGE = WorkspacePermissions.ARTIFACTS_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_TEMPLATES_READ = WorkspacePermissions.TEMPLATES_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_TEMPLATES_MANAGE = WorkspacePermissions.TEMPLATES_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_BUDGETS_READ = WorkspacePermissions.BUDGETS_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_BUDGETS_MANAGE = WorkspacePermissions.BUDGETS_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_SETTINGS_MANAGE = WorkspacePermissions.SETTINGS_MANAGE;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_THREAT_INTEL_READ = WorkspacePermissions.THREAT_INTEL_READ;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_THREAT_INTEL_RUN = WorkspacePermissions.THREAT_INTEL_RUN;
+    /** @deprecated Use {@link WorkspacePermissions} constants directly. */
+    @Deprecated public static final String PERMISSION_THREAT_INTEL_MANAGE = WorkspacePermissions.THREAT_INTEL_MANAGE;
+
+    private static final String CONTEXT_ATTR = "lume.resolvedContext";
 
     private final OrganizationJpaRepository organizationRepository;
     private final WorkspaceJpaRepository workspaceRepository;
@@ -63,6 +87,7 @@ public class WorkspaceContextService {
     private final ObjectProvider<HttpServletRequest> requestProvider;
     private final WorkspaceSessionService workspaceSessionService;
     private final List<WorkspaceActorOverrideResolver> actorOverrideResolvers;
+    private final WorkspacePermissionResolver workspacePermissionResolver;
 
     @Autowired
     public WorkspaceContextService(
@@ -74,7 +99,8 @@ public class WorkspaceContextService {
             UserPreferenceJpaRepository userPreferenceRepository,
             ObjectProvider<HttpServletRequest> requestProvider,
             WorkspaceSessionService workspaceSessionService,
-            List<WorkspaceActorOverrideResolver> actorOverrideResolvers
+            List<WorkspaceActorOverrideResolver> actorOverrideResolvers,
+            WorkspacePermissionResolver workspacePermissionResolver
     ) {
         this.organizationRepository = organizationRepository;
         this.workspaceRepository = workspaceRepository;
@@ -85,6 +111,7 @@ public class WorkspaceContextService {
         this.requestProvider = requestProvider;
         this.workspaceSessionService = workspaceSessionService;
         this.actorOverrideResolvers = actorOverrideResolvers;
+        this.workspacePermissionResolver = workspacePermissionResolver;
     }
 
     protected WorkspaceContextService(
@@ -105,17 +132,18 @@ public class WorkspaceContextService {
                 userPreferenceRepository,
                 requestProvider,
                 null,
-                List.of()
+                List.of(),
+                new WorkspacePermissionResolver()
         );
     }
 
     public SessionContextResponse getSession() {
-        CurrentContext context = resolveContext(resolveCurrentUser());
+        CurrentContext context = resolveContextCached(resolveCurrentUser());
         return toSession(context);
     }
 
     public SessionContextResponse getSessionForUser(UserJpaEntity actor) {
-        return toSession(resolveContext(actor));
+        return toSession(resolveContextCached(actor));
     }
 
     private SessionContextResponse toSession(CurrentContext context) {
@@ -139,25 +167,25 @@ public class WorkspaceContextService {
                 new SessionRoleResponse(
                         context.role().getCode(),
                         context.role().getLabel(),
-                        permissionsFor(context.role().getCode())
+                        workspacePermissionResolver.permissionsFor(context.role().getCode())
                 )
         );
     }
 
     public Long getOrganizationId() {
-        return resolveContext(resolveCurrentUser()).organization().getId();
+        return resolveContextCached(resolveCurrentUser()).organization().getId();
     }
 
     public Long getWorkspaceId() {
-        return resolveContext(resolveCurrentUser()).workspace().getId();
+        return resolveContextCached(resolveCurrentUser()).workspace().getId();
     }
 
     public String getWorkspaceName() {
-        return resolveContext(resolveCurrentUser()).workspace().getName();
+        return resolveContextCached(resolveCurrentUser()).workspace().getName();
     }
 
     public String getOrganizationName() {
-        return resolveContext(resolveCurrentUser()).organization().getName();
+        return resolveContextCached(resolveCurrentUser()).organization().getName();
     }
 
     public String getActorName() {
@@ -169,11 +197,11 @@ public class WorkspaceContextService {
     }
 
     public String getCurrentRoleCode() {
-        return resolveContext(resolveCurrentUser()).role().getCode();
+        return resolveContextCached(resolveCurrentUser()).role().getCode();
     }
 
     public List<String> getCurrentPermissions() {
-        return permissionsFor(getCurrentRoleCode());
+        return workspacePermissionResolver.permissionsFor(getCurrentRoleCode());
     }
 
     public void requirePermission(String permission) {
@@ -236,42 +264,17 @@ public class WorkspaceContextService {
                 .orElseThrow(() -> new UnauthorizedException("A sessao atual nao esta autenticada."));
     }
 
-    private List<String> permissionsFor(String roleCode) {
-        return switch (roleCode) {
-            case "workspace_admin" -> List.of(
-                    PERMISSION_WORKSPACE_READ,
-                    PERMISSION_WORKSPACE_SWITCH,
-                    PERMISSION_MEMBERS_READ,
-                    PERMISSION_MEMBERS_MANAGE,
-                    PERMISSION_PROVIDERS_READ,
-                    PERMISSION_PROVIDERS_MANAGE,
-                    PERMISSION_PROVIDERS_TEST,
-                    PERMISSION_KNOWLEDGE_READ,
-                    PERMISSION_KNOWLEDGE_MANAGE,
-                    PERMISSION_ARTIFACTS_READ,
-                    PERMISSION_ARTIFACTS_MANAGE,
-                    PERMISSION_TEMPLATES_READ,
-                    PERMISSION_TEMPLATES_MANAGE,
-                    PERMISSION_BUDGETS_READ,
-                    PERMISSION_BUDGETS_MANAGE,
-                    PERMISSION_SETTINGS_MANAGE,
-                    PERMISSION_AGENTS_RUNTIME_MANAGE,
-                    PERMISSION_RESEARCH_RUN,
-                    PERMISSION_THREAT_INTEL_READ,
-                    PERMISSION_THREAT_INTEL_RUN,
-                    PERMISSION_THREAT_INTEL_MANAGE
-            );
-            case "workspace_member" -> List.of(
-                    PERMISSION_WORKSPACE_READ,
-                    PERMISSION_WORKSPACE_SWITCH,
-                    PERMISSION_KNOWLEDGE_READ,
-                    PERMISSION_ARTIFACTS_READ,
-                    PERMISSION_TEMPLATES_READ,
-                    PERMISSION_BUDGETS_READ,
-                    PERMISSION_RESEARCH_RUN
-            );
-            default -> List.of(PERMISSION_WORKSPACE_READ);
-        };
+    private CurrentContext resolveContextCached(UserJpaEntity actor) {
+        HttpServletRequest request = requestProvider.getIfAvailable();
+        if (request != null) {
+            CurrentContext cached = (CurrentContext) request.getAttribute(CONTEXT_ATTR);
+            if (cached != null) return cached;
+        }
+        CurrentContext context = resolveContext(actor);
+        if (request != null) {
+            request.setAttribute(CONTEXT_ATTR, context);
+        }
+        return context;
     }
 
     private String initialsFor(String name) {

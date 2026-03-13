@@ -13,7 +13,7 @@ import java.util.List;
 public class NoOpWorkspaceLedgerService extends WorkspaceLedgerService {
 
     public NoOpWorkspaceLedgerService() {
-        super(null, null, null, null, null, null);
+        super(null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Override
@@ -52,6 +52,34 @@ public class NoOpWorkspaceLedgerService extends WorkspaceLedgerService {
 
     @Override
     public FinopsScorecardResponse scorecard() {
-        return new FinopsScorecardResponse(null, null, null, null, null, null, null, null, 0, null);
+        return new FinopsScorecardResponse(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                0,
+                0,
+                0,
+                null,
+                null,
+                null,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                null
+        );
     }
 }

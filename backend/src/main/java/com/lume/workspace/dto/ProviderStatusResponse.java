@@ -13,8 +13,12 @@ public record ProviderStatusResponse(
         String category,
         boolean adminOnly,
         String streamingMode,
+        String providerTier,
         String runtimeMaturity,
         String readinessStatus,
+        String smokeStatus,
+        String blockerCode,
+        String blockerMessage,
         List<String> missingCredentialEnvVars
 ) {
 }

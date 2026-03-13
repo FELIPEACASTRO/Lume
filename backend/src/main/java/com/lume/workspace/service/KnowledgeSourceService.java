@@ -8,6 +8,7 @@ import com.lume.workspace.entity.KnowledgeSourceJpaEntity;
 import com.lume.workspace.entity.ProjectJpaEntity;
 import com.lume.workspace.repository.KnowledgeSourceJpaRepository;
 import com.lume.workspace.repository.ProjectJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +53,7 @@ public class KnowledgeSourceService {
         String normalizedProjectId = normalizeOptional(projectId);
 
         List<KnowledgeSourceJpaEntity> sources = normalizedProjectId == null
-                ? knowledgeSourceRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)
+                ? knowledgeSourceRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 200))
                 : knowledgeSourceRepository.findByWorkspaceIdAndProjectIdOrderByUpdatedAtDesc(workspaceId, normalizedProjectId);
 
         Map<String, String> projectNames = projectNames(workspaceId);
@@ -189,7 +190,7 @@ public class KnowledgeSourceService {
     }
 
     private Map<String, String> projectNames(Long workspaceId) {
-        return projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId).stream()
+        return projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 200)).stream()
                 .collect(Collectors.toMap(ProjectJpaEntity::getId, ProjectJpaEntity::getName));
     }
 

@@ -46,6 +46,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 @SpringBootTest
@@ -76,7 +78,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET /api/v1/auth/session - Deve expor role com permissoes")
     void shouldReturnVersionedSession() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/session"))
+        mockMvc.perform(get("/v1/auth/session"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.workspace.slug").value("workspace-principal"))
                 .andExpect(jsonPath("$.role.code").value("workspace_admin"))
@@ -92,7 +94,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET/PATCH /api/v1/onboarding/current - Deve ler e atualizar onboarding do workspace")
     void shouldReadAndUpdateWorkspaceOnboarding() throws Exception {
-        mockMvc.perform(get("/api/v1/onboarding/current"))
+        mockMvc.perform(get("/v1/onboarding/current"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primaryUseCase").isString())
                 .andExpect(jsonPath("$.workStyle").isString());
@@ -100,23 +102,23 @@ class IdentityTenancyIT {
         UpdateWorkspaceOnboardingRequest request = new UpdateWorkspaceOnboardingRequest(
                 "analysis",
                 "department_team",
-                "active",
+                "completed",
                 "Workspace em operacao com foco em analise recorrente."
         );
 
-        mockMvc.perform(patch("/api/v1/onboarding/current")
+        mockMvc.perform(patch("/v1/onboarding/current")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primaryUseCase").value("analysis"))
                 .andExpect(jsonPath("$.workStyle").value("department_team"))
-                .andExpect(jsonPath("$.activationStatus").value("active"));
+                .andExpect(jsonPath("$.activationStatus").value("completed"));
     }
 
     @Test
     @DisplayName("GET/PATCH /api/v1/billing/subscription - Deve ler e atualizar plano comercial")
     void shouldReadAndUpdateWorkspaceSubscription() throws Exception {
-        mockMvc.perform(get("/api/v1/billing/subscription"))
+        mockMvc.perform(get("/v1/billing/subscription"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.planCode").isString())
                 .andExpect(jsonPath("$.includedCredits").isNumber());
@@ -131,7 +133,7 @@ class IdentityTenancyIT {
                 "Workspace promovido para uso recorrente com credito extra."
         );
 
-        mockMvc.perform(patch("/api/v1/billing/subscription")
+        mockMvc.perform(patch("/v1/billing/subscription")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -155,7 +157,7 @@ class IdentityTenancyIT {
                 "BRL",
                 "Pagamento da assinatura mensal",
                 "2026-04-05",
-                "2026-03-09T22:15:00",
+                freshOccurredAt(),
                 "core",
                 "active",
                 "monthly",
@@ -171,7 +173,7 @@ class IdentityTenancyIT {
                 canonicalSignaturePayload(request)
         );
 
-        mockMvc.perform(post("/api/v1/billing/webhooks/provider-event")
+        mockMvc.perform(post("/v1/billing/webhooks/provider-event")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Lume-Billing-Signature", signature)
                         .content(objectMapper.writeValueAsString(request)))
@@ -180,7 +182,7 @@ class IdentityTenancyIT {
                 .andExpect(jsonPath("$.duplicate").value(false))
                 .andExpect(jsonPath("$.invoiceNumber").value("INV-WEBHOOK-001"));
 
-        mockMvc.perform(post("/api/v1/billing/webhooks/provider-event")
+        mockMvc.perform(post("/v1/billing/webhooks/provider-event")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Lume-Billing-Signature", signature)
                         .content(objectMapper.writeValueAsString(request)))
@@ -189,19 +191,19 @@ class IdentityTenancyIT {
                 .andExpect(jsonPath("$.duplicate").value(true))
                 .andExpect(jsonPath("$.invoiceNumber").value("INV-WEBHOOK-001"));
 
-        mockMvc.perform(get("/api/v1/billing/subscription"))
+        mockMvc.perform(get("/v1/billing/subscription"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.planCode").value("core"))
                 .andExpect(jsonPath("$.includedCredits").value(1500))
                 .andExpect(jsonPath("$.extraCredits").value(320))
                 .andExpect(jsonPath("$.totalCredits").value(1820));
 
-        mockMvc.perform(get("/api/v1/billing/invoices"))
+        mockMvc.perform(get("/v1/billing/invoices"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].invoiceNumber").value("INV-WEBHOOK-001"))
                 .andExpect(jsonPath("$[0].status").value("paid"));
 
-        mockMvc.perform(get("/api/v1/billing/payment-events"))
+        mockMvc.perform(get("/v1/billing/payment-events"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].gatewayEventId").value("evt-billing-001"))
                 .andExpect(jsonPath("$[0].eventType").value("invoice_paid"))
@@ -222,7 +224,7 @@ class IdentityTenancyIT {
                 "BRL",
                 "Assinatura invalida",
                 "2026-04-05",
-                "2026-03-09T22:30:00",
+                freshOccurredAt(),
                 null,
                 null,
                 null,
@@ -233,7 +235,7 @@ class IdentityTenancyIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/billing/webhooks/provider-event")
+        mockMvc.perform(post("/v1/billing/webhooks/provider-event")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Lume-Billing-Signature", "invalid-signature")
                         .content(objectMapper.writeValueAsString(request)))
@@ -244,7 +246,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET /api/v1/finops/reconciliation - Deve retornar preview de reconciliacao")
     void shouldPreviewFinopsReconciliation() throws Exception {
-        mockMvc.perform(get("/api/v1/finops/reconciliation"))
+        mockMvc.perform(get("/v1/finops/reconciliation"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reconciliationStatus").isString())
                 .andExpect(jsonPath("$.subscriptionCredits").isNumber())
@@ -257,7 +259,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("POST /api/v1/finops/reconciliation/run - Deve aplicar ajuste de creditos quando houver drift")
     void shouldRunFinopsReconciliationWithCreditFix() throws Exception {
-        mockMvc.perform(post("/api/v1/finops/reconciliation/run")
+        mockMvc.perform(post("/v1/finops/reconciliation/run")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new FinopsReconciliationRunRequest(true))))
                 .andExpect(status().isOk());
@@ -267,7 +269,7 @@ class IdentityTenancyIT {
         subscription.setExtraCredits(subscription.getExtraCredits() + 37);
         subscriptionRepository.save(subscription);
 
-        mockMvc.perform(post("/api/v1/finops/reconciliation/run")
+        mockMvc.perform(post("/v1/finops/reconciliation/run")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new FinopsReconciliationRunRequest(true))))
                 .andExpect(status().isOk())
@@ -280,12 +282,12 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET /api/v1/finops/reconciliation/history - Deve retornar historico das execucoes de reconciliacao")
     void shouldReturnFinopsReconciliationHistory() throws Exception {
-        mockMvc.perform(post("/api/v1/finops/reconciliation/run")
+        mockMvc.perform(post("/v1/finops/reconciliation/run")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new FinopsReconciliationRunRequest(false))))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/v1/finops/reconciliation/history")
+        mockMvc.perform(get("/v1/finops/reconciliation/history")
                         .param("limit", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].runMode").value("manual"))
@@ -298,7 +300,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET /api/v1/workspaces - Deve listar workspaces acessiveis")
     void shouldListAvailableWorkspaces() throws Exception {
-        mockMvc.perform(get("/api/v1/workspaces"))
+        mockMvc.perform(get("/v1/workspaces"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].id").exists())
@@ -311,10 +313,10 @@ class IdentityTenancyIT {
         WorkspaceJpaEntity strategy = workspaceRepository.findBySlug("workspace-strategy").orElseThrow();
         WorkspaceJpaEntity primary = workspaceRepository.findBySlug("workspace-principal").orElseThrow();
 
-        mockMvc.perform(post("/api/v1/workspaces/{id}/activate", strategy.getId()))
+        mockMvc.perform(post("/v1/workspaces/{id}/activate", strategy.getId()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/auth/session"))
+        mockMvc.perform(get("/v1/auth/session"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.workspace.slug").value("workspace-strategy"));
 
@@ -322,14 +324,14 @@ class IdentityTenancyIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.workspaceName").value("Workspace Strategy"));
 
-        mockMvc.perform(post("/api/v1/workspaces/{id}/activate", primary.getId()))
+        mockMvc.perform(post("/v1/workspaces/{id}/activate", primary.getId()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("GET /api/v1/members - Admin deve listar membros do workspace ativo")
     void shouldListMembersForAdmin() throws Exception {
-        mockMvc.perform(get("/api/v1/members"))
+        mockMvc.perform(get("/v1/members"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].roleCode").exists());
@@ -340,7 +342,7 @@ class IdentityTenancyIT {
     void shouldDenyMemberListingForWorkspaceMember() throws Exception {
         UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
 
-        mockMvc.perform(get("/api/v1/members")
+        mockMvc.perform(get("/v1/members")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
                 .andExpect(status().isForbidden());
     }
@@ -355,7 +357,7 @@ class IdentityTenancyIT {
                 "workspace_member"
         );
 
-        mockMvc.perform(post("/api/v1/members")
+        mockMvc.perform(post("/v1/members")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated())
@@ -373,7 +375,7 @@ class IdentityTenancyIT {
                 true
         );
 
-        mockMvc.perform(patch("/api/v1/members/{id}", membership.getId())
+        mockMvc.perform(patch("/v1/members/{id}", membership.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
@@ -383,12 +385,31 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET /api/v1/settings/preferences - Deve retornar preferencias normalizadas")
     void shouldReturnSettingsPreferences() throws Exception {
-        mockMvc.perform(get("/api/v1/settings/preferences"))
+        mockMvc.perform(get("/v1/settings/preferences"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.appearance").value("light"))
                 .andExpect(jsonPath("$.languageCode").value("pt-BR"))
                 .andExpect(jsonPath("$.emailUpdates").value(true))
                 .andExpect(jsonPath("$.productUpdates").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/settings/ui-options - Deve retornar catalogos dinamicos para formularios do frontend")
+    void shouldReturnSettingsUiOptionsCatalog() throws Exception {
+        mockMvc.perform(get("/v1/settings/ui-options"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.onboardingPrimaryUseCases[?(@.code=='operations')]").exists())
+                .andExpect(jsonPath("$.onboardingWorkStyles[?(@.code=='small_team')]").exists())
+                .andExpect(jsonPath("$.memberRoles[?(@.code=='workspace_admin')]").exists())
+                .andExpect(jsonPath("$.supportCategories[?(@.code=='operational')]").exists())
+                .andExpect(jsonPath("$.supportSeverities[?(@.code=='medium')]").exists())
+                .andExpect(jsonPath("$.supportStatuses[?(@.code=='resolved')]").exists())
+                .andExpect(jsonPath("$.knowledgeSourceTypes[?(@.code=='document')]").exists())
+                .andExpect(jsonPath("$.billingCreditPacks[?(@.packCode=='pack-core-1000')]").exists())
+                .andExpect(jsonPath("$.byokProviders[0].providerCode").isString())
+                .andExpect(jsonPath("$.byokScopeOptions[?(@.code=='workspace')]").exists())
+                .andExpect(jsonPath("$.complianceRetentionPolicyStatuses[?(@.code=='configured')]").exists())
+                .andExpect(jsonPath("$.complianceAccessReviewStatuses[?(@.code=='not_configured')]").exists());
     }
 
     @Test
@@ -401,7 +422,7 @@ class IdentityTenancyIT {
                 true
         );
 
-        mockMvc.perform(patch("/api/v1/settings/preferences")
+        mockMvc.perform(patch("/v1/settings/preferences")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -419,7 +440,13 @@ class IdentityTenancyIT {
                 .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='providers-runtime')]").exists());
 
-        mockMvc.perform(get("/api/v1/auth/session"))
+        mockMvc.perform(get("/v1/settings/overview"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.preferences.appearance").value("dark"))
+                .andExpect(jsonPath("$.preferences.languageCode").value("en-US"))
+                .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists());
+
+        mockMvc.perform(get("/v1/auth/session"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role.permissions", hasItems("artifacts.read", "templates.read")));
     }
@@ -427,7 +454,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET/PATCH /api/v1/budgets/current - Admin deve ler e atualizar budget do workspace")
     void shouldReadAndUpdateWorkspaceBudget() throws Exception {
-        mockMvc.perform(get("/api/v1/budgets/current"))
+        mockMvc.perform(get("/v1/budgets/current"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.costCenter").value("core_now"))
                 .andExpect(jsonPath("$.chargebackMode").value("showback"));
@@ -439,7 +466,7 @@ class IdentityTenancyIT {
                 420
         );
 
-        mockMvc.perform(patch("/api/v1/budgets/current")
+        mockMvc.perform(patch("/v1/budgets/current")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -460,7 +487,7 @@ class IdentityTenancyIT {
                 400
         );
 
-        mockMvc.perform(patch("/api/v1/budgets/current")
+        mockMvc.perform(patch("/v1/budgets/current")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -477,7 +504,7 @@ class IdentityTenancyIT {
                 "Responda com foco em compliance e evidencia."
         );
 
-        mockMvc.perform(patch("/api/v1/agents/profiles/{id}/runtime", "ops")
+        mockMvc.perform(patch("/v1/agents/profiles/{id}/runtime", "ops")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -493,7 +520,7 @@ class IdentityTenancyIT {
     void shouldDenyThreatIntelListingForWorkspaceMember() throws Exception {
         UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
 
-        mockMvc.perform(get("/api/v1/threat-intel/providers")
+        mockMvc.perform(get("/v1/threat-intel/providers")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
                 .andExpect(status().isForbidden());
     }
@@ -501,7 +528,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET/POST/PATCH/DELETE /api/v1/knowledge-sources - Admin deve gerenciar fontes de conhecimento")
     void shouldManageKnowledgeSourcesForAdmin() throws Exception {
-        mockMvc.perform(get("/api/v1/knowledge-sources"))
+        mockMvc.perform(get("/v1/knowledge-sources"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists());
 
@@ -517,7 +544,7 @@ class IdentityTenancyIT {
                 "Repositorio governado pelo time de operacao."
         );
 
-        String createdId = mockMvc.perform(post("/api/v1/knowledge-sources")
+        String createdId = mockMvc.perform(post("/v1/knowledge-sources")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated())
@@ -542,7 +569,7 @@ class IdentityTenancyIT {
                 "Repositorio governado e pronto para retrieval."
         );
 
-        mockMvc.perform(patch("/api/v1/knowledge-sources/{id}", sourceId)
+        mockMvc.perform(patch("/v1/knowledge-sources/{id}", sourceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
@@ -550,7 +577,7 @@ class IdentityTenancyIT {
                 .andExpect(jsonPath("$.enabledForAgents").value(false))
                 .andExpect(jsonPath("$.documentCount").value(11));
 
-        mockMvc.perform(delete("/api/v1/knowledge-sources/{id}", sourceId))
+        mockMvc.perform(delete("/v1/knowledge-sources/{id}", sourceId))
                 .andExpect(status().isNoContent());
     }
 
@@ -559,7 +586,7 @@ class IdentityTenancyIT {
     void shouldDenyKnowledgeManagementForWorkspaceMember() throws Exception {
         UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
 
-        mockMvc.perform(get("/api/v1/knowledge-sources")
+        mockMvc.perform(get("/v1/knowledge-sources")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
                 .andExpect(status().isOk());
 
@@ -575,7 +602,7 @@ class IdentityTenancyIT {
                 "Tentativa sem permissao."
         );
 
-        mockMvc.perform(post("/api/v1/knowledge-sources")
+        mockMvc.perform(post("/v1/knowledge-sources")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
@@ -585,7 +612,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET/POST /api/v1/library/entries/{id}/versions - admin cria versoes e membro so le")
     void shouldManageArtifactVersionsWithRbac() throws Exception {
-        mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding"))
+        mockMvc.perform(get("/v1/library/entries/{id}/versions", "lib-onboarding"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].versionLabel").exists());
 
@@ -595,7 +622,7 @@ class IdentityTenancyIT {
                 "Inclui handoff para growth, etapa de validacao e criterio de rollback."
         );
 
-        mockMvc.perform(post("/api/v1/library/entries/{id}/versions", "lib-onboarding")
+        mockMvc.perform(post("/v1/library/entries/{id}/versions", "lib-onboarding")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -608,17 +635,17 @@ class IdentityTenancyIT {
                 "workspace_member"
         );
 
-        mockMvc.perform(post("/api/v1/members")
+        mockMvc.perform(post("/v1/members")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createMemberRequest)))
                 .andExpect(status().isCreated());
 
         UserJpaEntity analyst = userRepository.findByEmail("artifact.reader@lume.local").orElseThrow();
-        mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding")
+        mockMvc.perform(get("/v1/library/entries/{id}/versions", "lib-onboarding")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId()))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/library/entries/{id}/versions", "lib-onboarding")
+        mockMvc.perform(post("/v1/library/entries/{id}/versions", "lib-onboarding")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -628,7 +655,7 @@ class IdentityTenancyIT {
     @Test
     @DisplayName("GET/POST/PATCH/DELETE /api/v1/prompt-templates - admin gerencia templates e membro nao cria")
     void shouldManagePromptTemplatesWithRbac() throws Exception {
-        mockMvc.perform(get("/api/v1/prompt-templates"))
+        mockMvc.perform(get("/v1/prompt-templates"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].promptBody").exists());
 
@@ -645,7 +672,7 @@ class IdentityTenancyIT {
                 null
         );
 
-        String createdResponse = mockMvc.perform(post("/api/v1/prompt-templates")
+        String createdResponse = mockMvc.perform(post("/v1/prompt-templates")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated())
@@ -670,22 +697,22 @@ class IdentityTenancyIT {
                 null
         );
 
-        mockMvc.perform(patch("/api/v1/prompt-templates/{id}", templateId)
+        mockMvc.perform(patch("/v1/prompt-templates/{id}", templateId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.favorited").value(false))
                 .andExpect(jsonPath("$.variables[3]").value("aceite"));
 
-        mockMvc.perform(post("/api/v1/prompt-templates/{id}/touch", templateId))
+        mockMvc.perform(post("/v1/prompt-templates/{id}/touch", templateId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastUsedAt").isNotEmpty());
 
-        mockMvc.perform(delete("/api/v1/prompt-templates/{id}", templateId))
+        mockMvc.perform(delete("/v1/prompt-templates/{id}", templateId))
                 .andExpect(status().isNoContent());
 
         UserJpaEntity analyst = userRepository.findByEmail("ana.strategy@lume.local").orElseThrow();
-        mockMvc.perform(post("/api/v1/prompt-templates")
+        mockMvc.perform(post("/v1/prompt-templates")
                         .header(WorkspaceContextService.HEADER_ACTOR_USER_ID, analyst.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
@@ -718,4 +745,11 @@ class IdentityTenancyIT {
         }
         return builder.toString();
     }
+
+    private String freshOccurredAt() {
+        return LocalDateTime.now()
+                .minusSeconds(5)
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
 }
+

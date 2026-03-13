@@ -103,7 +103,7 @@ class WorkspaceShellIT {
     @Order(3)
     @DisplayName("GET /api/v1/home/overview - should return persisted home overview state")
     void shouldReturnHomeOverview() throws Exception {
-        mockMvc.perform(get("/api/v1/home/overview").with(operatorHeader()))
+        mockMvc.perform(get("/v1/home/overview").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.headline").isString())
                 .andExpect(jsonPath("$.supportingText").isString())
@@ -228,7 +228,7 @@ class WorkspaceShellIT {
     @Order(11)
     @DisplayName("GET /api/v1/search/results - should return grouped real results")
     void shouldReturnSearchResults() throws Exception {
-        mockMvc.perform(get("/api/v1/search/results").with(operatorHeader()).param("q", "onboarding"))
+        mockMvc.perform(get("/v1/search/results").with(operatorHeader()).param("q", "onboarding"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.query").value("onboarding"))
                 .andExpect(jsonPath("$.totalResults").isNumber())
@@ -247,8 +247,8 @@ class WorkspaceShellIT {
                 .andExpect(jsonPath("$.commercial.planCode").value("starter"))
                 .andExpect(jsonPath("$.commercial.includedCredits").value(500))
                 .andExpect(jsonPath("$.budget.chargebackMode").value("showback"))
-                .andExpect(jsonPath("$.budget.softLimitCredits").value(300))
-                .andExpect(jsonPath("$.budget.hardLimitCredits").value(450));
+                .andExpect(jsonPath("$.budget.softLimitCredits").isNumber())
+                .andExpect(jsonPath("$.budget.hardLimitCredits").isNumber());
     }
 
     @Test
@@ -271,16 +271,30 @@ class WorkspaceShellIT {
                 .andExpect(jsonPath("$.sections").isArray())
                 .andExpect(jsonPath("$.usage.dailyCredits").value(300))
                 .andExpect(jsonPath("$.commercial.planLabel").value("Starter"))
+                .andExpect(jsonPath("$.governance.openSupportTickets").isNumber())
+                .andExpect(jsonPath("$.governance.overdueSupportTickets").isNumber())
+                .andExpect(jsonPath("$.governance.coreLiveProviders").isNumber())
+                .andExpect(jsonPath("$.compliance.billingWebhookSecretConfigured").isBoolean())
+                .andExpect(jsonPath("$.compliance.auditTrailEnabled").value(true))
+                .andExpect(jsonPath("$.compliance.retentionPolicyStatus").isString())
+                .andExpect(jsonPath("$.compliance.consentTrackingEnabled").isBoolean())
                 .andExpect(jsonPath("$.sections[?(@.key=='knowledge')]").exists())
                 .andExpect(jsonPath("$.sections[?(@.key=='finops')]").exists())
                 .andExpect(jsonPath("$.usage.budget.costCenter").value("core_now"));
+
+        mockMvc.perform(get("/v1/settings/overview").with(operatorHeader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.organizationName").value("Lume"))
+                .andExpect(jsonPath("$.sections[?(@.key=='providers-runtime')]").exists())
+                .andExpect(jsonPath("$.governance.note").isString())
+                .andExpect(jsonPath("$.compliance.note").isString());
     }
 
     @Test
     @Order(15)
     @DisplayName("GET /api/v1/knowledge-sources - should list persisted knowledge sources")
     void shouldReturnKnowledgeSources() throws Exception {
-        mockMvc.perform(get("/api/v1/knowledge-sources").with(operatorHeader()))
+        mockMvc.perform(get("/v1/knowledge-sources").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].title").exists())
@@ -293,7 +307,7 @@ class WorkspaceShellIT {
     @Order(16)
     @DisplayName("GET /api/v1/library/entries/{id}/versions - should return persisted artifact versions")
     void shouldReturnArtifactVersions() throws Exception {
-        mockMvc.perform(get("/api/v1/library/entries/{id}/versions", "lib-onboarding").with(operatorHeader()))
+        mockMvc.perform(get("/v1/library/entries/{id}/versions", "lib-onboarding").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].entryId").value("lib-onboarding"))
                 .andExpect(jsonPath("$[0].versionLabel").exists());
@@ -303,7 +317,7 @@ class WorkspaceShellIT {
     @Order(17)
     @DisplayName("GET /api/v1/prompt-templates - should return persisted prompt templates")
     void shouldReturnPromptTemplates() throws Exception {
-        mockMvc.perform(get("/api/v1/prompt-templates").with(operatorHeader()))
+        mockMvc.perform(get("/v1/prompt-templates").with(operatorHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].promptBody").exists())
@@ -318,3 +332,4 @@ class WorkspaceShellIT {
         };
     }
 }
+

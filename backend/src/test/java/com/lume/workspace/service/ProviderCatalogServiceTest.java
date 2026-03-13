@@ -62,6 +62,9 @@ class ProviderCatalogServiceTest {
         assertThat(service.missingCredentialEnvVars("cloudflare-workers-ai"))
                 .containsExactly("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID");
         assertThat(service.getProvider("perplexity").implementationStatus()).isEqualTo("implemented_with_restrictions");
+        assertThat(service.getProvider("anthropic").implementationStatus()).isEqualTo("implemented_with_restrictions");
+        assertThat(service.getProvider("deepseek").implementationStatus()).isEqualTo("implemented_with_restrictions");
+        assertThat(service.getProvider("xai").implementationStatus()).isEqualTo("implemented_with_restrictions");
         assertThat(service.getProvider("deepgram").executionSupported()).isTrue();
         assertThat(service.getProvider("deepgram").implementationStatus()).isEqualTo("implemented_with_restrictions");
         assertThat(service.getProvider("assemblyai").executionSupported()).isTrue();
@@ -79,6 +82,10 @@ class ProviderCatalogServiceTest {
         assertThat(service.getProvider("replicate").executionSupported()).isTrue();
         assertThat(service.getProvider("replicate").implementationStatus()).isEqualTo("implemented_with_restrictions");
         assertThat(service.getProvider("darkowl").implementationStatus()).isEqualTo("implemented_with_restrictions");
+        assertThat(service.getProvider("cerebras").implementationStatus()).isEqualTo("implemented_with_restrictions");
+        assertThat(service.getProvider("cerebras").evidenceLevel()).isEqualTo("integration_verified");
+        assertThat(service.getProvider("sambanova").implementationStatus()).isEqualTo("implemented_with_restrictions");
+        assertThat(service.getProvider("sambanova").evidenceLevel()).isEqualTo("integration_verified");
         assertThat(service.getProvider("siliconflow").implementationStatus()).isEqualTo("implemented_with_restrictions");
         assertThat(service.getProvider("siliconflow").freeTierRecurring()).isTrue();
         assertThat(service.getProvider("dashscope-qwen").implementationStatus()).isEqualTo("implemented_with_restrictions");

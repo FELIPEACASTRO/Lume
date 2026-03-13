@@ -15,6 +15,7 @@ public record ProviderCredentialResponse(
         String apiStyle,
         boolean adminOnly,
         String streamingMode,
+        String providerTier,
         String runtimeMaturity,
         String catalogState,
         String pricingSummary,

@@ -11,15 +11,17 @@ import java.util.Optional;
 
 public interface LibraryEntryJpaRepository extends JpaRepository<LibraryEntryJpaEntity, String> {
 
-    List<LibraryEntryJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId);
+    @Query("SELECT e FROM LibraryEntryJpaEntity e LEFT JOIN FETCH e.tags WHERE e.workspaceId = :workspaceId ORDER BY e.updatedAt DESC")
+    List<LibraryEntryJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(@Param("workspaceId") Long workspaceId);
 
-    List<LibraryEntryJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(Long workspaceId, Pageable pageable);
+    @Query("SELECT e FROM LibraryEntryJpaEntity e LEFT JOIN FETCH e.tags WHERE e.workspaceId = :workspaceId ORDER BY e.updatedAt DESC")
+    List<LibraryEntryJpaEntity> findByWorkspaceIdOrderByUpdatedAtDesc(@Param("workspaceId") Long workspaceId, Pageable pageable);
 
     long countByWorkspaceId(Long workspaceId);
 
     @Query("""
             select e
-            from LibraryEntryJpaEntity e
+            from LibraryEntryJpaEntity e left join fetch e.tags
             where e.workspaceId = :workspaceId
               and (
                     lower(e.title) like lower(concat('%', :query, '%'))

@@ -10,6 +10,7 @@ import com.lume.workspace.entity.PromptTemplateJpaEntity;
 import com.lume.workspace.repository.AgentProfileJpaRepository;
 import com.lume.workspace.repository.ProjectJpaRepository;
 import com.lume.workspace.repository.PromptTemplateJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,33 +29,36 @@ public class PromptTemplateService {
     private final AgentProfileJpaRepository agentProfileRepository;
     private final WorkspaceContextService workspaceContextService;
     private final AuditLogService auditLogService;
+    private final WorkspaceOnboardingService workspaceOnboardingService;
 
     public PromptTemplateService(
             PromptTemplateJpaRepository promptTemplateRepository,
             ProjectJpaRepository projectRepository,
             AgentProfileJpaRepository agentProfileRepository,
             WorkspaceContextService workspaceContextService,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            WorkspaceOnboardingService workspaceOnboardingService
     ) {
         this.promptTemplateRepository = promptTemplateRepository;
         this.projectRepository = projectRepository;
         this.agentProfileRepository = agentProfileRepository;
         this.workspaceContextService = workspaceContextService;
         this.auditLogService = auditLogService;
+        this.workspaceOnboardingService = workspaceOnboardingService;
     }
 
     public List<PromptTemplateResponse> findAll(String query, String projectId, String agentProfileId, Boolean favoritedOnly) {
         workspaceContextService.requirePermission(WorkspaceContextService.PERMISSION_TEMPLATES_READ);
         Long workspaceId = workspaceContextService.getWorkspaceId();
         String normalizedQuery = query == null ? "" : query.trim().toLowerCase();
-        Map<String, ProjectJpaEntity> projectsById = projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)
+        Map<String, ProjectJpaEntity> projectsById = projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 200))
                 .stream()
                 .collect(Collectors.toMap(ProjectJpaEntity::getId, Function.identity(), (left, right) -> left));
-        Map<String, AgentProfileJpaEntity> agentsById = agentProfileRepository.findByWorkspaceIdOrderByNameAsc(workspaceId)
+        Map<String, AgentProfileJpaEntity> agentsById = agentProfileRepository.findByWorkspaceIdOrderByNameAsc(workspaceId, PageRequest.of(0, 200))
                 .stream()
                 .collect(Collectors.toMap(AgentProfileJpaEntity::getId, Function.identity(), (left, right) -> left));
 
-        return promptTemplateRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId)
+        return promptTemplateRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId, PageRequest.of(0, 200))
                 .stream()
                 .filter(template -> projectId == null || projectId.isBlank() || projectId.equals(template.getProjectId()))
                 .filter(template -> agentProfileId == null || agentProfileId.isBlank() || agentProfileId.equals(template.getAgentProfileId()))
@@ -95,6 +99,11 @@ public class PromptTemplateService {
                         "projectId", template.getProjectId() == null ? "" : template.getProjectId(),
                         "agentProfileId", template.getAgentProfileId() == null ? "" : template.getAgentProfileId()
                 )
+        );
+        workspaceOnboardingService.advanceCurrentOnboarding(
+                "first_prompt_sent",
+                "Primeiro template salvo no workspace.",
+                "prompt_template.created"
         );
 
         return toResponse(template, project, agentProfile);

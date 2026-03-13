@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lume.workspace.dto.CreatePromptTemplateRequest;
 import com.lume.workspace.dto.PromptTemplateResponse;
 import com.lume.workspace.dto.UpdatePromptTemplateRequest;
+import com.lume.workspace.dto.WorkspaceOnboardingResponse;
 import com.lume.workspace.entity.AgentProfileJpaEntity;
 import com.lume.workspace.entity.ProjectJpaEntity;
 import com.lume.workspace.entity.PromptTemplateJpaEntity;
@@ -61,16 +62,17 @@ class PromptTemplateServiceTest {
         agent.setWorkspaceId(1L);
         agent.setName("Ops Strategist");
 
-        when(repository.findByWorkspaceIdOrderByUpdatedAtDesc(1L)).thenReturn(List.of(template));
-        when(projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(1L)).thenReturn(List.of(project));
-        when(agentProfileRepository.findByWorkspaceIdOrderByNameAsc(1L)).thenReturn(List.of(agent));
+        when(repository.findByWorkspaceIdOrderByUpdatedAtDesc(any(Long.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(template));
+        when(projectRepository.findByWorkspaceIdOrderByUpdatedAtDesc(any(Long.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(project));
+        when(agentProfileRepository.findByWorkspaceIdOrderByNameAsc(any(Long.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(List.of(agent));
 
         PromptTemplateService service = new PromptTemplateService(
                 repository,
                 projectRepository,
                 agentProfileRepository,
                 new StubWorkspaceContextService(),
-                new NoOpAuditLogService()
+                new NoOpAuditLogService(),
+                new NoOpWorkspaceOnboardingService()
         );
 
         List<PromptTemplateResponse> response = service.findAll(null, "proj-ops", "ops", true);
@@ -107,7 +109,8 @@ class PromptTemplateServiceTest {
                 projectRepository,
                 agentProfileRepository,
                 new StubWorkspaceContextService(),
-                new NoOpAuditLogService()
+                new NoOpAuditLogService(),
+                new NoOpWorkspaceOnboardingService()
         );
 
         PromptTemplateResponse created = service.create(new CreatePromptTemplateRequest(
@@ -173,7 +176,8 @@ class PromptTemplateServiceTest {
                 projectRepository,
                 agentProfileRepository,
                 new StubWorkspaceContextService(),
-                new NoOpAuditLogService()
+                new NoOpAuditLogService(),
+                new NoOpWorkspaceOnboardingService()
         );
 
         PromptTemplateResponse response = service.update("tpl-ops", new UpdatePromptTemplateRequest(
@@ -240,6 +244,26 @@ class PromptTemplateServiceTest {
 
         @Override
         public void record(String entityType, String entityId, String action, Object payload) {
+        }
+    }
+
+    private static final class NoOpWorkspaceOnboardingService extends WorkspaceOnboardingService {
+        private NoOpWorkspaceOnboardingService() {
+            super(null, null, null, null, null);
+        }
+
+        @Override
+        public WorkspaceOnboardingResponse advanceCurrentOnboarding(
+                String activationStatus,
+                String activationNote,
+                String sourceEvent
+        ) {
+            return new WorkspaceOnboardingResponse(
+                    "operations",
+                    "small_team",
+                    "started",
+                    "noop"
+            );
         }
     }
 }

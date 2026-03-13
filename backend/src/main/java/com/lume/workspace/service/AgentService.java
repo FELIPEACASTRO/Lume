@@ -10,6 +10,7 @@ import com.lume.workspace.repository.AgentProfileJpaRepository;
 import com.lume.workspace.repository.AgentThreadJpaRepository;
 import com.lume.workspace.inference.ProviderDefinition;
 import com.lume.workspace.inference.error.AiProviderException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ public class AgentService {
     private final ProviderCatalogService providerCatalogService;
     private final InferenceGatewayService inferenceGatewayService;
     private final WorkspaceLedgerService workspaceLedgerService;
+    private final WorkspaceOnboardingService workspaceOnboardingService;
 
     public AgentService(
             AgentProfileJpaRepository agentProfileRepository,
@@ -42,7 +44,8 @@ public class AgentService {
             AuditLogService auditLogService,
             ProviderCatalogService providerCatalogService,
             InferenceGatewayService inferenceGatewayService,
-            WorkspaceLedgerService workspaceLedgerService
+            WorkspaceLedgerService workspaceLedgerService,
+            WorkspaceOnboardingService workspaceOnboardingService
     ) {
         this.agentProfileRepository = agentProfileRepository;
         this.agentThreadRepository = agentThreadRepository;
@@ -52,6 +55,7 @@ public class AgentService {
         this.providerCatalogService = providerCatalogService;
         this.inferenceGatewayService = inferenceGatewayService;
         this.workspaceLedgerService = workspaceLedgerService;
+        this.workspaceOnboardingService = workspaceOnboardingService;
     }
 
     public List<AgentProfileResponse> listProfiles() {
@@ -66,7 +70,8 @@ public class AgentService {
                 .stream()
                 .collect(Collectors.toMap(AgentProfileJpaEntity::getId, profile -> profile));
 
-        return agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceContextService.getWorkspaceId())
+        return agentThreadRepository.findByWorkspaceIdOrderByUpdatedAtDesc(
+                workspaceContextService.getWorkspaceId(), PageRequest.of(0, 200))
                 .stream()
                 .map(thread -> toThreadResponse(thread, profiles.get(thread.getAgentProfileId())))
                 .toList();
@@ -201,6 +206,11 @@ public class AgentService {
                 "agent_thread",
                 threadId,
                 "Thread criada com resposta inicial concluida."
+        );
+        workspaceOnboardingService.advanceCurrentOnboarding(
+                "completed",
+                "Primeira conversa concluida com resposta real do provedor.",
+                "agents.thread_created"
         );
 
         return new AgentConversationResponse(

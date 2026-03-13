@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/shell/catalog", "/api/v1/shell/catalog"})
+@RequestMapping("/v1/shell/catalog")
 public class VersionedShellCatalogController {
 
     private final ShellNavigationService shellNavigationService;

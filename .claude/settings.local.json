@@ -1,4 +1,25 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(npm list:*)",
+      "Bash(npx firecrawl:*)",
+      "Bash(git log:*)",
+      "Bash(/tmp/services_without_tests.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(npm install:*)",
+      "Bash(npx vitest:*)",
+      "Bash(ls \"c:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/backend/pom.xml \"c:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/backend/build.gradle* \"c:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/pom.xml \"c:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/build.gradle* \"c:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/gradlew* \"c:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/mvnw*)",
+      "Bash(ls C:/Users/davis/Workspace/Lume/mvnw* C:/Users/davis/Workspace/Lume/backend/mvnw* C:/Users/davis/Workspace/Lume/gradlew* C:/Users/davis/Workspace/Lume/backend/gradlew*)",
+      "Bash(ls \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\\\\backend\"/mvn* \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\\\\backend\"/gradle* \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/mvn* \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/gradle*)",
+      "Bash(ls \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\\\\backend\"/*.xml \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\\\\backend\"/*.gradle)",
+      "Bash(ls \"C:\\\\Users\\\\davis\\\\Workspace\\\\Lume\"/mvnw*)",
+      "Bash(mvn -f backend/pom.xml clean test)",
+      "Read(//c/Users/davis/.claude/plans/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\davis\\.claude\\plans"
+    ]
+  },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
@@ -6,6 +27,41 @@
     "code-simplifier@claude-plugins-official": true,
     "postman@claude-plugins-official": true,
     "agent-sdk-dev@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true
+    "claude-md-management@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "woocommerce-backend-dev@claude-skills": true,
+    "web-performance-optimization@claude-skills": true,
+    "web-performance-audit@claude-skills": true,
+    "technical-specification@claude-skills": true,
+    "responsive-web-design@claude-skills": true,
+    "rest-api-design@claude-skills": true,
+    "recommendation-engine@claude-skills": true,
+    "openai-responses@claude-skills": true,
+    "openai-api@claude-skills": true,
+    "oauth-implementation@claude-skills": true,
+    "multi-ai-consultant@claude-skills": true,
+    "motion@claude-skills": true,
+    "mobile-first-design@claude-skills": true,
+    "microservices-patterns@claude-skills": true,
+    "logging-best-practices@claude-skills": true,
+    "image-optimization@claude-skills": true,
+    "google-gemini-file-search@claude-skills": true,
+    "frontend-design@claude-skills": true,
+    "firecrawl-scraper@claude-skills": true,
+    "design-review@claude-skills": true,
+    "ai-elements-chatbot@claude-skills": true,
+    "architecture-patterns@claude-skills": true,
+    "interaction-design@claude-skills": true,
+    "openai-agents@claude-skills": true,
+    "superpowers-dev@superpowers-marketplace": true,
+    "superpowers@superpowers-marketplace": true,
+    "recommendation-system@claude-skills": true,
+    "react-composition-patterns@claude-skills": true,
+    "react-best-practices@claude-skills": true,
+    "elevenlabs-agents@claude-skills": true,
+    "code-review@claude-skills": true,
+    "cloudflare-agents@claude-skills": true
   }
 }

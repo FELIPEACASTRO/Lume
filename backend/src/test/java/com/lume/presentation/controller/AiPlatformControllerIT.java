@@ -44,7 +44,7 @@ class AiPlatformControllerIT {
                 "req-chat"
         );
 
-        mockMvc.perform(post("/api/v1/chat")
+        mockMvc.perform(post("/v1/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -66,7 +66,7 @@ class AiPlatformControllerIT {
                 5
         );
 
-        mockMvc.perform(post("/api/v1/search")
+        mockMvc.perform(post("/v1/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -83,7 +83,7 @@ class AiPlatformControllerIT {
                 "documento base"
         );
 
-        mockMvc.perform(post("/api/v1/embeddings")
+        mockMvc.perform(post("/v1/embeddings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -102,7 +102,7 @@ class AiPlatformControllerIT {
                 2
         );
 
-        mockMvc.perform(post("/api/v1/rerank")
+        mockMvc.perform(post("/v1/rerank")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -123,7 +123,7 @@ class AiPlatformControllerIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/images/generate")
+        mockMvc.perform(post("/v1/images/generate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -143,7 +143,7 @@ class AiPlatformControllerIT {
                 "https://assets.example.com/mask.png"
         );
 
-        mockMvc.perform(post("/api/v1/images/edit")
+        mockMvc.perform(post("/v1/images/edit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -165,7 +165,7 @@ class AiPlatformControllerIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/images/generate")
+        mockMvc.perform(post("/v1/images/generate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -187,7 +187,7 @@ class AiPlatformControllerIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/images/generate")
+        mockMvc.perform(post("/v1/images/generate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -209,7 +209,7 @@ class AiPlatformControllerIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/images/generate")
+        mockMvc.perform(post("/v1/images/generate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -229,7 +229,7 @@ class AiPlatformControllerIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/images/edit")
+        mockMvc.perform(post("/v1/images/edit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -249,7 +249,7 @@ class AiPlatformControllerIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/images/edit")
+        mockMvc.perform(post("/v1/images/edit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -262,7 +262,7 @@ class AiPlatformControllerIT {
     @DisplayName("GET /api/v1/images/jobs/bfl/{jobId} - should expose missing credentials for BFL polling")
     void shouldReturnMissingCredentialsForBflImageJobPolling() throws Exception {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .get("/api/v1/images/jobs/bfl/req-bfl-123")
+                        .get("/v1/images/jobs/bfl/req-bfl-123")
                         .queryParam("pollingUrl", "https://api.bfl.ai/v1/get_result?id=req-bfl-123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.providerCode").value("bfl"))
@@ -273,7 +273,7 @@ class AiPlatformControllerIT {
     @DisplayName("GET /api/v1/images/jobs/replicate/{jobId} - should expose missing credentials for Replicate polling")
     void shouldReturnMissingCredentialsForReplicateImageJobPolling() throws Exception {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .get("/api/v1/images/jobs/replicate/pred-123")
+                        .get("/v1/images/jobs/replicate/pred-123")
                         .queryParam("pollingUrl", "https://api.replicate.com/v1/predictions/pred-123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.providerCode").value("replicate"))
@@ -292,7 +292,7 @@ class AiPlatformControllerIT {
                 "16:9"
         );
 
-        mockMvc.perform(post("/api/v1/videos/generate")
+        mockMvc.perform(post("/v1/videos/generate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -313,7 +313,7 @@ class AiPlatformControllerIT {
                 "16:9"
         );
 
-        mockMvc.perform(post("/api/v1/videos/generate")
+        mockMvc.perform(post("/v1/videos/generate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -325,7 +325,7 @@ class AiPlatformControllerIT {
     @Test
     @DisplayName("GET /api/v1/videos/jobs/runway/{jobId} - should expose missing credentials for runway polling")
     void shouldReturnMissingCredentialsForVideoJobPolling() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/videos/jobs/runway/task-123"))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/v1/videos/jobs/runway/task-123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.providerCode").value("runway"))
                 .andExpect(jsonPath("$.status").value("missing_credentials"));
@@ -334,7 +334,7 @@ class AiPlatformControllerIT {
     @Test
     @DisplayName("GET /api/v1/videos/jobs/replicate/{jobId} - should expose missing credentials for Replicate video polling")
     void shouldReturnMissingCredentialsForReplicateVideoJobPolling() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/videos/jobs/replicate/pred-video-123"))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/v1/videos/jobs/replicate/pred-video-123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.providerCode").value("replicate"))
                 .andExpect(jsonPath("$.status").value("missing_credentials"));
@@ -350,7 +350,7 @@ class AiPlatformControllerIT {
                 "pt-BR"
         );
 
-        mockMvc.perform(post("/api/v1/audio/stt")
+        mockMvc.perform(post("/v1/audio/stt")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -369,7 +369,7 @@ class AiPlatformControllerIT {
                 "pt-BR"
         );
 
-        mockMvc.perform(post("/api/v1/audio/stt")
+        mockMvc.perform(post("/v1/audio/stt")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -389,7 +389,7 @@ class AiPlatformControllerIT {
                 "mp3_44100_128"
         );
 
-        mockMvc.perform(post("/api/v1/audio/tts")
+        mockMvc.perform(post("/v1/audio/tts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -409,7 +409,7 @@ class AiPlatformControllerIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/ocr")
+        mockMvc.perform(post("/v1/ocr")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -428,7 +428,7 @@ class AiPlatformControllerIT {
                 "Incidente interno sob analise"
         );
 
-        mockMvc.perform(post("/api/v1/threat-intel/search")
+        mockMvc.perform(post("/v1/threat-intel/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -452,7 +452,7 @@ class AiPlatformControllerIT {
                 "req-openrouter-free"
         );
 
-        mockMvc.perform(post("/api/v1/responses")
+        mockMvc.perform(post("/v1/responses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -480,7 +480,7 @@ class AiPlatformControllerIT {
                 3
         );
 
-        mockMvc.perform(post("/api/v1/web-grounded-chat")
+        mockMvc.perform(post("/v1/web-grounded-chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -489,3 +489,4 @@ class AiPlatformControllerIT {
                 .andExpect(jsonPath("$.attemptChain").isArray());
     }
 }
+

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/v1/workspaces", "/api/v1/workspaces"})
+@RequestMapping("/v1/workspaces")
 public class VersionedWorkspaceController {
 
     private final WorkspaceTenancyService workspaceTenancyService;

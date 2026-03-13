@@ -5,34 +5,55 @@ import com.lume.workspace.dto.CreditLedgerEntryResponse;
 import com.lume.workspace.dto.FinopsScorecardResponse;
 import com.lume.workspace.dto.PolicyDecisionSummaryResponse;
 import com.lume.workspace.dto.UsageEventResponse;
+import com.lume.workspace.entity.WorkspaceFinopsReconciliationRunJpaEntity;
 import com.lume.workspace.entity.TaskJpaEntity;
 import com.lume.workspace.entity.WorkspaceCostLedgerEntryJpaEntity;
 import com.lume.workspace.entity.WorkspaceCreditLedgerEntryJpaEntity;
 import com.lume.workspace.entity.WorkspaceUsageEventJpaEntity;
+import com.lume.workspace.repository.SupportTicketJpaRepository;
 import com.lume.workspace.repository.TaskJpaRepository;
+import com.lume.workspace.repository.WorkspaceByokConnectionJpaRepository;
 import com.lume.workspace.repository.WorkspaceCostLedgerEntryJpaRepository;
 import com.lume.workspace.repository.WorkspaceCreditLedgerEntryJpaRepository;
+import com.lume.workspace.repository.WorkspaceFinopsReconciliationRunJpaRepository;
+import com.lume.workspace.repository.WorkspaceInvoiceJpaRepository;
 import com.lume.workspace.repository.WorkspaceJpaRepository;
+import com.lume.workspace.repository.WorkspacePaymentEventJpaRepository;
 import com.lume.workspace.repository.WorkspaceUsageEventJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class WorkspaceLedgerService {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final String STATUS_COMPLETED = "completed";
+    private static final String STATUS_FAILED = "failed";
+    private static final String STATUS_PAID = "paid";
+    private static final String STATUS_PROCESSED = "processed";
+    private static final String STATUS_PENDING = "pending";
+    private static final List<String> OPEN_TICKET_STATUSES = List.of("open", "in_progress");
 
     private final WorkspaceUsageEventJpaRepository usageEventRepository;
     private final WorkspaceCreditLedgerEntryJpaRepository creditLedgerRepository;
     private final WorkspaceCostLedgerEntryJpaRepository costLedgerRepository;
     private final WorkspaceJpaRepository workspaceRepository;
     private final TaskJpaRepository taskRepository;
+    private final WorkspaceInvoiceJpaRepository invoiceRepository;
+    private final WorkspacePaymentEventJpaRepository paymentEventRepository;
+    private final WorkspaceFinopsReconciliationRunJpaRepository reconciliationRunRepository;
+    private final SupportTicketJpaRepository supportTicketRepository;
+    private final WorkspaceByokConnectionJpaRepository byokConnectionRepository;
+    private final ProviderCatalogService providerCatalogService;
     private final WorkspaceContextService workspaceContextService;
+    private final SupportTicketSlaService supportTicketSlaService;
 
     public WorkspaceLedgerService(
             WorkspaceUsageEventJpaRepository usageEventRepository,
@@ -40,14 +61,28 @@ public class WorkspaceLedgerService {
             WorkspaceCostLedgerEntryJpaRepository costLedgerRepository,
             WorkspaceJpaRepository workspaceRepository,
             TaskJpaRepository taskRepository,
-            WorkspaceContextService workspaceContextService
+            WorkspaceInvoiceJpaRepository invoiceRepository,
+            WorkspacePaymentEventJpaRepository paymentEventRepository,
+            WorkspaceFinopsReconciliationRunJpaRepository reconciliationRunRepository,
+            SupportTicketJpaRepository supportTicketRepository,
+            WorkspaceByokConnectionJpaRepository byokConnectionRepository,
+            ProviderCatalogService providerCatalogService,
+            WorkspaceContextService workspaceContextService,
+            SupportTicketSlaService supportTicketSlaService
     ) {
         this.usageEventRepository = usageEventRepository;
         this.creditLedgerRepository = creditLedgerRepository;
         this.costLedgerRepository = costLedgerRepository;
         this.workspaceRepository = workspaceRepository;
         this.taskRepository = taskRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.paymentEventRepository = paymentEventRepository;
+        this.reconciliationRunRepository = reconciliationRunRepository;
+        this.supportTicketRepository = supportTicketRepository;
+        this.byokConnectionRepository = byokConnectionRepository;
+        this.providerCatalogService = providerCatalogService;
         this.workspaceContextService = workspaceContextService;
+        this.supportTicketSlaService = supportTicketSlaService;
     }
 
     @Transactional
@@ -122,9 +157,8 @@ public class WorkspaceLedgerService {
     }
 
     public List<UsageEventResponse> listUsageEvents(int limit) {
-        return usageEventRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceContextService.getWorkspaceId())
+        return usageEventRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceContextService.getWorkspaceId(), PageRequest.of(0, safeLimit(limit)))
                 .stream()
-                .limit(safeLimit(limit))
                 .map(item -> new UsageEventResponse(
                         item.getId(),
                         item.getEventType(),
@@ -138,9 +172,8 @@ public class WorkspaceLedgerService {
     }
 
     public List<CreditLedgerEntryResponse> listCreditEntries(int limit) {
-        return creditLedgerRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceContextService.getWorkspaceId())
+        return creditLedgerRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceContextService.getWorkspaceId(), PageRequest.of(0, safeLimit(limit)))
                 .stream()
-                .limit(safeLimit(limit))
                 .map(item -> new CreditLedgerEntryResponse(
                         item.getId(),
                         item.getEntryType(),
@@ -155,9 +188,8 @@ public class WorkspaceLedgerService {
     }
 
     public List<CostLedgerEntryResponse> listCostEntries(int limit) {
-        return costLedgerRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceContextService.getWorkspaceId())
+        return costLedgerRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceContextService.getWorkspaceId(), PageRequest.of(0, safeLimit(limit)))
                 .stream()
-                .limit(safeLimit(limit))
                 .map(item -> new CostLedgerEntryResponse(
                         item.getId(),
                         item.getProviderCode(),
@@ -187,6 +219,8 @@ public class WorkspaceLedgerService {
     public FinopsScorecardResponse scorecard() {
         Long workspaceId = workspaceContextService.getWorkspaceId();
         Integer activationMinutes = activationMinutesToFirstTask(workspaceId);
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
 
         long totalTasks = taskRepository.countByWorkspaceId(workspaceId);
         long completedTasks = taskRepository.countByWorkspaceIdAndRuntimeState(workspaceId, STATUS_COMPLETED);
@@ -197,6 +231,32 @@ public class WorkspaceLedgerService {
         Double inferenceSuccessRate = totalRuns == 0 ? null : ratio(completedRuns, totalRuns);
 
         Double averageCostUsd = costLedgerRepository.averageEstimatedCostByWorkspaceId(workspaceId);
+        long paidInvoicesCount = invoiceRepository.countByWorkspaceIdAndStatus(workspaceId, STATUS_PAID);
+        long paymentFailureCount = paymentEventRepository.countByWorkspaceIdAndStatus(workspaceId, STATUS_FAILED);
+        long orphanPaymentEvents = paymentEventRepository.countByWorkspaceIdAndInvoiceIsNull(workspaceId);
+        long pendingPaymentEvents = paymentEventRepository.countByWorkspaceIdAndStatusAndProcessedAtIsNull(workspaceId, STATUS_PENDING);
+        Optional<WorkspaceFinopsReconciliationRunJpaEntity> latestReconciliation = reconciliationRunRepository.findFirstByWorkspaceIdOrderByExecutedAtDesc(workspaceId);
+        long openSupportTickets = supportTicketRepository.countByWorkspaceIdAndStatusIn(workspaceId, OPEN_TICKET_STATUSES);
+        long criticalOpenSupportTickets = supportTicketRepository.countByWorkspaceIdAndStatusInAndSeverity(workspaceId, OPEN_TICKET_STATUSES, "critical");
+        long overdueSupportTickets = supportTicketRepository.findByWorkspaceIdAndStatusIn(workspaceId, OPEN_TICKET_STATUSES).stream()
+                .filter(supportTicketSlaService::isBreached)
+                .count();
+        long byokConnections = byokConnectionRepository.countByWorkspaceId(workspaceId);
+        long healthyByokConnections = byokConnectionRepository.countByWorkspaceIdAndHealthStatus(workspaceId, "healthy");
+        long weeklyActiveUsers = usageEventRepository.countDistinctActorUserIdByWorkspaceIdAndActorUserIdIsNotNullAndCreatedAtAfter(workspaceId, sevenDaysAgo);
+        long monthlyActiveUsers = usageEventRepository.countDistinctActorUserIdByWorkspaceIdAndActorUserIdIsNotNullAndCreatedAtAfter(workspaceId, thirtyDaysAgo);
+        int coreLiveProviders = 0;
+        int supportedRestrictedProviders = 0;
+        int blockedProviders = 0;
+        for (var providerStatus : providerCatalogService.listProviderStatuses()) {
+            switch (providerStatus.providerTier()) {
+                case "core_live" -> coreLiveProviders++;
+                case "supported_restricted" -> supportedRestrictedProviders++;
+                case "blocked" -> blockedProviders++;
+                default -> {
+                }
+            }
+        }
         int currentCreditBalance = creditLedgerRepository.sumCreditsByWorkspaceId(workspaceId);
 
         return new FinopsScorecardResponse(
@@ -205,11 +265,30 @@ public class WorkspaceLedgerService {
                 null,
                 null,
                 null,
+                weeklyActiveUsers,
+                monthlyActiveUsers,
                 taskCompletionRate,
                 inferenceSuccessRate,
                 averageCostUsd == null || averageCostUsd == 0D ? null : averageCostUsd,
+                paidInvoicesCount,
+                paymentFailureCount,
+                orphanPaymentEvents,
+                pendingPaymentEvents,
+                latestReconciliation.map(WorkspaceFinopsReconciliationRunJpaEntity::getReconciliationStatus).orElse(null),
+                latestReconciliation.map(WorkspaceFinopsReconciliationRunJpaEntity::getCreditDrift).orElse(null),
+                latestReconciliation.map(WorkspaceFinopsReconciliationRunJpaEntity::getExecutedAt)
+                        .map(DATE_TIME_FORMATTER::format)
+                        .orElse(null),
+                openSupportTickets,
+                criticalOpenSupportTickets,
+                overdueSupportTickets,
+                byokConnections,
+                healthyByokConnections,
+                coreLiveProviders,
+                supportedRestrictedProviders,
+                blockedProviders,
                 currentCreditBalance,
-                "D30, churn, margem de contribuicao e NPS operacional dependem de trilhas analiticas/comerciais que ainda estao em maturacao."
+                "WAU/MAU, billing, reconciliacao, suporte, BYOK e readiness ja sao medidos com dados reais. D30, churn, margem de contribuicao e NPS operacional ainda dependem de trilhas analiticas/comerciais em maturacao."
         );
     }
 

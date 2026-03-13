@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/budgets", "/api/v1/budgets"})
+@RequestMapping("/v1/budgets")
 public class VersionedBudgetController {
 
     private final WorkspaceBudgetService workspaceBudgetService;

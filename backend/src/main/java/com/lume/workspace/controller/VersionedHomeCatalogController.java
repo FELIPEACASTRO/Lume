@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/v1/home/catalog", "/api/v1/home/catalog"})
+@RequestMapping("/v1/home/catalog")
 public class VersionedHomeCatalogController {
 
     private final HomeCatalogService homeCatalogService;

@@ -11,6 +11,8 @@ import com.lume.infrastructure.security.BCryptPasswordEncoderAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Clock;
+
 /**
  * Configuração central de beans da aplicação.
  *
@@ -26,6 +28,13 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class BeanConfig {
+
+    // ─── Infrastructure Beans ────────────────────────────────────────────
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
+    }
 
     // ─── Domain Layer Beans ─────────────────────────────────────────────
 

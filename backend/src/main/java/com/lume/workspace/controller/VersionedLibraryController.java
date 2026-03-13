@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/v1/library", "/api/v1/library"})
+@RequestMapping("/v1/library")
 public class VersionedLibraryController {
 
     private final LibraryService libraryService;

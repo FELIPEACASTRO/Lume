@@ -32,7 +32,7 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/providers - should return AI and search providers")
     void shouldReturnProviders() throws Exception {
-        mockMvc.perform(get("/api/v1/providers"))
+        mockMvc.perform(get("/v1/providers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.code=='openai')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='anthropic')]").exists())
@@ -55,7 +55,7 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/models?provider=openai - should return provider model catalog")
     void shouldReturnModelsByProvider() throws Exception {
-        mockMvc.perform(get("/api/v1/models").param("provider", "openai"))
+        mockMvc.perform(get("/v1/models").param("provider", "openai"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].providerCode").value("openai"))
                 .andExpect(jsonPath("$[0].code").value("openai:gpt-4.1-mini"));
@@ -64,11 +64,12 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/providers/openrouter - should return provider detail")
     void shouldReturnProviderDetail() throws Exception {
-        mockMvc.perform(get("/api/v1/providers/openrouter"))
+        mockMvc.perform(get("/v1/providers/openrouter"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("openrouter"))
                 .andExpect(jsonPath("$.executionSupported").value(true))
                 .andExpect(jsonPath("$.catalogState").value("live"))
+                .andExpect(jsonPath("$.providerTier").value("blocked"))
                 .andExpect(jsonPath("$.implementationStatus").value("implemented_with_restrictions"))
                 .andExpect(jsonPath("$.evidenceLevel").value("integration_verified"))
                 .andExpect(jsonPath("$.pricingSummary").isNotEmpty());
@@ -77,7 +78,7 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/providers/openrouter/models - should return scoped models")
     void shouldReturnModelsForProviderPath() throws Exception {
-        mockMvc.perform(get("/api/v1/providers/openrouter/models"))
+        mockMvc.perform(get("/v1/providers/openrouter/models"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.providerCode=='openrouter')]").exists());
     }
@@ -85,7 +86,7 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/provider-credentials - should expose credential env vars without leaking values")
     void shouldReturnCredentialHints() throws Exception {
-        mockMvc.perform(get("/api/v1/provider-credentials"))
+        mockMvc.perform(get("/v1/provider-credentials"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].credentialFields[0].envVar").value("OPENAI_API_KEY"))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].configured").value(false));
@@ -94,14 +95,22 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/providers/status - should expose configuration state")
     void shouldReturnProviderStatuses() throws Exception {
-        mockMvc.perform(get("/api/v1/providers/status"))
+        mockMvc.perform(get("/v1/providers/status"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].category", hasItem("text-runtime")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].implementationStatus", hasItem("live")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].evidenceLevel", hasItem("integration_verified")))
+                .andExpect(jsonPath("$[?(@.providerCode=='openai')].providerTier", hasItem("blocked")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].streamingMode", hasItem("unsupported")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].runtimeMaturity", hasItem("live")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openrouter')].executionSupported", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.providerCode=='anthropic')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='deepseek')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='xai')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='cerebras')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='cerebras')].evidenceLevel", hasItem("integration_verified")))
+                .andExpect(jsonPath("$[?(@.providerCode=='sambanova')].implementationStatus", hasItem("implemented_with_restrictions")))
+                .andExpect(jsonPath("$[?(@.providerCode=='sambanova')].evidenceLevel", hasItem("integration_verified")))
                 .andExpect(jsonPath("$[?(@.providerCode=='deepgram')].executionSupported", hasItem(true)))
                 .andExpect(jsonPath("$[?(@.providerCode=='deepgram')].implementationStatus", hasItem("implemented_with_restrictions")))
                 .andExpect(jsonPath("$[?(@.providerCode=='assemblyai')].executionSupported", hasItem(true)))
@@ -121,7 +130,7 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/providers/health - should expose readiness and last connectivity state")
     void shouldReturnProviderHealth() throws Exception {
-        mockMvc.perform(get("/api/v1/providers/health"))
+        mockMvc.perform(get("/v1/providers/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].implementationStatus", hasItem("live")))
                 .andExpect(jsonPath("$[?(@.providerCode=='openai')].evidenceLevel", hasItem("integration_verified")))
@@ -134,7 +143,7 @@ class ProviderCatalogIT {
     @Test
     @DisplayName("GET /api/v1/research/providers - should expose research providers only")
     void shouldReturnResearchProviders() throws Exception {
-        mockMvc.perform(get("/api/v1/research/providers"))
+        mockMvc.perform(get("/v1/research/providers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.code=='exa')]").exists())
                 .andExpect(jsonPath("$[?(@.code=='tavily')]").exists())
@@ -155,7 +164,7 @@ class ProviderCatalogIT {
                 null
         );
 
-        mockMvc.perform(post("/api/v1/inference/execute")
+        mockMvc.perform(post("/v1/inference/execute")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -167,3 +176,4 @@ class ProviderCatalogIT {
                 .andExpect(jsonPath("$.streamingMode").value("unsupported"));
     }
 }
+

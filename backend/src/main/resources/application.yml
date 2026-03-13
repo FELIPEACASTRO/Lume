@@ -17,6 +17,8 @@ spring:
       minimum-idle: 5
       idle-timeout: 30000
       connection-timeout: 20000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
 
   jpa:
     open-in-view: false
@@ -27,6 +29,10 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 20
+        jdbc.batch_size: 20
+        order_inserts: true
+        order_updates: true
 
   flyway:
     enabled: true
@@ -83,7 +89,16 @@ lume:
         max-concurrent-calls: 8
       rate-limiter:
         permits-per-minute: 120
+  sla:
+    critical-minutes: 15
+    high-minutes: 60
+    medium-minutes: 240
+    low-minutes: 1440
   finops:
+    anomaly:
+      cost-threshold: 0.08
+      success-rate-critical: 70.0
+      success-rate-warning: 85.0
     reconciliation:
       enabled: false
       cron: "0 30 2 1 * *"

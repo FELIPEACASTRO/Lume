@@ -38,7 +38,12 @@ public class ShellNavigationService {
             "search",
             "inbox",
             "usage",
-            "settings"
+            "settings",
+            "chat",
+            "prompts",
+            "billing",
+            "admin",
+            "help"
     );
 
     private static final Set<String> ALLOWED_AVAILABILITY_VALUES = Set.of(
@@ -299,6 +304,13 @@ public class ShellNavigationService {
     private boolean isVisible(ShellNavigationItemJpaEntity item, List<String> permissions) {
         if ("users".equals(item.getId())) {
             return permissions.contains(WorkspaceContextService.PERMISSION_MEMBERS_READ);
+        }
+        if ("usage".equals(item.getId())) {
+            return permissions.contains(WorkspaceContextService.PERMISSION_BUDGETS_READ);
+        }
+        if ("admin".equals(item.getId())) {
+            return permissions.contains(WorkspaceContextService.PERMISSION_SETTINGS_MANAGE)
+                    || permissions.contains(WorkspaceContextService.PERMISSION_BUDGETS_READ);
         }
         return true;
     }
